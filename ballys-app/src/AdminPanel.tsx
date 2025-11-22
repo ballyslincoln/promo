@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Plus, Trash2, Save, Upload, Download, Calendar, 
-  AlertCircle, FileText, Tag, Star, Settings, Check
+  AlertCircle, FileText, Tag, Star, Settings, Check, Database
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
@@ -267,6 +267,23 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               </button>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={async () => {
+                  if (confirm('Initialize database tables? This is safe to run if tables already exist.')) {
+                    try {
+                      await eventService.initDatabase();
+                      showToast('Database initialized successfully!');
+                    } catch (e) {
+                      alert('Failed to initialize database. Check console for errors.');
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                title="Create database tables if missing"
+              >
+                <Database className="w-4 h-4" />
+                Init DB
+              </button>
               <button
                 onClick={() => {
                   if (confirm('This will replace all current events with default promotions. Continue?')) {

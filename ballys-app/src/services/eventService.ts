@@ -186,5 +186,41 @@ export const eventService = {
             console.error('DB schedule save error:', e);
         }
     }
+  },
+
+  // Initialize Database Tables
+  async initDatabase(): Promise<void> {
+    if (!sql) return;
+    
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS events (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          category TEXT NOT NULL,
+          description TEXT,
+          details JSONB,
+          meta JSONB,
+          highlight BOOLEAN DEFAULT FALSE,
+          "startDate" TEXT,
+          "endDate" TEXT,
+          "startTime" TEXT,
+          "endTime" TEXT,
+          "daysOfWeek" JSONB,
+          "isRecurring" BOOLEAN DEFAULT FALSE
+        );
+      `;
+      
+      await sql`
+        CREATE TABLE IF NOT EXISTS schedules (
+          category TEXT PRIMARY KEY,
+          items JSONB NOT NULL
+        );
+      `;
+      console.log('Database initialized successfully');
+    } catch (e) {
+      console.error('Failed to initialize database:', e);
+      throw e;
+    }
   }
 };
