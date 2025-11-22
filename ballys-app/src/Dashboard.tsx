@@ -1,0 +1,591 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home } from 'lucide-react';
+import { PHONE_NUMBERS } from './data';
+import type { Event, AdminEvent, ScheduleItem } from './types';
+import { eventService, shouldShowEvent } from './services/eventService';
+
+// Helper to format date
+const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(date);
+};
+
+const addDays = (date: Date, days: number) => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+};
+
+const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
+};
+
+const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).getDay();
+};
+
+export default function Dashboard() {
+    // Default to today's date
+    const [selectedDate, setSelectedDate] = useState(() => {
+        const today = new Date();
+        // Set to noon to avoid timezone issues
+        today.setHours(12, 0, 0, 0);
+        return today;
+    });
+
+    // Data state
+    const [allEventRules, setAllEventRules] = useState<AdminEvent[]>([]);
+    const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
+
+    const [activeTab, setActiveTab] = useState<'events' | 'schedules' | 'internal'>('events');
+    const [direction, setDirection] = useState(0);
+    const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Update time every second
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Load initial data
+    const loadData = async () => {
+        const rules = await eventService.getEvents();
+        setAllEventRules(rules);
+        const sched = await eventService.getSchedules();
+        setSchedules(sched);
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    // Listen for storage changes (when admin saves events or schedules)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            loadData();
+        };
+        window.addEventListener('storage', handleStorageChange);
+        // Also listen for custom events (for same-tab updates)
+        window.addEventListener('ballys_events_updated', handleStorageChange);
+        window.addEventListener('ballys_schedules_updated', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('ballys_events_updated', handleStorageChange);
+            window.removeEventListener('ballys_schedules_updated', handleStorageChange);
+        };
+    }, []);
+
+    // Computed events for current view
+    const events = allEventRules
+        .filter(e => shouldShowEvent(e, selectedDate))
+        .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
+
+    // Computed phone numbers (dynamic from schedules or fallback)
+    const phoneNumbers = schedules['Important Numbers'] || PHONE_NUMBERS.map(p => ({ name: p.name, time: p.number }));
+
+    // Helper for calendar view
+    const getEventsForDateSync = (date: Date) => {
+        return allEventRules.filter(e => shouldShowEvent(e, date));
+    };
+
+    const handlePrevDay = () => {
+        setDirection(-1);
+        setSelectedDate(d => addDays(d, -1));
+    };
+    const handleNextDay = () => {
+        setDirection(1);
+        setSelectedDate(d => addDays(d, 1));
+    };
+
+    const handleGoToToday = () => {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        const todayStr = today.toISOString();
+        const selectedStr = selectedDate.toISOString();
+        
+        if (todayStr !== selectedStr) {
+            setDirection(today > selectedDate ? 1 : -1);
+            setSelectedDate(today);
+        }
+    };
+
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 20 : -20,
+            opacity: 0
+        }),
+        center: {
+            x: 0,
+            opacity: 1
+        },
+        exit: (direction: number) => ({
+            x: direction < 0 ? 20 : -20,
+            opacity: 0
+        })
+    };
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white pb-40 font-sans selection:bg-red-500/30 relative overflow-x-hidden overscroll-none">
+            {/* Ambient Background */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-red-900/20 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-900/10 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
+                <div className="absolute inset-0 bg-noise opacity-30 mix-blend-overlay"></div>
+            </div>
+
+            {/* Bottom Fade for smooth edge */}
+            <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-40" />
+
+            {/* Header */}
+            <header className="sticky top-0 z-50 pt-6 pb-4 px-4 transition-all duration-300">
+                <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl" />
+
+                <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
+                    {/* Top Bar */}
+                    <div className="flex items-center justify-between w-full">
+                        <div className="w-10" /> {/* Spacer */}
+                        <div className="flex flex-col items-center gap-1 opacity-90">
+                            <div className="flex items-center gap-3">
+                                <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
+                                <div className="h-4 w-[1px] bg-gradient-to-b from-transparent via-white/30 to-transparent" />
+                                <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-white/70">Day At A Glance</span>
+                            </div>
+                            <div className="text-[9px] text-white/50 tracking-wider uppercase font-mono">
+                                {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                        >
+                            {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-white/70" /> : <List className="w-4 h-4 text-white/70" />}
+                        </button>
+                    </div>
+
+                    {/* Date Navigator (Only in List Mode) */}
+                    <AnimatePresence mode="wait">
+                        {viewMode === 'list' && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex flex-col gap-3 w-full max-w-md"
+                            >
+                                <div className="flex items-center justify-between bg-white/5 rounded-full p-1.5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-md">
+                                    <button
+                                        onClick={handlePrevDay}
+                                        className="p-2.5 hover:bg-white/10 rounded-full transition-all active:scale-95 group"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                                    </button>
+
+                                    <div className="flex-1 text-center overflow-hidden h-6 relative">
+                                        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                                            <motion.div
+                                                key={selectedDate.toISOString()}
+                                                custom={direction}
+                                                variants={variants}
+                                                initial="enter"
+                                                animate="center"
+                                                exit="exit"
+                                                transition={{ type: "spring", stiffness: 280, damping: 28 }}
+                                                className="absolute inset-0 flex items-center justify-center"
+                                            >
+                                                <h2 className="text-sm font-semibold tracking-widest text-white/90 whitespace-nowrap uppercase">
+                                                    {formatDate(selectedDate)}
+                                                </h2>
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </div>
+
+                                    <button
+                                        onClick={handleNextDay}
+                                        className="p-2.5 hover:bg-white/10 rounded-full transition-all active:scale-95 group"
+                                    >
+                                        <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                                    </button>
+                                </div>
+                                
+                                {/* Take me to today button - only show if not on today */}
+                                {(() => {
+                                    const today = new Date();
+                                    today.setHours(12, 0, 0, 0);
+                                    const isToday = today.toISOString() === selectedDate.toISOString();
+                                    
+                                    if (isToday) return null;
+                                    
+                                    return (
+                                        <button
+                                            onClick={handleGoToToday}
+                                            className="w-full px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 group"
+                                        >
+                                            <Home className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                            Take Me To Today
+                                        </button>
+                                    );
+                                })()}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Tabs (Only in List Mode) */}
+                    <AnimatePresence>
+                        {viewMode === 'list' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex p-1 bg-black/40 rounded-xl border border-white/10 w-full max-w-md relative shadow-inner"
+                            >
+                                {['events', 'schedules', 'internal'].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab as any)}
+                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/60'}`}
+                                    >
+                                        {activeTab === tab && (
+                                            <motion.div
+                                                layoutId="activeTab"
+                                                className="absolute inset-0 bg-white/10 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/10"
+                                                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                                            />
+                                        )}
+                                        {tab}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </header>
+
+            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10">
+                <AnimatePresence mode="wait">
+                    {viewMode === 'calendar' ? (
+                        <CalendarView
+                            key="calendar-view"
+                            selectedDate={selectedDate}
+                            getEvents={getEventsForDateSync}
+                            onSelectDate={(date) => {
+                                setSelectedDate(date);
+                                setViewMode('list');
+                            }}
+                        />
+                    ) : (
+                        <div key="list-view">
+                            {activeTab === 'events' && (
+                                <motion.div
+                                    key={`events-${selectedDate.toISOString()}`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-10"
+                                >
+                                    {/* Invited Guest Events */}
+                                    <Section title="Invited Guest Events" icon={<Star className="w-4 h-4 text-yellow-500" />}>
+                                        <div className="space-y-4">
+                                            {events.filter(e => e.category === 'Invited').map((event, index) => (
+                                                <EventCard key={event.id} event={event} index={index} />
+                                            ))}
+                                        </div>
+                                        {events.filter(e => e.category === 'Invited').length === 0 && (
+                                            <EmptyState message="No invited guest events scheduled." />
+                                        )}
+                                    </Section>
+
+                                    {/* Open To All */}
+                                    <Section title="Open To All Guests" icon={<Gift className="w-4 h-4 text-red-500" />}>
+                                        <div className="space-y-4">
+                                            {events.filter(e => e.category === 'Open').map((event, index) => (
+                                                <EventCard key={event.id} event={event} index={index} />
+                                            ))}
+                                        </div>
+                                        {events.filter(e => e.category === 'Open').length === 0 && (
+                                            <EmptyState message="No open events scheduled." />
+                                        )}
+                                    </Section>
+
+                                    {/* Dining Offers */}
+                                    <Section title="Dining & Happy Hours" icon={<Utensils className="w-4 h-4 text-blue-400" />}>
+                                        <div className="space-y-4">
+                                            {events.filter(e => e.category === 'Dining').map((event, index) => (
+                                                <EventCard key={event.id} event={event} index={index} />
+                                            ))}
+                                        </div>
+                                        {events.filter(e => e.category === 'Dining').length === 0 && (
+                                            <EmptyState message="No dining specials scheduled." />
+                                        )}
+                                    </Section>
+
+                                    {/* Promo Events */}
+                                    <Section title="Promotions" icon={<Gift className="w-4 h-4 text-purple-400" />}>
+                                        <div className="space-y-4">
+                                            {events.filter(e => e.category === 'Promo').map((event, index) => (
+                                                <EventCard key={event.id} event={event} index={index} />
+                                            ))}
+                                        </div>
+                                        {events.filter(e => e.category === 'Promo').length === 0 && (
+                                            <EmptyState message="No promotions scheduled." />
+                                        )}
+                                    </Section>
+                                </motion.div>
+                            )}
+
+                            {activeTab === 'schedules' && (
+                                <motion.div
+                                    key="schedules"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-6"
+                                >
+                                    {Object.entries(schedules)
+                                        .filter(([category]) => category !== 'Important Numbers')
+                                        .map(([category, items]) => (
+                                        <div 
+                                            key={category} 
+                                            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors duration-300 relative"
+                                        >
+                                            <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                                                <Clock className="w-4 h-4 text-white/40" />
+                                                <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">{category}</h3>
+                                            </div>
+                                            <div className="p-2">
+                                                {items.map((item, idx) => (
+                                                    <div key={idx} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-colors group">
+                                                        <span className="font-medium text-sm text-white/80 group-hover:text-white transition-colors">{item.name}</span>
+                                                        <span className="text-xs font-mono text-white/50 bg-white/5 px-2 py-1 rounded-md border border-white/5">{item.time}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            )}
+
+                            {activeTab === 'internal' && (
+                                <motion.div
+                                    key="internal"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-8"
+                                >
+                                    {/* Promo Info */}
+                                    <Section title="Promotions (Internal)" icon={<Info className="w-4 h-4 text-purple-400" />}>
+                                        {events.filter(e => e.category === 'Promo').map((event, index) => (
+                                            <EventCard key={event.id} event={event} index={index} />
+                                        ))}
+                                        {/* Hardcoded 45th Anniversary if not in events */}
+                                        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
+                                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                <Info className="w-12 h-12" />
+                                            </div>
+                                            <h4 className="text-lg font-bold mb-4 text-white">Beach Chair Rentals</h4>
+                                            <div className="space-y-3 text-sm text-white/70">
+                                                <div className="flex justify-between border-b border-white/5 pb-2">
+                                                    <span>Chair Rental</span>
+                                                    <span className="font-mono text-white">$10</span>
+                                                </div>
+                                                <div className="flex justify-between border-b border-white/5 pb-2">
+                                                    <span>Umbrella</span>
+                                                    <span className="font-mono text-white">$15</span>
+                                                </div>
+                                                <div className="flex justify-between pt-1 items-center">
+                                                    <span className="text-white/90">Package (2 Chairs + 1 Umbrella)</span>
+                                                    <span className="font-mono text-green-400 bg-green-400/10 px-2 py-1 rounded">$35</span>
+                                                </div>
+                                                <p className="text-white/40 text-xs mt-4 flex items-center gap-1.5 bg-white/5 p-2 rounded-lg w-fit">
+                                                    <Clock className="w-3 h-3" /> Collected at 6PM
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </Section>
+
+                                    {/* Phone Numbers */}
+                                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+                                        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-white/40" />
+                                            <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">Important Numbers</h3>
+                                        </div>
+                                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {phoneNumbers.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center bg-white/5 hover:bg-white/10 p-3.5 rounded-xl border border-white/5 transition-all group cursor-pointer hover:border-white/10">
+                                                    <span className="text-sm font-medium text-white/80 group-hover:text-white">{item.name}</span>
+                                                    <span className="text-xs font-mono text-yellow-500/80 group-hover:text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">{item.time}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+                    )}
+                </AnimatePresence>
+            </main>
+        </div>
+    );
+}
+
+function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate: Date, onSelectDate: (date: Date) => void, getEvents: (date: Date) => any[] }) {
+    const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
+
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+        days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+        days.push(new Date(year, month, i));
+    }
+
+    const prevMonth = () => {
+        setCurrentMonth(new Date(year, month - 1, 1));
+    };
+
+    const nextMonth = () => {
+        setCurrentMonth(new Date(year, month + 1, 1));
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6"
+        >
+            <div className="flex items-center justify-between mb-8">
+                <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                    <ChevronLeft className="w-5 h-5 text-white/70" />
+                </button>
+                <h2 className="text-lg font-bold text-white tracking-widest uppercase">
+                    {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </h2>
+                <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                    <ChevronRight className="w-5 h-5 text-white/70" />
+                </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 mb-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    <div key={day} className="text-center text-xs font-bold text-white/30 uppercase tracking-wider py-2">
+                        {day}
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-2">
+                {days.map((date, idx) => {
+                    if (!date) return <div key={idx} />;
+                    const isSelected = date.toDateString() === selectedDate.toDateString();
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const hasEvents = getEvents(date).length > 0;
+
+                    return (
+                        <button
+                            key={idx}
+                            onClick={() => onSelectDate(date)}
+                            className={`
+                                relative h-12 rounded-xl flex flex-col items-center justify-center transition-all duration-200
+                                ${isSelected ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}
+                                ${isToday && !isSelected ? 'border border-red-500/50' : ''}
+                            `}
+                        >
+                            <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{date.getDate()}</span>
+                            {hasEvents && !isSelected && (
+                                <div className="w-1 h-1 rounded-full bg-red-500 mt-1" />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+        </motion.div>
+    );
+}
+
+function Section({ title, icon, children }: { title: string, icon: React.ReactNode, children: React.ReactNode }) {
+    return (
+        <div className="mb-10">
+            <div className="flex items-center gap-2 mb-5 px-2 opacity-70">
+                {icon}
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.3em]">{title}</h3>
+            </div>
+            <div className="space-y-4">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function EmptyState({ message }: { message: string }) {
+    return (
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
+            <CalendarIcon className="w-8 h-8 text-white/10 mb-3" />
+            <p className="text-white/30 text-sm italic">{message}</p>
+        </div>
+    );
+}
+
+function EventCard({ event, index = 0 }: { event: Event, index?: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, ease: "easeOut" }}
+            className={`relative overflow-hidden rounded-2xl border transition-colors duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
+                ? 'bg-gradient-to-br from-yellow-900/20 to-black border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.1)]'
+                : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-xl'
+                }`}
+        >
+            {event.highlight && (
+                <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[9px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-bl-xl z-10 shadow-lg">
+                    Featured
+                </div>
+            )}
+
+            {/* Shine Effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <div className="p-6 relative z-10">
+                <div className="flex justify-between items-start gap-4 mb-3">
+                    <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-400' : 'text-white'}`}>
+                        {event.title}
+                    </h4>
+                </div>
+
+                <p className="text-white/70 text-sm leading-relaxed mb-5 font-light">
+                    {event.description}
+                </p>
+
+                {event.details && (
+                    <ul className="space-y-2.5 mb-5">
+                        {event.details.map((detail, idx) => (
+                            <li key={idx} className="flex items-start gap-3 text-xs text-white/60">
+                                <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${event.highlight ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                                <span className="leading-relaxed">{detail}</span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                {event.meta && (
+                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/5">
+                        {event.meta.map((meta, idx) => (
+                            <div key={idx} className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 group-hover:border-white/10 transition-colors">
+                                <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider">{meta.label}</span>
+                                <span className="text-xs text-white/90 font-medium">{meta.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+}
