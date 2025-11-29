@@ -1,19 +1,26 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Plus, Trash2, Save, Upload, Download, Calendar,
-  AlertCircle, FileText, Tag, Star, Settings, Check, Database
+  X, Plus, Trash2, Upload, Download, Calendar,
+  AlertCircle, FileText, Tag, Star, Settings, Check, Database, Globe, Eye
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
 import { eventService } from './services/eventService';
+import Dashboard from './Dashboard';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const CATEGORIES = ['Invited', 'Open', 'Dining', 'Promo', 'Internal', 'Schedule', 'Entertainment'] as const;
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
+  // Local state (working copy)
   const [events, setEvents] = useState<AdminEvent[]>([]);
   const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
+  
+  // Persisted state (live copy)
+  const [savedEvents, setSavedEvents] = useState<AdminEvent[]>([]);
+  const [savedSchedules, setSavedSchedules] = useState<Record<string, ScheduleItem[]>>({});
+  
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
@@ -23,10 +30,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [bulkJson, setBulkJson] = useState('');
   const [activeView, setActiveView] = useState<'events' | 'schedules'>('events');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    loadEvents();
-    loadSchedules();
+    loadData();
   }, []);
 
   const showToast = (msg: string) => {
@@ -34,56 +41,82 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const loadEvents = async () => {
+  const loadData = async () => {
     const loadedEvents = await eventService.getEvents();
+    const loadedSchedules = await eventService.getSchedules();
+    
     setEvents(loadedEvents);
+    setSavedEvents(JSON.parse(JSON.stringify(loadedEvents))); // Deep copy
+    
+    setSchedules(loadedSchedules);
+    setSavedSchedules(JSON.parse(JSON.stringify(loadedSchedules))); // Deep copy
   };
 
   const initializeWithDefaults = async () => {
     const defaultPromotions = getDefaultPromotions();
     setEvents(defaultPromotions);
-    await eventService.saveEvents(defaultPromotions);
+    showToast('Default promotions loaded. Click "Publish All" to save to live site.');
   };
 
-  const loadSchedules = async () => {
-    const loadedSchedules = await eventService.getSchedules();
-    setSchedules(loadedSchedules);
+  // Helper to check if an event has unsaved changes
+  const getEventStatus = (event: AdminEvent) => {
+    const saved = savedEvents.find(e => e.id === event.id);
+    if (!saved) return 'new'; // Not in saved list -> New
+    
+    // Compare fields
+    const currentStr = JSON.stringify(event);
+    const savedStr = JSON.stringify(saved);
+    return currentStr !== savedStr ? 'modified' : 'synced';
   };
 
-  const saveSchedules = async (schedulesToSave: Record<string, ScheduleItem[]>) => {
+  // Helper to check if a schedule category has unsaved changes
+  const getScheduleStatus = (category: string) => {
+    const current = schedules[category];
+    const saved = savedSchedules[category];
+    
+    if (!saved) return 'new';
+    return JSON.stringify(current) !== JSON.stringify(saved) ? 'modified' : 'synced';
+  };
+
+  // Calculate total unsaved changes
+  const hasUnsavedChanges = () => {
+    const eventsChanged = events.some(e => getEventStatus(e) !== 'synced') || 
+                          events.length !== savedEvents.length; // Length check catches deletions (roughly)
+                          
+    const schedulesChanged = Object.keys(schedules).some(cat => getScheduleStatus(cat) !== 'synced') ||
+                             Object.keys(schedules).length !== Object.keys(savedSchedules).length;
+                             
+    return eventsChanged || schedulesChanged;
+  };
+
+  const handlePublishAll = async () => {
     try {
-      await eventService.saveSchedules(schedulesToSave);
-      setSchedules(schedulesToSave);
-      showToast('Schedules published successfully to live site!');
+      // Validate events before saving
+      const validEvents = events.filter(e => e.id && e.title);
+      
+      await eventService.saveEvents(validEvents);
+      await eventService.saveSchedules(schedules);
+      
+      // Update saved state to match current
+      setSavedEvents(JSON.parse(JSON.stringify(validEvents)));
+      setSavedSchedules(JSON.parse(JSON.stringify(schedules)));
+      
+      showToast('All changes published successfully to live site!');
     } catch (e) {
-      console.error('Failed to save schedules:', e);
-      alert('Failed to save schedules. Please try again.');
+      console.error('Failed to publish:', e);
+      alert('Failed to publish changes. Please try again.');
     }
   };
 
-
   const addScheduleCategory = (categoryName: string) => {
     const updated = { ...schedules, [categoryName]: [] };
-    saveSchedules(updated);
+    setSchedules(updated);
   };
 
   const removeScheduleCategory = (category: string) => {
     const updated = { ...schedules };
     delete updated[category];
-    saveSchedules(updated);
-  };
-
-  const saveEvents = async (eventsToSave: AdminEvent[]) => {
-    try {
-      // Validate events before saving
-      const validEvents = eventsToSave.filter(e => e.id && e.title);
-      await eventService.saveEvents(validEvents);
-      setEvents(validEvents);
-      showToast('Events published successfully to live site!');
-    } catch (e) {
-      console.error('Failed to save events:', e);
-      alert('Failed to save events. Please try again.');
-    }
+    setSchedules(updated);
   };
 
   const handleAdd = () => {
@@ -117,7 +150,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this event?')) {
-      saveEvents(events.filter(e => e.id !== id));
+      setEvents(events.filter(e => e.id !== id));
       if (editingId === id) {
         setEditingId(null);
         setShowAddForm(false);
@@ -128,12 +161,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const handleBulkDelete = () => {
     if (selectedEvents.size === 0) return;
     if (confirm(`Are you sure you want to delete ${selectedEvents.size} event(s)?`)) {
-      saveEvents(events.filter(e => !selectedEvents.has(e.id)));
+      setEvents(events.filter(e => !selectedEvents.has(e.id)));
       setSelectedEvents(new Set());
     }
   };
 
-  const handleSave = (eventData: AdminEvent) => {
+  const handleSaveEvent = (eventData: AdminEvent) => {
     if (!eventData.title.trim()) {
       alert('Please enter a title');
       return;
@@ -143,7 +176,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       ? events.map(e => e.id === editingId ? eventData : e)
       : [...events, eventData];
 
-    saveEvents(updated);
+    setEvents(updated);
     setEditingId(null);
     setShowAddForm(false);
   };
@@ -174,10 +207,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
         ...newEvents
       ];
 
-      saveEvents(updatedEvents);
+      setEvents(updatedEvents);
       setBulkJson('');
       setShowBulkUpload(false);
-      alert(`Successfully uploaded ${validEvents.length} event(s)`);
+      alert(`Successfully processed ${validEvents.length} event(s). Click Publish to save.`);
     } catch (e) {
       alert('Invalid JSON format');
     }
@@ -235,6 +268,30 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
         <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-900/10 rounded-full blur-[120px] mix-blend-screen" />
       </div>
 
+      {/* Preview Mode Overlay */}
+      {showPreview && (
+        <div className="fixed inset-0 z-[200] bg-black">
+          <div className="sticky top-0 z-[210] bg-red-600 text-white px-4 py-2 flex items-center justify-between shadow-lg">
+            <div className="flex items-center gap-2 font-bold text-sm">
+              <Eye className="w-4 h-4" />
+              PREVIEW MODE (Unsaved Changes Visible)
+            </div>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition-colors"
+            >
+              Exit Preview
+            </button>
+          </div>
+          <div className="h-[calc(100vh-40px)] overflow-y-auto">
+             <Dashboard 
+               previewEvents={events} 
+               previewSchedules={schedules} 
+             />
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 h-full flex flex-col">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
@@ -246,6 +303,31 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 <p className="text-xs text-white/50">Manage Events & Schedules</p>
               </div>
             </div>
+            
+            {/* Center Actions */}
+            <div className="flex-1 flex justify-center gap-3">
+              <button
+                onClick={() => setShowPreview(true)}
+                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold flex items-center gap-2 transition-colors"
+                title="Preview changes as they would appear on the live site"
+              >
+                <Eye className="w-4 h-4" />
+                Preview Site
+              </button>
+              
+               <button
+                onClick={handlePublishAll}
+                className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all shadow-lg ${
+                  hasUnsavedChanges()
+                    ? 'bg-green-500 hover:bg-green-600 text-white hover:scale-105 shadow-green-500/20'
+                    : 'bg-white/5 text-white/40 cursor-default'
+                }`}
+              >
+                <Globe className="w-4 h-4" />
+                {hasUnsavedChanges() ? 'Publish All Changes' : 'All Changes Published'}
+              </button>
+            </div>
+
             {/* View Toggle */}
             <div className="flex gap-2 mr-4">
               <button
@@ -399,54 +481,71 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       No events found
                     </div>
                   ) : (
-                    filteredEvents.map(event => (
-                      <div
-                        key={event.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all ${editingId === event.id
-                          ? 'bg-red-500/20 border-red-500/50'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-                          }`}
-                        onClick={() => handleEdit(event.id)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedEvents.has(event.id)}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              toggleSelect(event.id);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-sm truncate">{event.title || 'Untitled'}</h3>
-                              {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs px-2 py-0.5 bg-white/10 rounded text-white/60">
-                                {event.category}
-                              </span>
-                              {event.isRecurring && (
-                                <span className="text-xs px-2 py-0.5 bg-blue-500/20 rounded text-blue-400">
-                                  Recurring
+                    filteredEvents.map(event => {
+                      const status = getEventStatus(event);
+                      return (
+                        <div
+                          key={event.id}
+                          className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === event.id
+                            ? 'bg-red-500/20 border-red-500/50'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                            }`}
+                          onClick={() => handleEdit(event.id)}
+                        >
+                          {/* Status Indicator Strip */}
+                          {status !== 'synced' && (
+                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                              status === 'new' ? 'bg-green-500' : 'bg-yellow-500'
+                            }`} />
+                          )}
+                          
+                          <div className="flex items-start gap-3 pl-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedEvents.has(event.id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                toggleSelect(event.id);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-sm truncate">{event.title || 'Untitled'}</h3>
+                                {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs px-2 py-0.5 bg-white/10 rounded text-white/60">
+                                  {event.category}
                                 </span>
-                              )}
+                                {event.isRecurring && (
+                                  <span className="text-xs px-2 py-0.5 bg-blue-500/20 rounded text-blue-400">
+                                    Recurring
+                                  </span>
+                                )}
+                                {status !== 'synced' && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
+                                    status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                                  }`}>
+                                    {status === 'new' ? 'New' : 'Edited'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(event.id);
+                              }}
+                              className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4 text-white/40" />
+                            </button>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(event.id);
-                            }}
-                            className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4 text-white/40" />
-                          </button>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -466,21 +565,39 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {Object.keys(schedules).map((category) => (
-                    <div
-                      key={category}
-                      onClick={() => setEditingId(category)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${editingId === category
-                        ? 'bg-red-500/20 border-red-500/50'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-                        }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">{category}</h4>
-                        <span className="text-xs text-white/50">{schedules[category].length} items</span>
+                  {Object.keys(schedules).map((category) => {
+                    const status = getScheduleStatus(category);
+                    return (
+                      <div
+                        key={category}
+                        onClick={() => setEditingId(category)}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === category
+                          ? 'bg-red-500/20 border-red-500/50'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                          }`}
+                      >
+                        {/* Status Indicator Strip */}
+                        {status !== 'synced' && (
+                          <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                            status === 'new' ? 'bg-green-500' : 'bg-yellow-500'
+                          }`} />
+                        )}
+                        <div className="flex items-center justify-between pl-2">
+                          <div className="flex items-center gap-2">
+                             <h4 className="font-semibold text-sm">{category}</h4>
+                             {status !== 'synced' && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
+                                  status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                                }`}>
+                                  {status === 'new' ? 'New' : 'Edited'}
+                                </span>
+                              )}
+                          </div>
+                          <span className="text-xs text-white/50">{schedules[category].length} items</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -494,7 +611,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   <EventForm
                     key={editingId}
                     event={currentEvent}
-                    onSave={handleSave}
+                    onSave={handleSaveEvent}
                     onCancel={() => {
                       setEditingId(null);
                       setShowAddForm(false);
@@ -516,7 +633,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   items={schedules[editingId]}
                   onUpdate={(items) => {
                     const updated = { ...schedules, [editingId]: items };
-                    saveSchedules(updated);
+                    setSchedules(updated);
                   }}
                   onDeleteCategory={() => {
                     if (confirm(`Delete category "${editingId}"?`)) {
@@ -673,10 +790,10 @@ function ScheduleForm({
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
             >
-              <Save className="w-4 h-4" />
-              Publish Changes
+              <Check className="w-4 h-4" />
+              Save Draft
             </button>
           </div>
         </div>
@@ -958,10 +1075,10 @@ function EventForm({
             </button>
             <button
               onClick={() => onSave(formData)}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
             >
-              <Save className="w-4 h-4" />
-              Save & Publish
+              <Check className="w-4 h-4" />
+              Save Draft
             </button>
           </div>
         </div>
@@ -1312,4 +1429,3 @@ function EmptyState() {
     </motion.div>
   );
 }
-

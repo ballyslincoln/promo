@@ -65,7 +65,7 @@ const SnowEffect = () => {
     );
 };
 
-export default function Dashboard({ onAdminOpen }: { onAdminOpen?: () => void }) {
+export default function Dashboard({ onAdminOpen, previewEvents, previewSchedules }: { onAdminOpen?: () => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
     // Default to today's date
     const [selectedDate, setSelectedDate] = useState(() => {
         const today = new Date();
@@ -93,23 +93,34 @@ export default function Dashboard({ onAdminOpen }: { onAdminOpen?: () => void })
 
     // Load initial data
     const loadData = async () => {
-        const rules = await eventService.getEvents();
-        setAllEventRules(rules);
-        const sched = await eventService.getSchedules();
-        setSchedules(sched);
+        if (previewEvents) {
+            setAllEventRules(previewEvents);
+        } else {
+            const rules = await eventService.getEvents();
+            setAllEventRules(rules);
+        }
+
+        if (previewSchedules) {
+            setSchedules(previewSchedules);
+        } else {
+            const sched = await eventService.getSchedules();
+            setSchedules(sched);
+        }
     };
 
+    // Update when preview props change or component mounts
     useEffect(() => {
         loadData();
-    }, []);
+    }, [previewEvents, previewSchedules]);
 
-    // Listen for storage changes (when admin saves events or schedules)
+    // Listen for storage changes (only if not in preview mode)
     useEffect(() => {
+        if (previewEvents || previewSchedules) return;
+
         const handleStorageChange = () => {
             loadData();
         };
         window.addEventListener('storage', handleStorageChange);
-        // Also listen for custom events (for same-tab updates)
         window.addEventListener('ballys_events_updated', handleStorageChange);
         window.addEventListener('ballys_schedules_updated', handleStorageChange);
         return () => {
@@ -117,7 +128,7 @@ export default function Dashboard({ onAdminOpen }: { onAdminOpen?: () => void })
             window.removeEventListener('ballys_events_updated', handleStorageChange);
             window.removeEventListener('ballys_schedules_updated', handleStorageChange);
         };
-    }, []);
+    }, [previewEvents, previewSchedules]);
 
     // Computed events for current view
     const events = allEventRules
