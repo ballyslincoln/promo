@@ -105,11 +105,13 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setEvents([...events, newEvent]);
     setEditingId(newEvent.id);
     setShowAddForm(true);
+    setShowBulkUpload(false);
   };
 
   const handleEdit = (id: string) => {
     setEditingId(id);
     setShowAddForm(true);
+    setShowBulkUpload(false);
   };
 
   const handleDelete = (id: string) => {
@@ -365,7 +367,11 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     Add Event
                   </button>
                   <button
-                    onClick={() => setShowBulkUpload(true)}
+                    onClick={() => {
+                      setShowBulkUpload(true);
+                      setShowAddForm(false);
+                      setEditingId(null);
+                    }}
                     className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-2 text-sm transition-colors"
                   >
                     <Upload className="w-4 h-4" />
