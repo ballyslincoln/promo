@@ -119,18 +119,18 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setSchedules(updated);
   };
 
-  const handleAdd = () => {
+  const handleAdd = (initialDate?: Date, initialCategory?: string) => {
     const newEvent: AdminEvent = {
       id: `event-${Date.now()}`,
       title: '',
-      category: 'Open',
+      category: (initialCategory as any) || 'Open',
       description: '',
       details: [],
       meta: [],
       media: [],
       highlight: false,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
+      startDate: initialDate ? initialDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      endDate: initialDate ? initialDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       startTime: '00:00',
       endTime: '23:59',
       daysOfWeek: [],
@@ -140,12 +140,18 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setEditingId(newEvent.id);
     setShowAddForm(true);
     setShowBulkUpload(false);
+    setActiveView('events');
+    // Reset category filter if new event is hidden by it
+    if (filterCategory !== 'all' && filterCategory !== newEvent.category) {
+      setFilterCategory('all');
+    }
   };
 
   const handleEdit = (id: string) => {
     setEditingId(id);
     setShowAddForm(true);
     setShowBulkUpload(false);
+    setActiveView('events');
   };
 
   const handleDelete = (id: string) => {
@@ -287,6 +293,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
              <Dashboard 
                previewEvents={events} 
                previewSchedules={schedules} 
+               onAdminOpen={() => setShowPreview(false)}
+               onEditEvent={(event) => {
+                 setShowPreview(false);
+                 handleEdit(event.id);
+               }}
+               onAddEvent={(date, category) => {
+                 setShowPreview(false);
+                 handleAdd(date, category);
+               }}
              />
           </div>
         </div>
@@ -443,7 +458,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   <button
-                    onClick={handleAdd}
+                    onClick={() => handleAdd()}
                     className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
                   >
                     <Plus className="w-4 h-4" />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
@@ -65,7 +65,7 @@ const SnowEffect = () => {
     );
 };
 
-export default function Dashboard({ onAdminOpen, previewEvents, previewSchedules }: { onAdminOpen?: () => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
+export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previewEvents, previewSchedules }: { onAdminOpen?: () => void, onEditEvent?: (event: Event) => void, onAddEvent?: (date: Date, category?: string) => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
     // Default to today's date
     const [selectedDate, setSelectedDate] = useState(() => {
         const today = new Date();
@@ -369,62 +369,82 @@ export default function Dashboard({ onAdminOpen, previewEvents, previewSchedules
                                     className="space-y-10"
                                 >
                                     {/* Invited Guest Events */}
-                                    <Section title="Invited Guest Events" icon={<Star className="w-4 h-4 text-yellow-500" />}>
+                                    <Section 
+                                        title="Invited Guest Events" 
+                                        icon={<Star className="w-4 h-4 text-yellow-500" />}
+                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined}
+                                    >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Invited').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} />
+                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Invited').length === 0 && (
-                                            <EmptyState message="No invited guest events scheduled." />
+                                            <EmptyState message="No invited guest events scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined} />
                                         )}
                                     </Section>
 
                                     {/* Open To All */}
-                                    <Section title="Open To All Guests" icon={<Gift className="w-4 h-4 text-red-500" />}>
+                                    <Section 
+                                        title="Open To All Guests" 
+                                        icon={<Gift className="w-4 h-4 text-red-500" />}
+                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined}
+                                    >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Open').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} />
+                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Open').length === 0 && (
-                                            <EmptyState message="No open events scheduled." />
+                                            <EmptyState message="No open events scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined} />
                                         )}
                                     </Section>
 
                                     {/* Dining Offers */}
-                                    <Section title="Dining & Happy Hours" icon={<Utensils className="w-4 h-4 text-blue-400" />}>
+                                    <Section 
+                                        title="Dining & Happy Hours" 
+                                        icon={<Utensils className="w-4 h-4 text-blue-400" />}
+                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined}
+                                    >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Dining').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} />
+                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Dining').length === 0 && (
-                                            <EmptyState message="No dining specials scheduled." />
+                                            <EmptyState message="No dining specials scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined} />
                                         )}
                                     </Section>
 
                                     {/* Promo Events */}
-                                    <Section title="Promotions" icon={<Gift className="w-4 h-4 text-purple-400" />}>
+                                    <Section 
+                                        title="Promotions" 
+                                        icon={<Gift className="w-4 h-4 text-purple-400" />}
+                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined}
+                                    >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Promo').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} />
+                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Promo').length === 0 && (
-                                            <EmptyState message="No promotions scheduled." />
+                                            <EmptyState message="No promotions scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined} />
                                         )}
                                     </Section>
 
                                     {/* Entertainment */}
-                                    <Section title="Entertainment" icon={<Music className="w-4 h-4 text-pink-400" />}>
+                                    <Section 
+                                        title="Entertainment" 
+                                        icon={<Music className="w-4 h-4 text-pink-400" />}
+                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined}
+                                    >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Entertainment').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} />
+                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Entertainment').length === 0 && (
-                                            <EmptyState message="No entertainment scheduled." />
+                                            <EmptyState message="No entertainment scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined} />
                                         )}
                                     </Section>
                                 </motion.div>
@@ -583,12 +603,22 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
     );
 }
 
-function Section({ title, icon, children }: { title: string, icon: React.ReactNode, children: React.ReactNode }) {
+function Section({ title, icon, children, onAddEvent }: { title: string, icon: React.ReactNode, children: React.ReactNode, onAddEvent?: () => void }) {
     return (
         <div className="mb-10">
-            <div className="flex items-center gap-2 mb-5 px-2 opacity-70">
-                {icon}
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.3em]">{title}</h3>
+            <div className="flex items-center justify-between mb-5 px-2 opacity-70">
+                <div className="flex items-center gap-2">
+                    {icon}
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em]">{title}</h3>
+                </div>
+                {onAddEvent && (
+                    <button 
+                        onClick={onAddEvent}
+                        className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:text-white transition-colors"
+                    >
+                        <Plus className="w-3 h-3" /> Add Event
+                    </button>
+                )}
             </div>
             <div className="space-y-4">
                 {children}
@@ -597,16 +627,21 @@ function Section({ title, icon, children }: { title: string, icon: React.ReactNo
     );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
-            <CalendarIcon className="w-8 h-8 text-white/10 mb-3" />
-            <p className="text-white/30 text-sm italic">{message}</p>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] group hover:bg-white/5 transition-colors cursor-pointer" onClick={onAddEvent}>
+            <CalendarIcon className="w-8 h-8 text-white/10 mb-3 group-hover:text-white/20 transition-colors" />
+            <p className="text-white/30 text-sm italic mb-2">{message}</p>
+            {onAddEvent && (
+                <span className="text-xs text-red-400/70 font-bold uppercase tracking-wider group-hover:text-red-400 transition-colors">
+                    Click to add event
+                </span>
+            )}
         </div>
     );
 }
 
-function EventCard({ event, index = 0 }: { event: Event, index?: number }) {
+function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number, onEdit?: (event: Event) => void }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -617,6 +652,18 @@ function EventCard({ event, index = 0 }: { event: Event, index?: number }) {
                 : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-xl'
                 }`}
         >
+            {onEdit && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(event);
+                    }}
+                    className="absolute top-3 right-3 z-20 p-2 bg-black/50 hover:bg-red-500/80 text-white/70 hover:text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                    title="Edit Event"
+                >
+                    <Edit2 className="w-3 h-3" />
+                </button>
+            )}
             {event.highlight && (
                 <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[9px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-bl-xl z-10 shadow-lg">
                     Featured
