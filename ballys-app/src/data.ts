@@ -79,6 +79,7 @@ export interface AdminEvent extends Event {
   endTime?: string;
   daysOfWeek?: number[];
   isRecurring?: boolean;
+  property?: 'Lincoln' | 'Tiverton' | 'Both';
 }
 
 // Get events from localStorage if available, otherwise use defaults
@@ -144,6 +145,9 @@ export const getEventsForDate = (date: Date): Event[] => {
 };
 
 // Get all default promotions as AdminEvents for admin panel
+export const getDefaultPromotions = (): AdminEvent[] => {
+  const promotions: AdminEvent[] = [];
+
   // Princess / Holland America / Carnival Cruise Giveaway
   promotions.push({
     id: 'cruise-giveaway-dec5',
@@ -624,6 +628,285 @@ export const getEventsForDate = (date: Date): Event[] => {
     startTime: '20:30',
     endTime: '23:59',
     property: 'Tiverton'
+  });
+
+  // BALLY'S LINCOLN EVENTS
+
+  // TV1 High-End Lucky Free Bet
+  promotions.push({
+    id: 'lincoln-tv1-free-bet',
+    title: 'High-End Lucky Free Bet – Table Games',
+    category: 'Invited',
+    description: 'TV1: Multiple Offers in December',
+    details: [
+      '10a-11:59p @ Promotion Kiosk',
+      'Offers available throughout Dec 5 - Jan 1',
+      'Pick up voucher at Level 1 Players Club after swiping.',
+      'Only eligible for Live table games.'
+    ],
+    startDate: '2025-12-05',
+    endDate: '2025-12-31', // Covering the core period
+    startTime: '10:00',
+    endTime: '23:59',
+    property: 'Lincoln',
+    isRecurring: true,
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6]
+  });
+
+  // TV2 Mid-Level Lucky Free Bet
+  promotions.push({
+    id: 'lincoln-tv2-free-bet',
+    title: 'Mid-Level Lucky Free Bet – Table Games',
+    category: 'Invited',
+    description: 'TV2: Multiple Offers in December',
+    details: [
+      '10a-11:59p @ Promotion Kiosk',
+      'Offers available throughout Dec 5 - Jan 1',
+      'Pick up voucher at Level 1 Players Club after swiping.'
+    ],
+    startDate: '2025-12-05',
+    endDate: '2025-12-31',
+    startTime: '10:00',
+    endTime: '23:59',
+    property: 'Lincoln',
+    isRecurring: true,
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6]
+  });
+
+  // TV3 Low-End Lucky Free Bet
+  promotions.push({
+    id: 'lincoln-tv3-free-bet',
+    title: 'Low-End Lucky Free Bet – Table Games',
+    category: 'Invited',
+    description: 'TV3: Bi-Weekly Offers',
+    details: [
+      '10a-11:59p @ Promotion Kiosk',
+      'Redeem once during bi-weekly periods (or 2 offers per week).',
+      'Pick up voucher at Level 1 Players Club.'
+    ],
+    startDate: '2025-12-04',
+    endDate: '2025-12-31',
+    startTime: '10:00',
+    endTime: '23:59',
+    property: 'Lincoln',
+    isRecurring: true,
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6]
+  });
+
+  // Newsletter Free Slot Play (Lincoln)
+  promotions.push({
+    id: 'lincoln-newsletter-slot-play',
+    title: 'Newsletter Free Slot Play Giveaway',
+    category: 'Invited',
+    description: 'Daily, Nov 30 – Dec 6',
+    details: [
+      '9a-11:59p @ Promotion Kiosk',
+      'Swipe to receive Free Slot Play offer based on play.'
+    ],
+    startDate: '2025-11-30',
+    endDate: '2025-12-06',
+    startTime: '09:00',
+    endTime: '23:59',
+    property: 'Lincoln'
+  });
+
+  // Heated Boot & Shoe Dryer OR Free Slot Play
+  promotions.push({
+    id: 'lincoln-boot-dryer',
+    title: 'Heated Boot & Shoe Dryer OR Free Slot Play',
+    category: 'Invited',
+    description: 'Sunday, Nov 30',
+    details: [
+      'Gift: 1p-7p @ Level 2 Gift Redemption Area',
+      'Free Slot Play: 1p-10p @ Promotion Kiosk',
+      'Preference selected day of giveaway.'
+    ],
+    startDate: '2025-11-30',
+    endDate: '2025-11-30',
+    startTime: '13:00',
+    endTime: '22:00',
+    property: 'Lincoln'
+  });
+
+  // Swipe for Chance to Win (Nov 30 - Lincoln)
+  promotions.push({
+    id: 'lincoln-swipe-win-nov30',
+    title: 'Swipe for a Chance to Win Free Slot Play',
+    category: 'Promo',
+    description: 'Sunday, Nov 30',
+    details: [
+      '1p-7p @ Promotion Kiosk',
+      'Chance to win $10-$1,000 or $5-$1,000 Free Slot Play.'
+    ],
+    startDate: '2025-11-30',
+    endDate: '2025-11-30',
+    startTime: '13:00',
+    endTime: '19:00',
+    property: 'Lincoln'
+  });
+
+  // Bonus Monday Xtra Play (Lincoln)
+  promotions.push({
+    id: 'lincoln-bonus-monday',
+    title: 'Bonus Monday Xtra Play',
+    category: 'Invited',
+    description: 'Mondays: Nov 3-24 & Dec 1',
+    details: [
+      '10a-10p @ Promotion Kiosk',
+      'Free Slot Play based on level of play.',
+      'Valid for 12 hours.'
+    ],
+    startDate: '2025-11-03',
+    endDate: '2025-12-01',
+    isRecurring: true,
+    daysOfWeek: [1], // Monday
+    startTime: '10:00',
+    endTime: '22:00',
+    property: 'Lincoln'
+  });
+
+  // Retro Games Station / Free Slot Play / Free Bet (Dec 2)
+  promotions.push({
+    id: 'lincoln-retro-games-dec2',
+    title: 'Retro Games Station OR Free Slot Play OR Free Bet',
+    category: 'Invited',
+    description: 'Tuesday, Dec 2',
+    details: [
+      'Gift: 1p-7p @ Level 2 Gift Redemption',
+      'Free Slot Play: 1p-10p @ Kiosk',
+      'Free Bet: 10a-11p @ Level 1 Players Club'
+    ],
+    startDate: '2025-12-02',
+    endDate: '2025-12-02',
+    startTime: '10:00',
+    endTime: '23:00',
+    property: 'Lincoln'
+  });
+
+  // Swipe for Chance to Win (Dec 2 - Lincoln)
+  promotions.push({
+    id: 'lincoln-swipe-win-dec2',
+    title: 'Swipe for a Chance to Win Free Slot Play',
+    category: 'Promo',
+    description: 'Tuesday, Dec 2',
+    details: [
+      '1p-7p @ Promotion Kiosk',
+      'Chance to win $10-$1,000 or $5-$1,000 Free Slot Play.'
+    ],
+    startDate: '2025-12-02',
+    endDate: '2025-12-02',
+    startTime: '13:00',
+    endTime: '19:00',
+    property: 'Lincoln'
+  });
+
+  // Stop & Shop / TJ Maxx / Texas Roadhouse / Macy's / Free Slot Play (Dec 3)
+  promotions.push({
+    id: 'lincoln-gift-card-dec3',
+    title: 'Gift Card OR Free Slot Play Giveaway',
+    category: 'Invited',
+    description: 'Wednesday, Dec 3',
+    details: [
+      'Gift Card: 1p-7p @ Level 2 Gift Redemption ($25 or $50)',
+      'Free Slot Play: 1p-10p @ Kiosk ($20 or $40)',
+      'Stop & Shop, TJ Maxx, Texas Roadhouse, Macy\'s options.'
+    ],
+    startDate: '2025-12-03',
+    endDate: '2025-12-03',
+    startTime: '13:00',
+    endTime: '22:00',
+    property: 'Lincoln'
+  });
+
+  // Weighted Blanket OR Free Slot Play (Dec 4)
+  promotions.push({
+    id: 'lincoln-weighted-blanket-dec4',
+    title: 'Weighted Blanket OR Free Slot Play',
+    category: 'Invited',
+    description: 'Thursday, Dec 4',
+    details: [
+      'Gift: 1p-7p @ Level 2 Gift Redemption',
+      'Free Slot Play: 1p-10p @ Kiosk'
+    ],
+    startDate: '2025-12-04',
+    endDate: '2025-12-04',
+    startTime: '13:00',
+    endTime: '22:00',
+    property: 'Lincoln'
+  });
+
+  // Swipe for Chance to Win (Dec 4 - Lincoln)
+  promotions.push({
+    id: 'lincoln-swipe-win-dec4',
+    title: 'Swipe for a Chance to Win Free Slot Play',
+    category: 'Promo',
+    description: 'Thursday, Dec 4',
+    details: [
+      '1p-7p @ Promotion Kiosk',
+      'Chance to win $10-$1,000 or $5-$1,000 Free Slot Play.'
+    ],
+    startDate: '2025-12-04',
+    endDate: '2025-12-04',
+    startTime: '13:00',
+    endTime: '19:00',
+    property: 'Lincoln'
+  });
+
+  // Home Depot / Gift Cards / Free Slot Play / Free Bet (Dec 5)
+  promotions.push({
+    id: 'lincoln-home-depot-dec5',
+    title: 'Home Depot / Gift Card / Free Play / Free Bet',
+    category: 'Invited',
+    description: 'Friday, Dec 5',
+    details: [
+      'Gift Card: 1p-7p @ Level 2 Gift Redemption ($25/$50/$100)',
+      'Free Slot Play: 1p-10p @ Kiosk',
+      'Free Bet: 10a-11p @ Level 1 Players Club ($50/$100)'
+    ],
+    startDate: '2025-12-05',
+    endDate: '2025-12-05',
+    startTime: '10:00',
+    endTime: '23:00',
+    property: 'Lincoln'
+  });
+
+  // Champions & Legends Shopping Event (Dec 6)
+  promotions.push({
+    id: 'lincoln-champions-shopping-dec6',
+    title: 'Champions & Legends Shopping Event',
+    category: 'Invited',
+    description: 'Saturday, Dec 6',
+    details: [
+      'Gift: 1p-7p @ Event Center Pre-Function Area',
+      'Free Slot Play: 1p-10p @ Kiosk',
+      'Free Bet: 1p-10p @ Level 1 Players Club'
+    ],
+    startDate: '2025-12-06',
+    endDate: '2025-12-06',
+    startTime: '13:00',
+    endTime: '22:00',
+    property: 'Lincoln'
+  });
+
+  // Win a Car-Every-Saturday Spectacular
+  promotions.push({
+    id: 'lincoln-car-saturday',
+    title: 'Win a Car-Every-Saturday Spectacular!',
+    category: 'Promo',
+    description: 'Saturdays in December',
+    details: [
+      'Cash Drawings: 6p-8p ($10,000 Total)',
+      'Grand Prize Envelope Game: 9p (Win 2026 BMW X3 or $35,000)',
+      'Entry Earning: Oct 3 - Dec 27',
+      'Prize Redemption: 1st Level Players Club'
+    ],
+    startDate: '2025-12-01',
+    endDate: '2025-12-31',
+    isRecurring: true,
+    daysOfWeek: [6], // Saturday
+    startTime: '18:00',
+    endTime: '22:00',
+    property: 'Lincoln'
   });
 
   return promotions;
