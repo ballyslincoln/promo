@@ -408,10 +408,10 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     <AnimatePresence>
                         {viewMode === 'list' && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm"
+                                initial={{ opacity: 0, y: -10, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                exit={{ opacity: 0, y: -10, height: 0 }}
+                                className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm overflow-hidden"
                             >
                                 {['events', 'schedules', 'internal'].map((tab) => (
                                     <button
@@ -452,7 +452,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             }}
                         />
                     ) : (
-                        <div key="list-view">
+                        <motion.div 
+                            key="list-view"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
                             {activeTab === 'events' && (
                                 <motion.div
                                     key={`events-${selectedDate.toISOString()}`}
@@ -608,7 +614,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </div>
                                 </motion.div>
                             )}
-                        </div>
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </main>
@@ -659,9 +665,10 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="glass-card rounded-3xl p-6"
         >
             <div className="flex items-center justify-between mb-8">
