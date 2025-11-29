@@ -7,14 +7,14 @@
   }
 
   body {
-    @apply bg-[#050505] text-white antialiased;
+    @apply bg-gradient-to-br from-red-950 via-[#1a0505] to-black text-white antialiased min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
   }
 
   .text-glow {

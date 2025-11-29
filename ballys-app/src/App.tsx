@@ -13,9 +13,15 @@ function App() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+Shift+A to open admin
-      if (e.ctrlKey && e.shiftKey && e.key === 'a') {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         setShowAdmin(true);
+      }
+      // Escape to logout
+      if (e.key === 'Escape') {
+          e.preventDefault();
+          setIsAuthenticated(false);
+          setShowAdmin(false);
       }
     };
 

@@ -236,20 +236,21 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white pb-40 font-sans selection:bg-red-500/30 relative overflow-x-hidden overscroll-none">
+        <div className="min-h-screen bg-gradient-to-br from-[#1a0505] via-[#2a0a0a] to-[#000000] text-white pb-40 font-sans selection:bg-red-500/30 relative overflow-x-hidden overscroll-none">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-red-900/20 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-900/10 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
-                <div className="absolute inset-0 bg-noise opacity-30 mix-blend-overlay"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-red-600/10 rounded-full blur-[150px] mix-blend-screen will-change-transform animate-pulse" style={{ animationDuration: '10s' }} />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-red-900/10 rounded-full blur-[150px] mix-blend-screen will-change-transform animate-pulse" style={{ animationDuration: '15s', animationDelay: '2s' }} />
+                <div className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] bg-orange-500/5 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
+                <div className="absolute inset-0 bg-noise opacity-20 mix-blend-overlay"></div>
             </div>
 
             {/* Bottom Fade for smooth edge */}
-            <div className="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-40" />
+            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-40" />
 
             {/* Header */}
             <header className="sticky top-0 z-50 pt-6 pb-4 px-4 transition-all duration-300">
-                <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl" />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl" />
 
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
                     {/* Top Bar */}
