@@ -314,20 +314,34 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     endTime: '22:00'
   });
 
-  // Xtra Play - Wednesdays
+  // Xtra Play - Wednesdays (Dec 3)
   promotions.push({
-    id: 'xtra-play-wed',
+    id: 'xtra-play-wed-dec3',
     title: 'Xtra Play (EBS @ VLTs)',
     category: 'Promo',
-    description: 'Wednesdays (Dec 3, 17)',
+    description: 'Wednesday, December 3',
     details: [
       '10a-10p',
       'Win up to $1,000 in Free Slot Play.'
     ],
     startDate: '2025-12-03',
+    endDate: '2025-12-03',
+    startTime: '10:00',
+    endTime: '22:00'
+  });
+
+  // Xtra Play - Wednesdays (Dec 17)
+  promotions.push({
+    id: 'xtra-play-wed-dec17',
+    title: 'Xtra Play (EBS @ VLTs)',
+    category: 'Promo',
+    description: 'Wednesday, December 17',
+    details: [
+      '10a-10p',
+      'Win up to $1,000 in Free Slot Play.'
+    ],
+    startDate: '2025-12-17',
     endDate: '2025-12-17',
-    daysOfWeek: [3],
-    isRecurring: true,
     startTime: '10:00',
     endTime: '22:00'
   });
@@ -368,21 +382,36 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     endTime: '22:00'
   });
 
-  // Swipe for Gift Card
+  // Swipe for Gift Card (Dec 3)
   promotions.push({
-    id: 'swipe-gift-card',
+    id: 'swipe-gift-card-dec3',
     title: 'Swipe for a Chance to Win a $10-$100 Gift Card',
     category: 'Promo',
-    description: 'Wednesdays, Dec 3 & 17',
+    description: 'Wednesday, December 3',
     details: [
       '1p-7p @ Promotions Kiosk',
       'Chance to win $10-$100 retail brand gift card.',
       'Claim at Bally Rewards Center.'
     ],
     startDate: '2025-12-03',
+    endDate: '2025-12-03',
+    startTime: '13:00',
+    endTime: '19:00'
+  });
+
+  // Swipe for Gift Card (Dec 17)
+  promotions.push({
+    id: 'swipe-gift-card-dec17',
+    title: 'Swipe for a Chance to Win a $10-$100 Gift Card',
+    category: 'Promo',
+    description: 'Wednesday, December 17',
+    details: [
+      '1p-7p @ Promotions Kiosk',
+      'Chance to win $10-$100 retail brand gift card.',
+      'Claim at Bally Rewards Center.'
+    ],
+    startDate: '2025-12-17',
     endDate: '2025-12-17',
-    daysOfWeek: [3],
-    isRecurring: true,
     startTime: '13:00',
     endTime: '19:00'
   });
@@ -496,17 +525,30 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     endTime: '22:00'
   });
 
-  // Entertainment - DJ
+  // Entertainment - DJ (Fridays)
   promotions.push({
-    id: 'entertainment-dj',
+    id: 'entertainment-dj-fri',
     title: 'DJ',
     category: 'Entertainment',
-    description: 'Fridays & Wednesday, Dec 31',
+    description: 'Fridays',
     details: ['8:30p'],
     startDate: '2025-12-01',
     endDate: '2025-12-31',
     isRecurring: true,
-    daysOfWeek: [5, 3], // Friday and Wednesday (specifically Dec 31, but recurring covers Fridays)
+    daysOfWeek: [5], // Friday
+    startTime: '20:30',
+    endTime: '23:59'
+  });
+
+  // Entertainment - DJ (New Year's Eve)
+  promotions.push({
+    id: 'entertainment-dj-nye',
+    title: 'DJ',
+    category: 'Entertainment',
+    description: 'Wednesday, December 31',
+    details: ['8:30p'],
+    startDate: '2025-12-31',
+    endDate: '2025-12-31',
     startTime: '20:30',
     endTime: '23:59'
   });
