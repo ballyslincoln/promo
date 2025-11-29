@@ -118,25 +118,10 @@ const shouldShowEvent = (event: AdminEvent, date: Date): boolean => {
   return true;
 };
 
-// Helper function to check if a date falls within a range
-const isDateInRange = (date: Date, startDate: Date, endDate: Date): boolean => {
-  const dateStr = date.toISOString().split('T')[0];
-  const startStr = startDate.toISOString().split('T')[0];
-  const endStr = endDate.toISOString().split('T')[0];
-  return dateStr >= startStr && dateStr <= endStr;
-};
-
-// Helper function to create a date from month, day, year
-const createDate = (year: number, month: number, day: number): Date => {
-  return new Date(year, month - 1, day);
-};
-
 export const getEventsForDate = (date: Date): Event[] => {
   const events: Event[] = [];
   const year = date.getFullYear();
   const month = date.getMonth() + 1; // 1-12
-  const day = date.getDate();
-  const dayOfWeek = date.getDay(); // 0=Sun, 1=Mon, etc.
 
   // First, load events from localStorage (admin-managed)
   const storedEvents = getStoredEvents();
