@@ -16,7 +16,7 @@
   --color-surface: #FFFFFF;
   
   --color-text-main: #111827;
-  --color-text-muted: #6B7280;
+  --color-text-muted: #4B5563; /* Darkened for readability */
   --color-text-light: #9CA3AF;
 
   --font-sans: Inter, system-ui, sans-serif;
@@ -48,19 +48,19 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/60 backdrop-blur-2xl border border-white/40 shadow-xl;
+    @apply bg-white/60 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
   }
 
   .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg hover:shadow-2xl hover:bg-white/80 transition-all duration-500;
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-1px_rgba(0,0,0,0.1)] hover:bg-white/80 transition-all duration-300 hover:-translate-y-1;
   }
-
+  
   .glass-button {
-    @apply bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/30 shadow-sm transition-all active:scale-95;
+     @apply bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/30 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95;
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(230, 0, 0, 0.3);
+    text-shadow: 0 0 20px rgba(230, 0, 0, 0.2);
   }
 
   .no-scrollbar::-webkit-scrollbar {

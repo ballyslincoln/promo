@@ -324,15 +324,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background text-text-main overflow-hidden font-sans">
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-ballys-red/10 rounded-full blur-[120px] mix-blend-multiply" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-ballys-blue/10 rounded-full blur-[120px] mix-blend-multiply" />
-      </div>
-
       {/* Preview Mode Overlay */}
       {showPreview && (
-        <div className="fixed inset-0 z-[200] bg-white">
+        <div className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-sm">
           <div className="sticky top-0 z-[210] bg-ballys-red text-white px-4 py-2 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-2 font-bold text-sm">
               <Eye className="w-4 h-4" />

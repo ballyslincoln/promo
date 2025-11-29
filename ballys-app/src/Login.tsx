@@ -61,7 +61,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                 className="z-10 w-full max-w-md relative px-4"
             >
                 {/* Glass Card */}
-                <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 md:p-12 shadow-xl overflow-hidden group transform-gpu">
+                <div className="relative bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden group transform-gpu">
                     {/* Shine Effect */}
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
@@ -80,7 +80,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
 
                         {/* Mode Toggle */}
                         <div className="w-full mb-6">
-                            <div className="flex p-1 bg-gray-100 rounded-xl border border-gray-200 relative">
+                            <div className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 relative shadow-sm">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -88,14 +88,14 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setCode('');
                                         setError(false);
                                     }}
-                                    className={`flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        !isAdminMode ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'
+                                    className={`flex-1 py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
+                                        !isAdminMode ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-800'
                                     }`}
                                 >
                                     {!isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
+                                            className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}
@@ -109,14 +109,14 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setCode('');
                                         setError(false);
                                     }}
-                                    className={`flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        isAdminMode ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'
+                                    className={`flex-1 py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
+                                        isAdminMode ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-800'
                                     }`}
                                 >
                                     {isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
+                                            className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}

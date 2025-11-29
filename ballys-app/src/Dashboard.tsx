@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
@@ -43,7 +43,7 @@ const getHoliday = (date: Date) => {
     return holidays[key];
 };
 
-const SnowEffect = () => {
+const SnowEffect = memo(() => {
     return (
         <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden">
             {[...Array(40)].map((_, i) => (
@@ -63,7 +63,24 @@ const SnowEffect = () => {
             ))}
         </div>
     );
-};
+});
+
+const ClockHeader = memo(() => {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="text-[9px] text-text-light tracking-wider uppercase font-mono">
+            {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </div>
+    );
+});
 
 export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previewEvents, previewSchedules }: { onAdminOpen?: () => void, onEditEvent?: (event: Event) => void, onAddEvent?: (date: Date, category?: string) => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
     // Default to today's date
@@ -82,16 +99,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     const [activeTab, setActiveTab] = useState<'events' | 'schedules' | 'internal'>('events');
     const [direction, setDirection] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [selectedProperty, setSelectedProperty] = useState<'All' | 'Lincoln' | 'Tiverton'>('All');
-
-    // Update time every second
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     // Load initial data
     const loadData = async () => {
@@ -174,30 +182,34 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
         };
     }, [previewEvents, previewSchedules]);
 
-    // Computed events for current view
-    const events = allEventRules
-        .filter(e => {
-            // Date filter
-            const dateMatch = shouldShowEvent(e, selectedDate);
-            if (!dateMatch) return false;
+    // Computed events for current view - MEMOIZED to prevent stutter
+    const events = useMemo(() => {
+        return allEventRules
+            .filter(e => {
+                // Date filter
+                const dateMatch = shouldShowEvent(e, selectedDate);
+                if (!dateMatch) return false;
 
-            // Property filter
-            if (selectedProperty === 'All') return true;
-            // Show if property matches OR if property is 'Both' (or undefined which defaults to Both)
-            const prop = e.property || 'Both';
-            return prop === 'Both' || prop === selectedProperty;
-        })
-        .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
+                // Property filter
+                if (selectedProperty === 'All') return true;
+                // Show if property matches OR if property is 'Both' (or undefined which defaults to Both)
+                const prop = e.property || 'Both';
+                return prop === 'Both' || prop === selectedProperty;
+            })
+            .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
+    }, [allEventRules, selectedDate, selectedProperty]);
 
-    // Computed phone numbers (dynamic from schedules or fallback)
-    const phoneNumbers = schedules['Important Numbers'] || PHONE_NUMBERS.map(p => ({ name: p.name, time: p.number }));
+    // Computed phone numbers (dynamic from schedules or fallback) - MEMOIZED
+    const phoneNumbers = useMemo(() => {
+        return schedules['Important Numbers'] || PHONE_NUMBERS.map(p => ({ name: p.name, time: p.number }));
+    }, [schedules]);
 
-    const holiday = getHoliday(selectedDate);
+    const holiday = useMemo(() => getHoliday(selectedDate), [selectedDate]);
 
-    // Helper for calendar view
-    const getEventsForDateSync = (date: Date) => {
+    // Helper for calendar view - MEMOIZED
+    const getEventsForDateSync = useMemo(() => (date: Date) => {
         return allEventRules.filter(e => shouldShowEvent(e, date));
-    };
+    }, [allEventRules]);
 
     const handlePrevDay = () => {
         setDirection(-1);
@@ -239,8 +251,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
         <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform animate-pulse" style={{ animationDuration: '10s' }} />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform animate-pulse" style={{ animationDuration: '15s', animationDelay: '2s' }} />
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform" />
             </div>
 
             {/* Bottom Fade for smooth edge */}
@@ -260,9 +272,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 <div className="h-4 w-[1px] bg-gray-300" />
                                 <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-text-muted">Day At A Glance</span>
                             </div>
-                            <div className="text-[9px] text-text-light tracking-wider uppercase font-mono">
-                                {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                            </div>
+                            <ClockHeader />
                         </div>
                         <button
                             onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
@@ -278,7 +288,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             <button
                                 key={prop}
                                 onClick={() => setSelectedProperty(prop as any)}
-                                className={`relative z-10 px-5 py-2 text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-gray-500 hover:text-text-main'
                                     }`}
                             >
                                 {selectedProperty === prop && (
@@ -402,7 +412,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`flex-1 py-3 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-700'}`}
+                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-gray-500 hover:text-text-main'}`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
