@@ -115,6 +115,48 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
         loadData();
     }, [previewEvents, previewSchedules]);
 
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if typing in an input (though dashboard usually doesn't have inputs unless admin)
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    handlePrevDay();
+                    break;
+                case 'ArrowRight':
+                    handleNextDay();
+                    break;
+                case 't': // Today
+                    handleGoToToday();
+                    break;
+                case '1':
+                    if (viewMode === 'list') setActiveTab('events');
+                    break;
+                case '2':
+                    if (viewMode === 'list') setActiveTab('schedules');
+                    break;
+                case '3':
+                    if (viewMode === 'list') setActiveTab('internal');
+                    break;
+                 case 'c':
+                    setViewMode(v => v === 'list' ? 'calendar' : 'list');
+                    break;
+                 case 'p':
+                    setSelectedProperty(p => {
+                        if (p === 'All') return 'Lincoln';
+                        if (p === 'Lincoln') return 'Tiverton';
+                        return 'All';
+                    });
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedDate, viewMode]);
+
     // Listen for storage changes (only if not in preview mode)
     useEffect(() => {
         if (previewEvents || previewSchedules) return;

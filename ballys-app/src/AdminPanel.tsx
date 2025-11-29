@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Plus, Trash2, Upload, Download, Calendar,
-  AlertCircle, FileText, Tag, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft
+  X, Plus, Trash2, Upload, Download,
+  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
@@ -174,7 +174,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const handleSaveEvent = (eventData: AdminEvent) => {
+  const handleSaveEvent = async (eventData: AdminEvent, publish: boolean = false) => {
     if (!eventData.title.trim()) {
       alert('Please enter a title');
       return;
@@ -190,6 +190,24 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       : [...events, eventToSave];
 
     setEvents(updated);
+    
+    if (publish) {
+      try {
+        await eventService.saveEvents(updated);
+        await eventService.saveSchedules(schedules); // Save schedules too just in case
+        
+        setSavedEvents(JSON.parse(JSON.stringify(updated)));
+        setSavedSchedules(JSON.parse(JSON.stringify(schedules)));
+        
+        showToast('Event saved and published successfully!');
+      } catch (e) {
+        console.error('Failed to publish:', e);
+        alert('Failed to publish. Draft saved locally.');
+      }
+    } else {
+       showToast('Draft saved. Click "Publish All" to go live.');
+    }
+
     setEditingId(null);
     setShowAddForm(false);
   };
@@ -260,10 +278,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   };
 
   const getFilteredEvents = () => {
+    const term = searchTerm.toLowerCase().trim();
+    
     const filtered = events.filter(e => {
-      const matchesSearch = !searchTerm ||
-        e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !term ||
+        e.title.toLowerCase().includes(term) ||
+        e.description?.toLowerCase().includes(term) ||
+        e.category.toLowerCase().includes(term) ||
+        e.property?.toLowerCase().includes(term) ||
+        e.details?.some(d => d.toLowerCase().includes(term)) ||
+        e.meta?.some(m => m.label.toLowerCase().includes(term) || m.value.toLowerCase().includes(term));
+        
       const matchesCategory = filterCategory === 'all' || e.category === filterCategory;
       return matchesSearch && matchesCategory;
     });
@@ -441,13 +466,24 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <div className="p-4 space-y-4">
                 {/* Search & Filters */}
                 <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Search events..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
-                  />
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-white/40 absolute left-3 top-3 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search title, details, tags..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full px-4 py-2.5 pl-9 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
+                    />
+                    {searchTerm && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-2.5 text-white/40 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <select
                       value={filterCategory}
@@ -1061,10 +1097,11 @@ function EventForm({
   onCancel
 }: {
   event: AdminEvent;
-  onSave: (event: AdminEvent) => void;
+  onSave: (event: AdminEvent, publish?: boolean) => void;
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<AdminEvent>(event);
+  const [activeTab, setActiveTab] = useState<'details' | 'media' | 'time'>('details');
 
   useEffect(() => {
     setFormData(event);
@@ -1119,288 +1156,321 @@ function EventForm({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="max-w-3xl mx-auto pb-20"
+      className="max-w-4xl mx-auto pb-20"
     >
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-8">
-        <div className="flex items-center justify-between border-b border-white/10 pb-6">
-          <div>
-            <h2 className="text-2xl font-bold">{event.id.startsWith('event-') ? 'New Event' : 'Edit Event'}</h2>
-            <p className="text-sm text-white/50 mt-1">Fill in the details below</p>
-          </div>
-          <div className="flex gap-3">
-            <button
+      <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+        {/* Form Header */}
+        <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+          <div className="flex items-center gap-4">
+             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors flex items-center gap-2"
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Back to List
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                 {event.id.startsWith('event-') ? 'Create New Event' : 'Edit Event'}
+                 {formData.highlight && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}
+              </h2>
+              <p className="text-xs text-white/50">
+                {formData.title || 'Untitled Event'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onSave(formData, false)}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors"
+            >
+              Save Draft
             </button>
             <button
-              onClick={() => onSave(formData)}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              onClick={() => onSave(formData, true)}
+              className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-green-900/20"
             >
-              <Check className="w-4 h-4" />
-              Save Draft
+              <Globe className="w-4 h-4" />
+              Save & Publish
             </button>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Basic Info */}
+        <div className="p-6 space-y-8">
+          {/* Title & Basic Info */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Basic Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="col-span-full">
-                <label className="block text-sm font-medium mb-2">Title</label>
+             <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Event Title</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-lg font-semibold"
-                  placeholder="Event Title"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-red-500/50 focus:bg-white/10 text-xl font-bold placeholder:text-white/20 transition-all"
+                  placeholder="Enter event name..."
+                  autoFocus
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => updateField('category', e.target.value as any)}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                >
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Property</label>
-                <select
-                  value={formData.property || 'Both'}
-                  onChange={(e) => updateField('property', e.target.value as any)}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                >
-                  <option value="Both">Both Properties</option>
-                  <option value="Lincoln">Bally's Lincoln</option>
-                  <option value="Tiverton">Bally's Tiverton</option>
-                </select>
-              </div>
-              <div className="col-span-full">
-                <label className="block text-sm font-medium mb-2">Description</label>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Category</label>
+                    <div className="relative">
+                        <select
+                        value={formData.category}
+                        onChange={(e) => updateField('category', e.target.value as any)}
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                        >
+                        {CATEGORIES.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                        </select>
+                        <div className="absolute right-3 top-3 pointer-events-none opacity-50">
+                            <ArrowUpDown className="w-4 h-4" />
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Property</label>
+                     <div className="relative">
+                        <select
+                        value={formData.property || 'Both'}
+                        onChange={(e) => updateField('property', e.target.value as any)}
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                        >
+                        <option value="Both">Both Properties</option>
+                        <option value="Lincoln">Bally's Lincoln</option>
+                        <option value="Tiverton">Bally's Tiverton</option>
+                        </select>
+                         <div className="absolute right-3 top-3 pointer-events-none opacity-50">
+                            <ArrowUpDown className="w-4 h-4" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-end pb-1">
+                     <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.highlight ? 'bg-yellow-500 border-yellow-500' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
+                             {formData.highlight && <Check className="w-3 h-3 text-black" />}
+                        </div>
+                        <input
+                            type="checkbox"
+                            checked={formData.highlight || false}
+                            onChange={(e) => updateField('highlight', e.target.checked)}
+                            className="hidden"
+                        />
+                        <span className={`text-sm font-medium transition-colors ${formData.highlight ? 'text-yellow-500' : 'text-white/60 group-hover:text-white'}`}>
+                            Featured Event
+                        </span>
+                    </label>
+                </div>
+             </div>
+
+             <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Description</label>
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => updateField('description', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 resize-none"
-                  placeholder="Brief description..."
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-red-500/50 focus:bg-white/10 resize-none text-white/80 leading-relaxed"
+                  placeholder="Write a brief description..."
                 />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="highlight"
-                checked={formData.highlight || false}
-                onChange={(e) => updateField('highlight', e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/5"
-              />
-              <label htmlFor="highlight" className="text-sm flex items-center gap-2 cursor-pointer">
-                <Star className="w-4 h-4 text-yellow-500" />
-                Featured Event
-              </label>
-            </div>
+             </div>
           </div>
 
-          {/* Media Upload */}
-          <MediaUpload
-            media={formData.media}
-            onChange={(media) => updateField('media', media)}
-          />
-
-          {/* Date & Time */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Date & Time
-            </h3>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="recurring"
-                checked={formData.isRecurring || false}
-                onChange={(e) => updateField('isRecurring', e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/5"
-              />
-              <label htmlFor="recurring" className="text-sm cursor-pointer">
-                Recurring Event (by day of week)
-              </label>
-            </div>
-
-            {formData.isRecurring ? (
-              <div>
-                <label className="block text-sm font-medium mb-2">Days of Week</label>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS_OF_WEEK.map((day, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => toggleDayOfWeek(index)}
-                      className={`px-4 py-2 rounded-lg border transition-colors ${formData.daysOfWeek?.includes(index)
-                        ? 'bg-red-500/20 border-red-500/50 text-white'
-                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                        }`}
-                    >
-                      {day.slice(0, 3)}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Start Time</label>
-                    <input
-                      type="time"
-                      value={formData.startTime || '00:00'}
-                      onChange={(e) => updateField('startTime', e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">End Time</label>
-                    <input
-                      type="time"
-                      value={formData.endTime || '23:59'}
-                      onChange={(e) => updateField('endTime', e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Start Date</label>
-                  <input
-                    type="date"
-                    value={formData.startDate || ''}
-                    onChange={(e) => updateField('startDate', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">End Date</label>
-                  <input
-                    type="date"
-                    value={formData.endDate || ''}
-                    onChange={(e) => updateField('endDate', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Start Time</label>
-                  <input
-                    type="time"
-                    value={formData.startTime || '00:00'}
-                    onChange={(e) => updateField('startTime', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">End Time</label>
-                  <input
-                    type="time"
-                    value={formData.endTime || '23:59'}
-                    onChange={(e) => updateField('endTime', e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Details (Bullet Points) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
-                Details (Bullet Points)
-              </h3>
-              <button
-                onClick={addDetail}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add
-              </button>
-            </div>
-            {formData.details?.map((detail, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  type="text"
-                  value={detail}
-                  onChange={(e) => updateDetail(index, e.target.value)}
-                  className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  placeholder="Detail point"
-                />
-                <button
-                  onClick={() => removeDetail(index)}
-                  className="p-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 rounded-lg transition-colors"
+          {/* Tabs for other sections */}
+          <div className="border-t border-white/10 pt-6">
+             <div className="flex gap-2 mb-6 bg-black/20 p-1 rounded-lg inline-flex">
+                <button 
+                    onClick={() => setActiveTab('details')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
                 >
-                  <X className="w-4 h-4" />
+                    Details & Media
                 </button>
-              </div>
-            ))}
-            {(!formData.details || formData.details.length === 0) && (
-              <p className="text-sm text-white/30 italic">No details added</p>
-            )}
-          </div>
+                 <button 
+                    onClick={() => setActiveTab('time')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+                >
+                    Date & Time
+                </button>
+             </div>
 
-          {/* Meta (Key-Value Pairs) */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
-                <Tag className="w-4 h-4" />
-                Meta Information (WHEN, WHERE, etc.)
-              </h3>
-              <button
-                onClick={addMeta}
-                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add
-              </button>
-            </div>
-            {formData.meta?.map((meta, index) => (
-              <div key={index} className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={meta.label}
-                  onChange={(e) => updateMeta(index, 'label', e.target.value)}
-                  className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                  placeholder="Label (e.g., WHEN)"
-                />
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={meta.value}
-                    onChange={(e) => updateMeta(index, 'value', e.target.value)}
-                    className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                    placeholder="Value"
-                  />
-                  <button
-                    onClick={() => removeMeta(index)}
-                    className="p-2.5 bg-white/5 hover:bg-red-500/20 border border-white/10 rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {(!formData.meta || formData.meta.length === 0) && (
-              <p className="text-sm text-white/30 italic">No meta information added</p>
-            )}
+             <AnimatePresence mode="wait">
+                {activeTab === 'details' ? (
+                    <motion.div
+                        key="details"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-8"
+                    >
+                        {/* Media */}
+                         <div className="bg-white/5 border border-white/5 rounded-xl p-5">
+                            <MediaUpload
+                                media={formData.media}
+                                onChange={(media) => updateField('media', media)}
+                            />
+                        </div>
+
+                        {/* Bullet Points */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40">Bullet Points</label>
+                                <button onClick={addDetail} className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
+                                    <Plus className="w-3 h-3" /> Add Point
+                                </button>
+                            </div>
+                             <div className="space-y-2">
+                                {formData.details?.map((detail, index) => (
+                                <div key={index} className="flex gap-2 group">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-4 shrink-0 group-hover:bg-red-500 transition-colors" />
+                                    <input
+                                    type="text"
+                                    value={detail}
+                                    onChange={(e) => updateDetail(index, e.target.value)}
+                                    className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 focus:bg-white/10"
+                                    placeholder="Detail point"
+                                    />
+                                    <button
+                                    onClick={() => removeDetail(index)}
+                                    className="p-2 text-white/20 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                    <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                ))}
+                                {(!formData.details || formData.details.length === 0) && (
+                                    <div onClick={addDetail} className="px-4 py-8 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5 transition-colors">
+                                        <p className="text-sm text-white/30">No details added. Click to add bullet points.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                         {/* Meta */}
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40">Meta Info (Tags)</label>
+                                <button onClick={addMeta} className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
+                                    <Plus className="w-3 h-3" /> Add Tag
+                                </button>
+                            </div>
+                             <div className="space-y-2">
+                                {formData.meta?.map((meta, index) => (
+                                <div key={index} className="flex gap-2 items-center">
+                                    <input
+                                    type="text"
+                                    value={meta.label}
+                                    onChange={(e) => updateMeta(index, 'label', e.target.value)}
+                                    className="w-1/3 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-xs font-bold uppercase tracking-wider placeholder:text-white/20"
+                                    placeholder="LABEL"
+                                    />
+                                    <input
+                                    type="text"
+                                    value={meta.value}
+                                    onChange={(e) => updateMeta(index, 'value', e.target.value)}
+                                    className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    placeholder="Value"
+                                    />
+                                    <button
+                                    onClick={() => removeMeta(index)}
+                                    className="p-2 text-white/20 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                    <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                ))}
+                            </div>
+                        </div>
+
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="time"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="bg-white/5 border border-white/5 rounded-xl p-6"
+                    >
+                         <div className="space-y-6">
+                            <div className="flex items-center gap-3 mb-6 p-4 bg-white/5 rounded-lg border border-white/5">
+                            <input
+                                type="checkbox"
+                                id="recurring"
+                                checked={formData.isRecurring || false}
+                                onChange={(e) => updateField('isRecurring', e.target.checked)}
+                                className="w-5 h-5 rounded border-white/20 bg-black"
+                            />
+                            <label htmlFor="recurring" className="text-sm font-medium cursor-pointer flex-1">
+                                <span className="block text-white">Recurring Event</span>
+                                <span className="block text-xs text-white/50">Repeats weekly on specific days</span>
+                            </label>
+                            </div>
+
+                            {formData.isRecurring ? (
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-3">Active Days</label>
+                                <div className="flex flex-wrap gap-2">
+                                {DAYS_OF_WEEK.map((day, index) => (
+                                    <button
+                                    key={index}
+                                    type="button"
+                                    onClick={() => toggleDayOfWeek(index)}
+                                    className={`h-10 px-4 rounded-lg border text-sm font-medium transition-all ${formData.daysOfWeek?.includes(index)
+                                        ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20'
+                                        : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                    >
+                                    {day}
+                                    </button>
+                                ))}
+                                </div>
+                            </div>
+                            ) : (
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={formData.startDate || ''}
+                                    onChange={(e) => updateField('startDate', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                />
+                                </div>
+                                <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">End Date</label>
+                                <input
+                                    type="date"
+                                    value={formData.endDate || ''}
+                                    onChange={(e) => updateField('endDate', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                />
+                                </div>
+                            </div>
+                            )}
+                            
+                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Start Time</label>
+                                    <input
+                                    type="time"
+                                    value={formData.startTime || '00:00'}
+                                    onChange={(e) => updateField('startTime', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">End Time</label>
+                                    <input
+                                    type="time"
+                                    value={formData.endTime || '23:59'}
+                                    onChange={(e) => updateField('endTime', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+             </AnimatePresence>
+
           </div>
         </div>
       </div>

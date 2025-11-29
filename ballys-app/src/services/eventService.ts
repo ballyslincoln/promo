@@ -212,7 +212,8 @@ export const eventService = {
           "endTime" TEXT,
           "daysOfWeek" JSONB,
           "isRecurring" BOOLEAN DEFAULT FALSE,
-          property TEXT DEFAULT 'Both'
+          property TEXT DEFAULT 'Both',
+          "lastUpdated" TEXT
         );
       `;
 
