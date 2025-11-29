@@ -32,7 +32,6 @@
 
 @layer base {
   :root {
-    /* Keep these for potential legacy compatibility if needed, but usually safe to remove if we strictly use tailwind classes */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
   }
@@ -40,16 +39,24 @@
   body {
     @apply bg-background text-text-main antialiased min-h-screen overflow-x-hidden;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(230, 0, 0, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(0, 87, 184, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg;
+    @apply bg-white/60 backdrop-blur-2xl border border-white/40 shadow-xl;
   }
 
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/60 shadow-md hover:shadow-xl transition-all duration-300;
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg hover:shadow-2xl hover:bg-white/80 transition-all duration-500;
+  }
+
+  .glass-button {
+    @apply bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/30 shadow-sm transition-all active:scale-95;
   }
 
   .text-glow {

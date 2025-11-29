@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
@@ -273,18 +273,18 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     </div>
 
                     {/* Property Toggle */}
-                    <div className="flex bg-gray-100 rounded-full border border-gray-200 p-1 relative shadow-inner">
+                    <div className="flex bg-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/50 p-1.5 relative shadow-inner">
                         {['All', 'Lincoln', 'Tiverton'].map((prop) => (
                             <button
                                 key={prop}
                                 onClick={() => setSelectedProperty(prop as any)}
-                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-text-light hover:text-text-muted'
+                                className={`relative z-10 px-5 py-2 text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-gray-500 hover:text-gray-700'
                                     }`}
                             >
                                 {selectedProperty === prop && (
                                     <motion.div
                                         layoutId="activeProperty"
-                                        className="absolute inset-0 bg-ballys-red rounded-full shadow-md"
+                                        className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/20"
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
@@ -396,18 +396,18 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="flex p-1 bg-gray-100 rounded-xl border border-gray-200 w-full max-w-md relative shadow-inner"
+                                className="flex p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200/50 w-full max-w-md relative shadow-inner backdrop-blur-sm"
                             >
                                 {['events', 'schedules', 'internal'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'}`}
+                                        className={`flex-1 py-3 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-700'}`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
+                                                className="absolute inset-0 bg-white rounded-xl shadow-sm border border-black/5"
                                                 transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                             />
                                         )}
@@ -643,7 +643,7 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="glass-card rounded-3xl p-6 bg-white/90"
+            className="glass-card rounded-3xl p-6"
         >
             <div className="flex items-center justify-between mb-8">
                 <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -745,9 +745,9 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, ease: "easeOut" }}
-            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
-                ? 'bg-gradient-to-br from-ballys-gold/10 to-white border-ballys-gold/30 shadow-lg'
-                : 'bg-white hover:border-ballys-red/20'
+            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-300 group transform-gpu [backface-visibility:hidden] ${event.highlight
+                ? 'bg-gradient-to-br from-ballys-gold/10 to-white/80 border-ballys-gold/30 shadow-lg'
+                : 'hover:bg-white/60 hover:border-ballys-red/20'
                 }`}
         >
             {onEdit && (
