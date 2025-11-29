@@ -598,46 +598,45 @@ function ScheduleForm({
   };
 
   const removeItem = (index: number) => {
-
-
-    const handleExport = () => {
-      const dataStr = JSON.stringify(localItems, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${category.toLowerCase().replace(/\s+/g, '-')}-schedule.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const handleImport = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'application/json';
-      input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const json = JSON.parse(event.target?.result as string);
-            if (Array.isArray(json)) {
-              setLocalItems(json);
-            } else {
-              alert('Invalid JSON format: Must be an array of schedule items');
-            }
-          } catch (err) {
-            alert('Failed to parse JSON file');
-          }
-        };
-        reader.readAsText(file);
-      };
-      input.click();
-    };
     const updated = localItems.filter((_, i) => i !== index);
     setLocalItems(updated);
+  };
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(localItems, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${category.toLowerCase().replace(/\s+/g, '-')}-schedule.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const json = JSON.parse(event.target?.result as string);
+          if (Array.isArray(json)) {
+            setLocalItems(json);
+          } else {
+            alert('Invalid JSON format: Must be an array of schedule items');
+          }
+        } catch (err) {
+          alert('Failed to parse JSON file');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   };
 
   const handleSave = () => {
