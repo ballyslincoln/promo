@@ -144,9 +144,6 @@ export const getEventsForDate = (date: Date): Event[] => {
 };
 
 // Get all default promotions as AdminEvents for admin panel
-export const getDefaultPromotions = (): AdminEvent[] => {
-  const promotions: AdminEvent[] = [];
-
   // Princess / Holland America / Carnival Cruise Giveaway
   promotions.push({
     id: 'cruise-giveaway-dec5',
@@ -163,7 +160,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-05',
     endDate: '2025-12-06',
     startTime: '08:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // 2nd Chance Cruise Giveaway
@@ -181,7 +179,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-27',
     endDate: '2025-12-27',
     startTime: '08:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // $15,000 Blackjack Tournament - Qualifying
@@ -197,7 +196,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-05',
     endDate: '2025-12-05',
     startTime: '18:00',
-    endTime: '23:00'
+    endTime: '23:00',
+    property: 'Tiverton'
   });
 
   // $15,000 Blackjack Tournament - Grand Prize
@@ -219,7 +219,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-12',
     endDate: '2025-12-12',
     startTime: '17:30',
-    endTime: '23:00'
+    endTime: '23:00',
+    property: 'Tiverton'
   });
 
   // Champions Event
@@ -238,7 +239,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-13',
     endDate: '2025-12-13',
     startTime: '13:00',
-    endTime: '21:00'
+    endTime: '21:00',
+    property: 'Tiverton'
   });
 
   // 15k Holiday Free Slot Play Sweepstakes
@@ -256,7 +258,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-19',
     endDate: '2025-12-19',
     startTime: '17:00',
-    endTime: '21:00'
+    endTime: '21:00',
+    property: 'Tiverton'
   });
 
   // $20,260 Countdown to 2026 Sweepstakes
@@ -274,7 +277,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-31',
     endDate: '2025-12-31',
     startTime: '17:00',
-    endTime: '21:00'
+    endTime: '21:00',
+    property: 'Tiverton'
   });
 
   // $5,000 Bonus Slot Tournaments
@@ -294,7 +298,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-01',
     endDate: '2025-12-31',
     startTime: '12:00',
-    endTime: '20:00'
+    endTime: '20:00',
+    property: 'Tiverton'
   });
 
   // SUPER Xtra Play
@@ -311,7 +316,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-24',
     endDate: '2025-12-25',
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Xtra Play - Wednesdays (Dec 3)
@@ -327,7 +333,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-03',
     endDate: '2025-12-03',
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Xtra Play - Wednesdays (Dec 17)
@@ -343,7 +350,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-17',
     endDate: '2025-12-17',
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Xtra Play - Thursdays
@@ -361,7 +369,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     daysOfWeek: [4],
     isRecurring: true,
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Xtra Play - Saturdays
@@ -379,7 +388,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     daysOfWeek: [6],
     isRecurring: true,
     startTime: '08:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Swipe for Gift Card (Dec 3)
@@ -396,7 +406,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-03',
     endDate: '2025-12-03',
     startTime: '13:00',
-    endTime: '19:00'
+    endTime: '19:00',
+    property: 'Tiverton'
   });
 
   // Swipe for Gift Card (Dec 17)
@@ -413,7 +424,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-17',
     endDate: '2025-12-17',
     startTime: '13:00',
-    endTime: '19:00'
+    endTime: '19:00',
+    property: 'Tiverton'
   });
 
   // $100 Gift Card OR Free Slot Play
@@ -432,7 +444,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     daysOfWeek: [5, 6],
     isRecurring: true,
     startTime: '13:00',
-    endTime: '19:00'
+    endTime: '19:00',
+    property: 'Tiverton'
   });
 
   // $100 Gift Card OR Lucky Free Bet
@@ -451,7 +464,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     daysOfWeek: [5, 6],
     isRecurring: true,
     startTime: '13:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Tiverton'
   });
 
   // Choice of Gift Card or Free Slot Play
@@ -467,7 +481,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-10',
     endDate: '2025-12-10',
     startTime: '13:00',
-    endTime: '19:00'
+    endTime: '19:00',
+    property: 'Tiverton'
   });
 
   // Swipe for $20 Gift Card
@@ -483,7 +498,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-10',
     endDate: '2025-12-10',
     startTime: '13:00',
-    endTime: '19:00'
+    endTime: '19:00',
+    property: 'Tiverton'
   });
 
   // Lucky Free Bet - Table Games (Daily)
@@ -502,7 +518,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     isRecurring: true,
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Both'
   });
 
   // Match Your New England Slot Offer
@@ -522,7 +539,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     isRecurring: true,
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
     startTime: '10:00',
-    endTime: '22:00'
+    endTime: '22:00',
+    property: 'Both'
   });
 
   // Entertainment - DJ (Fridays)
@@ -537,7 +555,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     isRecurring: true,
     daysOfWeek: [5], // Friday
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Both'
   });
 
   // Entertainment - DJ (New Year's Eve)
@@ -550,7 +569,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-31',
     endDate: '2025-12-31',
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Both'
   });
 
   // Entertainment - Live Acts
@@ -563,7 +583,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-06',
     endDate: '2025-12-06',
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Tiverton'
   });
 
   promotions.push({
@@ -575,7 +596,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-13',
     endDate: '2025-12-13',
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Tiverton'
   });
 
   promotions.push({
@@ -587,7 +609,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-20',
     endDate: '2025-12-20',
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Tiverton'
   });
 
   promotions.push({
@@ -599,7 +622,8 @@ export const getDefaultPromotions = (): AdminEvent[] => {
     startDate: '2025-12-27',
     endDate: '2025-12-27',
     startTime: '20:30',
-    endTime: '23:59'
+    endTime: '23:59',
+    property: 'Tiverton'
   });
 
   return promotions;

@@ -93,12 +93,12 @@ export const eventService = {
           await sql`
                 INSERT INTO events (
                     id, title, category, description, details, meta, media, highlight, 
-                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring"
+                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring", property
                 ) VALUES (
                     ${event.id}, ${event.title}, ${event.category}, ${event.description || null}, 
                     ${JSON.stringify(event.details || [])}, ${JSON.stringify(event.meta || [])}, ${JSON.stringify(event.media || [])}, ${event.highlight || false},
                     ${event.startDate || null}, ${event.endDate || null}, ${event.startTime || null}, ${event.endTime || null},
-                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}
+                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}, ${event.property || 'Both'}
                 )
                 ON CONFLICT (id) DO UPDATE SET
                     title = EXCLUDED.title,
@@ -113,7 +113,8 @@ export const eventService = {
                     "startTime" = EXCLUDED."startTime",
                     "endTime" = EXCLUDED."endTime",
                     "daysOfWeek" = EXCLUDED."daysOfWeek",
-                    "isRecurring" = EXCLUDED."isRecurring"
+                    "isRecurring" = EXCLUDED."isRecurring",
+                    property = EXCLUDED.property
             `;
         }
 
@@ -209,7 +210,8 @@ export const eventService = {
           "startTime" TEXT,
           "endTime" TEXT,
           "daysOfWeek" JSONB,
-          "isRecurring" BOOLEAN DEFAULT FALSE
+          "isRecurring" BOOLEAN DEFAULT FALSE,
+          property TEXT DEFAULT 'Both'
         );
       `;
 
@@ -217,8 +219,14 @@ export const eventService = {
       try {
         await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS media JSONB;`;
       } catch (e) {
-        // Ignore error if column exists or other issue, table creation above handles new installs
-        console.log('Migration note: media column check', e);
+        // Ignore error if column exists
+      }
+
+      // Attempt to add property column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS property TEXT DEFAULT 'Both';`;
+      } catch (e) {
+        console.log('Migration note: property column check', e);
       }
 
       await sql`

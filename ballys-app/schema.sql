@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS events (
   "startTime" TEXT,
   "endTime" TEXT,
   "daysOfWeek" JSONB,
-  "isRecurring" BOOLEAN DEFAULT FALSE
+  "isRecurring" BOOLEAN DEFAULT FALSE,
+  property TEXT DEFAULT 'Both'
 );
 
 CREATE TABLE IF NOT EXISTS schedules (

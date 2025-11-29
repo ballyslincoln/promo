@@ -18,6 +18,7 @@ export interface Event {
   meta?: EventDetail[]; // Key-value pairs like WHEN, WHERE
   media?: MediaItem[];
   highlight?: boolean;
+  property?: 'Lincoln' | 'Tiverton' | 'Both';
 }
 
 export interface AdminEvent extends Event {

@@ -135,6 +135,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       endTime: '23:59',
       daysOfWeek: [],
       isRecurring: false,
+      property: 'Both'
     };
     setEvents([...events, newEvent]);
     setEditingId(newEvent.id);
@@ -1126,6 +1127,18 @@ function EventForm({
                   {CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Property</label>
+                <select
+                  value={formData.property || 'Both'}
+                  onChange={(e) => updateField('property', e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                >
+                  <option value="Both">Both Properties</option>
+                  <option value="Lincoln">Bally's Lincoln</option>
+                  <option value="Tiverton">Bally's Tiverton</option>
                 </select>
               </div>
               <div className="col-span-full">

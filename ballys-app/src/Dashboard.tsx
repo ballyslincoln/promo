@@ -78,10 +78,12 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     const [allEventRules, setAllEventRules] = useState<AdminEvent[]>([]);
     const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
 
+    // UI State
     const [activeTab, setActiveTab] = useState<'events' | 'schedules' | 'internal'>('events');
     const [direction, setDirection] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [selectedProperty, setSelectedProperty] = useState<'All' | 'Lincoln' | 'Tiverton'>('All');
 
     // Update time every second
     useEffect(() => {
@@ -132,7 +134,17 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
     // Computed events for current view
     const events = allEventRules
-        .filter(e => shouldShowEvent(e, selectedDate))
+        .filter(e => {
+            // Date filter
+            const dateMatch = shouldShowEvent(e, selectedDate);
+            if (!dateMatch) return false;
+
+            // Property filter
+            if (selectedProperty === 'All') return true;
+            // Show if property matches OR if property is 'Both' (or undefined which defaults to Both)
+            const prop = e.property || 'Both';
+            return prop === 'Both' || prop === selectedProperty;
+        })
         .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
 
     // Computed phone numbers (dynamic from schedules or fallback)
@@ -217,6 +229,27 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         >
                             {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-white/70" /> : <List className="w-4 h-4 text-white/70" />}
                         </button>
+                    </div>
+
+                    {/* Property Toggle */}
+                    <div className="flex bg-black/40 rounded-full border border-white/10 p-1 relative">
+                        {['All', 'Lincoln', 'Tiverton'].map((prop) => (
+                            <button
+                                key={prop}
+                                onClick={() => setSelectedProperty(prop as any)}
+                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-white/40 hover:text-white/70'
+                                    }`}
+                            >
+                                {selectedProperty === prop && (
+                                    <motion.div
+                                        layoutId="activeProperty"
+                                        className="absolute inset-0 bg-white/10 rounded-full"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                {prop === 'All' ? 'All Properties' : prop}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Stealth Admin Button */}
@@ -675,9 +708,18 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
 
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start gap-4 mb-3">
-                    <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-400' : 'text-white'}`}>
-                        {event.title}
-                    </h4>
+                    <div>
+                        {event.property && event.property !== 'Both' && (
+                            <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block ${
+                                event.property === 'Lincoln' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                            }`}>
+                                {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
+                            </span>
+                        )}
+                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-400' : 'text-white'}`}>
+                            {event.title}
+                        </h4>
+                    </div>
                 </div>
 
                 <p className="text-white/70 text-sm leading-relaxed mb-5 font-light">
