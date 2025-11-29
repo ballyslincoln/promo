@@ -248,7 +248,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     };
 
     return (
-        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
+        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col [contain:layout_style_paint]">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[100px]" />
@@ -276,7 +276,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         </div>
                         <button
                             onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors"
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
                         >
                             {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
                         </button>
@@ -298,7 +298,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     <motion.div
                                         layoutId="activeProperty"
                                         className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/30"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                                        style={{ willChange: 'transform' }}
                                     />
                                 )}
                                 <span className="relative z-20 drop-shadow-sm">
@@ -318,12 +319,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     )}
 
                     {/* Date Navigator (Only in List Mode) */}
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode="wait" initial={false}>
                         {viewMode === 'list' && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="flex flex-col gap-3 w-full max-w-md"
                             >
                                 <div className="flex items-center justify-between bg-white rounded-full p-1.5 border border-gray-200 shadow-sm backdrop-blur-md">
@@ -405,12 +407,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     {holiday?.name === "Merry Christmas!" && <SnowEffect />}
 
                     {/* Tabs (Only in List Mode) */}
-                    <AnimatePresence>
+                    <AnimatePresence initial={false}>
                         {viewMode === 'list' && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10, height: 0 }}
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
+                                transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm overflow-hidden"
                             >
                                 {['events', 'schedules', 'internal'].map((tab) => (
@@ -427,7 +430,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                             <motion.div
                                                 layoutId="activeTab"
                                                 className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
-                                                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                                                transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
+                                                style={{ willChange: 'transform' }}
                                             />
                                         )}
                                         <span className="relative z-20">{tab}</span>
@@ -439,32 +443,40 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10 flex-1 w-full">
-                <AnimatePresence mode="wait">
+            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10 flex-1 w-full [contain:layout_style_paint]">
+                <AnimatePresence mode="wait" initial={false}>
                     {viewMode === 'calendar' ? (
-                        <CalendarView
+                        <motion.div
                             key="calendar-view"
-                            selectedDate={selectedDate}
-                            getEvents={getEventsForDateSync}
-                            onSelectDate={(date) => {
-                                setSelectedDate(date);
-                                setViewMode('list');
-                            }}
-                        />
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15, ease: "easeOut" }}
+                            className="w-full"
+                            style={{ willChange: 'opacity' }}
+                        >
+                            <CalendarView
+                                selectedDate={selectedDate}
+                                getEvents={getEventsForDateSync}
+                                onSelectDate={(date) => {
+                                    setSelectedDate(date);
+                                    setViewMode('list');
+                                }}
+                            />
+                        </motion.div>
                     ) : (
                         <motion.div 
                             key="list-view"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15, ease: "easeOut" }}
+                            className="w-full"
+                            style={{ willChange: 'opacity' }}
                         >
                             {activeTab === 'events' && (
-                                <motion.div
+                                <div
                                     key={`events-${selectedDate.toISOString()}`}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
                                     className="space-y-10"
                                 >
                                     {/* Invited Guest Events */}
@@ -474,8 +486,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined}
                                     >
                                         <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Invited').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
+                                            {events.filter(e => e.category === 'Invited').map((event) => (
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Invited').length === 0 && (
@@ -490,8 +502,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined}
                                     >
                                         <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Open').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
+                                            {events.filter(e => e.category === 'Open').map((event) => (
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Open').length === 0 && (
@@ -506,8 +518,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined}
                                     >
                                         <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Dining').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
+                                            {events.filter(e => e.category === 'Dining').map((event) => (
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Dining').length === 0 && (
@@ -522,8 +534,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined}
                                     >
                                         <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Promo').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
+                                            {events.filter(e => e.category === 'Promo').map((event) => (
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Promo').length === 0 && (
@@ -538,23 +550,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined}
                                     >
                                         <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Entertainment').map((event, index) => (
-                                                <EventCard key={event.id} event={event} index={index} onEdit={onEditEvent} />
+                                            {events.filter(e => e.category === 'Entertainment').map((event) => (
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Entertainment').length === 0 && (
                                             <EmptyState message="No entertainment scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined} />
                                         )}
                                     </Section>
-                                </motion.div>
+                                </div>
                             )}
 
                             {activeTab === 'schedules' && (
-                                <motion.div
+                                <div
                                     key="schedules"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
                                     className="space-y-6"
                                 >
                                     {Object.entries(schedules)
@@ -578,21 +587,18 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                                 </div>
                                             </div>
                                         ))}
-                                </motion.div>
+                                </div>
                             )}
 
                             {activeTab === 'internal' && (
-                                <motion.div
+                                <div
                                     key="internal"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3 }}
                                     className="space-y-8"
                                 >
                                     {/* Promo Info */}
                                     <Section title="Promotions (Internal)" icon={<Info className="w-4 h-4 text-purple-500" />}>
-                                        {events.filter(e => e.category === 'Promo').map((event, index) => (
-                                            <EventCard key={event.id} event={event} index={index} />
+                                        {events.filter(e => e.category === 'Promo').map((event) => (
+                                            <EventCard key={event.id} event={event} />
                                         ))}
 
                                     </Section>
@@ -612,7 +618,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                             ))}
                                         </div>
                                     </div>
-                                </motion.div>
+                                </div>
                             )}
                         </motion.div>
                     )}
@@ -664,13 +670,7 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="glass-card rounded-3xl p-6"
-        >
+        <div className="glass-card rounded-3xl p-6">
             <div className="flex items-center justify-between mb-8">
                 <button onClick={prevMonth} className="p-2 hover:bg-black/5 rounded-full transition-colors">
                     <ChevronLeft className="w-5 h-5 text-gray-500" />
@@ -725,7 +725,7 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
                     );
                 })}
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -767,13 +767,10 @@ function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () 
     );
 }
 
-function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number, onEdit?: (event: Event) => void }) {
+function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) => void }) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, ease: "easeOut" }}
-            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
+        <div
+            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] [will-change:transform] ${event.highlight
                 ? 'bg-gradient-to-br from-ballys-gold/10 to-white/80 border-ballys-gold/30 shadow-lg'
                 : 'hover:bg-white/80 hover:border-ballys-red/20'
                 }`}
@@ -864,6 +861,6 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                     </div>
                 )}
             </div>
-        </motion.div>
+        </div>
     );
 }
