@@ -24,6 +24,47 @@ const getFirstDayOfMonth = (year: number, month: number) => {
     return new Date(year, month, 1).getDay();
 };
 
+const getHoliday = (date: Date) => {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const key = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+    const holidays: Record<string, { name: string, emoji: string }> = {
+        '01-01': { name: "Happy New Year!", emoji: "🎉" },
+        '02-14': { name: "Happy Valentine's Day!", emoji: "❤️" },
+        '03-17': { name: "Happy St. Patrick's Day!", emoji: "☘️" },
+        '07-04': { name: "Happy 4th of July!", emoji: "🇺🇸" },
+        '10-31': { name: "Happy Halloween!", emoji: "🎃" },
+        '11-27': { name: "Happy Thanksgiving!", emoji: "🦃" }, // 2025 specific
+        '12-25': { name: "Merry Christmas!", emoji: "🎄" },
+        '12-31': { name: "Happy New Year's Eve!", emoji: "🥂" },
+    };
+
+    return holidays[key];
+};
+
+const SnowEffect = () => {
+    return (
+        <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden">
+            {[...Array(40)].map((_, i) => (
+                <div
+                    key={i}
+                    className="absolute bg-white rounded-full animate-snow"
+                    style={{
+                        left: `${Math.random() * 100}%`,
+                        top: `-${Math.random() * 20}px`,
+                        width: `${Math.random() * 3 + 2}px`,
+                        height: `${Math.random() * 3 + 2}px`,
+                        opacity: Math.random() * 0.5 + 0.3,
+                        animationDuration: `${Math.random() * 5 + 5}s`,
+                        animationDelay: `${Math.random() * 5}s`,
+                    }}
+                />
+            ))}
+        </div>
+    );
+};
+
 export default function Dashboard() {
     // Default to today's date
     const [selectedDate, setSelectedDate] = useState(() => {
@@ -85,6 +126,8 @@ export default function Dashboard() {
 
     // Computed phone numbers (dynamic from schedules or fallback)
     const phoneNumbers = schedules['Important Numbers'] || PHONE_NUMBERS.map(p => ({ name: p.name, time: p.number }));
+
+    const holiday = getHoliday(selectedDate);
 
     // Helper for calendar view
     const getEventsForDateSync = (date: Date) => {
@@ -230,6 +273,27 @@ export default function Dashboard() {
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Holiday Greeting */}
+                    <AnimatePresence>
+                        {holiday && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="w-full max-w-md mb-4 text-center"
+                            >
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500/20 to-green-500/20 border border-white/10 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                                    <span className="text-xl filter drop-shadow-lg">{holiday.emoji}</span>
+                                    <span className="text-sm font-bold uppercase tracking-wider text-white/90 text-glow">{holiday.name}</span>
+                                    <span className="text-xl filter drop-shadow-lg">{holiday.emoji}</span>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Snow Effect for Christmas */}
+                    {holiday?.name === "Merry Christmas!" && <SnowEffect />}
 
                     {/* Tabs (Only in List Mode) */}
                     <AnimatePresence>

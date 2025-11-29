@@ -1,107 +1,56 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-bg: #050505;
-  --color-primary: #D31145;
-  --color-primary-dark: #a00d35;
-  --color-accent: #eab308;
-  --color-text: #ffffff;
-  --color-text-muted: #a1a1aa;
-  --color-card-bg: rgba(255, 255, 255, 0.03);
-  --color-card-border: rgba(255, 255, 255, 0.1);
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
 
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  body {
+    @apply bg-[#050505] text-white antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
-:root {
-  /* Keep these if they are used elsewhere as raw CSS variables, 
-     but Tailwind utilities will now use the @theme values. 
-     Actually, @theme values are also available as variables. */
-}
-
-html {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-body {
-  @apply bg-bg text-white antialiased overflow-x-hidden;
-  font-family: var(--font-sans);
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-@layer components {
+@layer utilities {
   .glass-panel {
-    @apply bg-card-bg border border-card-border rounded-2xl backdrop-blur-xl;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
   }
 
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-400;
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
   }
 
-  .text-primary-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-br from-primary to-[#ff4d7d];
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  transition: background 0.2s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Optimize scroll performance */
-.scroll-smooth {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* GPU acceleration for smooth scrolling */
-.overscroll-contain {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Optimize animations during scroll */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Utilities */
-.bg-noise {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-}
-
-/* Animations */
-.fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-@keyframes fadeIn {
-  from {
+@keyframes snow {
+  0% {
+    transform: translateY(-10px) translateX(0);
     opacity: 0;
-    transform: translateY(10px);
   }
 
-  to {
+  10% {
     opacity: 1;
-    transform: translateY(0);
   }
+
+  100% {
+    transform: translateY(100vh) translateX(20px);
+    opacity: 0.3;
+  }
+}
+
+.animate-snow {
+  animation-name: snow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
