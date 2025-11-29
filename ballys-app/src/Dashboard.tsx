@@ -665,20 +665,20 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
             className="glass-card rounded-3xl p-6"
         >
             <div className="flex items-center justify-between mb-8">
-                <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronLeft className="w-5 h-5 text-text-muted" />
+                <button onClick={prevMonth} className="p-2 hover:bg-black/5 rounded-full transition-colors">
+                    <ChevronLeft className="w-5 h-5 text-gray-500" />
                 </button>
-                <h2 className="text-lg font-bold text-text-main tracking-widest uppercase">
+                <h2 className="text-lg font-bold text-gray-800 tracking-widest uppercase">
                     {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </h2>
-                <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <ChevronRight className="w-5 h-5 text-text-muted" />
+                <button onClick={nextMonth} className="p-2 hover:bg-black/5 rounded-full transition-colors">
+                    <ChevronRight className="w-5 h-5 text-gray-500" />
                 </button>
             </div>
 
             <div className="grid grid-cols-7 gap-2 mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-xs font-bold text-text-light uppercase tracking-wider py-2">
+                    <div key={day} className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider py-2">
                         {day}
                     </div>
                 ))}
@@ -699,17 +699,19 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
                             onClick={() => onSelectDate(date)}
                             className={`
                                 relative h-14 rounded-xl flex flex-col items-center justify-start pt-2 transition-all duration-200
-                                ${isSelected ? 'bg-ballys-red text-white shadow-lg scale-105' : 'bg-gray-50 text-text-muted hover:bg-gray-100 hover:text-text-main'}
-                                ${isToday && !isSelected ? 'border border-ballys-red/50' : ''}
+                                ${isSelected 
+                                    ? 'bg-gradient-to-br from-ballys-red to-ballys-darkRed text-white shadow-lg scale-105' 
+                                    : 'bg-white/40 hover:bg-white/80 text-gray-500 hover:text-gray-900'}
+                                ${isToday && !isSelected ? 'border border-ballys-red/50 ring-1 ring-ballys-red/20' : ''}
                             `}
                         >
                             <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{date.getDate()}</span>
                             <div className="flex gap-1 mt-1.5">
                                 {hasLincoln && (
-                                    <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-ballys-red'}`} title="Lincoln Event" />
+                                    <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${isSelected ? 'bg-white' : 'bg-ballys-red'}`} title="Lincoln Event" />
                                 )}
                                 {hasTiverton && (
-                                    <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} title="Tiverton Event" />
+                                    <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} title="Tiverton Event" />
                                 )}
                             </div>
                         </button>
@@ -746,9 +748,9 @@ function Section({ title, icon, children, onAddEvent }: { title: string, icon: R
 
 function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-gray-200 rounded-2xl bg-gray-50 group hover:bg-gray-100 transition-colors cursor-pointer" onClick={onAddEvent}>
-            <CalendarIcon className="w-8 h-8 text-text-light mb-3 group-hover:text-text-muted transition-colors" />
-            <p className="text-text-muted text-sm italic mb-2">{message}</p>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-gray-300/50 rounded-2xl bg-white/30 backdrop-blur-sm group hover:bg-white/50 transition-colors cursor-pointer" onClick={onAddEvent}>
+            <CalendarIcon className="w-8 h-8 text-gray-400 mb-3 group-hover:text-gray-600 transition-colors" />
+            <p className="text-gray-500 text-sm italic mb-2">{message}</p>
             {onAddEvent && (
                 <span className="text-xs text-ballys-red/70 font-bold uppercase tracking-wider group-hover:text-ballys-red transition-colors">
                     Click to add event
@@ -764,9 +766,9 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, ease: "easeOut" }}
-            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-300 group transform-gpu [backface-visibility:hidden] ${event.highlight
+            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
                 ? 'bg-gradient-to-br from-ballys-gold/10 to-white/80 border-ballys-gold/30 shadow-lg'
-                : 'hover:bg-white/60 hover:border-ballys-red/20'
+                : 'hover:bg-white/80 hover:border-ballys-red/20'
                 }`}
         >
             {onEdit && (
@@ -775,7 +777,7 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                         e.stopPropagation();
                         onEdit(event);
                     }}
-                    className="absolute top-3 right-3 z-20 p-2 bg-white hover:bg-ballys-red text-text-light hover:text-white rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100 border border-gray-100"
+                    className="absolute top-3 right-3 z-20 p-2 bg-white hover:bg-ballys-red text-gray-400 hover:text-white rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100 border border-gray-100"
                     title="Edit Event"
                 >
                     <Edit2 className="w-3 h-3" />
@@ -788,7 +790,7 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
             )}
 
             {/* Shine Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-overlay" />
 
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start gap-4 mb-3">
@@ -800,13 +802,13 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                                 {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
                             </span>
                         )}
-                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-600' : 'text-text-main'}`}>
+                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-700' : 'text-gray-900'}`}>
                             {event.title}
                         </h4>
                     </div>
                 </div>
 
-                <p className="text-text-muted text-sm leading-relaxed mb-5 font-normal">
+                <p className="text-gray-600 text-sm leading-relaxed mb-5 font-normal">
                     {event.description}
                 </p>
 
@@ -823,9 +825,9 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                                     </div>
                                 ) : (
                                     <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 transition-colors aspect-video text-center">
-                                        <FileText className="w-8 h-8 text-text-light group-hover/media:text-text-main transition-colors" />
-                                        <span className="text-xs text-text-muted group-hover/media:text-text-main truncate w-full px-2">{item.name}</span>
-                                        <span className="text-[9px] uppercase tracking-wider text-text-light bg-white border border-gray-100 px-2 py-0.5 rounded">PDF</span>
+                                        <FileText className="w-8 h-8 text-gray-400 group-hover/media:text-gray-600 transition-colors" />
+                                        <span className="text-xs text-gray-500 group-hover/media:text-gray-700 truncate w-full px-2">{item.name}</span>
+                                        <span className="text-[9px] uppercase tracking-wider text-gray-400 bg-white border border-gray-100 px-2 py-0.5 rounded">PDF</span>
                                     </a>
                                 )}
                             </div>
@@ -836,8 +838,8 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                 {event.details && (
                     <ul className="space-y-2.5 mb-5">
                         {event.details.map((detail, idx) => (
-                            <li key={idx} className="flex items-start gap-3 text-xs text-text-muted">
-                                <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${event.highlight ? 'bg-ballys-gold' : 'bg-ballys-red'}`} />
+                            <li key={idx} className="flex items-start gap-3 text-xs text-gray-600">
+                                <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${event.highlight ? 'bg-ballys-gold' : 'bg-ballys-red'}`} />
                                 <span className="leading-relaxed">{detail}</span>
                             </li>
                         ))}
@@ -845,11 +847,11 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                 )}
 
                 {event.meta && (
-                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-100">
+                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-100/50">
                         {event.meta.map((meta, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 group-hover:border-gray-200 transition-colors">
-                                <span className="text-[9px] font-bold text-text-light uppercase tracking-wider">{meta.label}</span>
-                                <span className="text-xs text-text-main font-medium">{meta.value}</span>
+                            <div key={idx} className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-lg border border-gray-200/50 group-hover:border-gray-300/50 transition-colors">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{meta.label}</span>
+                                <span className="text-xs text-gray-700 font-medium">{meta.value}</span>
                             </div>
                         ))}
                     </div>
