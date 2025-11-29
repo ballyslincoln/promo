@@ -39,7 +39,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                         opacity: [0.3, 0.5, 0.3],
                     }}
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-ballys-red/10 rounded-full blur-[120px] mix-blend-multiply"
+                    className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-ballys-red/10 rounded-full blur-[100px]"
                 />
                 <motion.div
                     animate={{
@@ -47,7 +47,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                         opacity: [0.2, 0.4, 0.2],
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/10 rounded-full blur-[120px] mix-blend-multiply"
+                    className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/10 rounded-full blur-[100px]"
                 />
             </div>
 

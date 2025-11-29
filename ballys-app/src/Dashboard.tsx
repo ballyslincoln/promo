@@ -251,8 +251,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
         <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform" />
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[100px]" />
             </div>
 
             {/* Bottom Fade for smooth edge */}
@@ -790,7 +790,7 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
             )}
 
             {/* Shine Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none mix-blend-overlay" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start gap-4 mb-3">
