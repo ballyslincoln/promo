@@ -30,7 +30,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
     }, [code, isAdminMode]);
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#050505] text-white relative overflow-hidden font-sans selection:bg-red-500/30">
+        <div className="min-h-screen w-full flex items-center justify-center bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
             {/* Ambient Background Effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
@@ -39,7 +39,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                         opacity: [0.3, 0.5, 0.3],
                     }}
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-red-600/20 rounded-full blur-[120px] mix-blend-screen"
+                    className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-ballys-red/10 rounded-full blur-[120px] mix-blend-multiply"
                 />
                 <motion.div
                     animate={{
@@ -47,12 +47,12 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                         opacity: [0.2, 0.4, 0.2],
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-purple-900/20 rounded-full blur-[120px] mix-blend-screen"
+                    className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/10 rounded-full blur-[120px] mix-blend-multiply"
                 />
             </div>
 
             {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -61,9 +61,9 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                 className="z-10 w-full max-w-md relative px-4"
             >
                 {/* Glass Card */}
-                <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden group transform-gpu">
+                <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 md:p-12 shadow-xl overflow-hidden group transform-gpu">
                     {/* Shine Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                     <div className="flex flex-col items-center relative z-10">
                         {/* Logo Area */}
@@ -72,15 +72,15 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                             animate={{ y: [0, -5, 0] }}
                             transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                         >
-                            <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
+                            <div className="absolute inset-0 bg-ballys-red/10 blur-2xl rounded-full" />
                             <img src="/logo.png" alt="Bally's" className="h-20 md:h-24 relative z-10 drop-shadow-lg object-contain" />
                         </motion.div>
 
-                        <h2 className="text-xs font-bold tracking-[0.3em] text-white/40 mb-6 uppercase text-center">Authorized Access Only</h2>
+                        <h2 className="text-xs font-bold tracking-[0.3em] text-text-muted mb-6 uppercase text-center">Authorized Access Only</h2>
 
                         {/* Mode Toggle */}
                         <div className="w-full mb-6">
-                            <div className="flex p-1 bg-black/40 rounded-xl border border-white/10 relative">
+                            <div className="flex p-1 bg-gray-100 rounded-xl border border-gray-200 relative">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -89,18 +89,18 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setError(false);
                                     }}
                                     className={`flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        !isAdminMode ? 'text-white' : 'text-white/40 hover:text-white/60'
+                                        !isAdminMode ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'
                                     }`}
                                 >
                                     {!isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white/10 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/10"
+                                            className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}
-                                    <User className="w-3.5 h-3.5" />
-                                    Frontend
+                                    <User className="w-3.5 h-3.5 relative z-20" />
+                                    <span className="relative z-20">Frontend</span>
                                 </button>
                                 <button
                                     type="button"
@@ -110,18 +110,18 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setError(false);
                                     }}
                                     className={`flex-1 py-2.5 px-4 text-xs font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        isAdminMode ? 'text-white' : 'text-white/40 hover:text-white/60'
+                                        isAdminMode ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'
                                     }`}
                                 >
                                     {isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white/10 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/10"
+                                            className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}
-                                    <Settings className="w-3.5 h-3.5" />
-                                    Admin
+                                    <Settings className="w-3.5 h-3.5 relative z-20" />
+                                    <span className="relative z-20">Admin</span>
                                 </button>
                             </div>
                         </div>
@@ -134,12 +134,13 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         key={i}
                                         initial={false}
                                         animate={{
-                                            borderColor: error ? 'rgba(239, 68, 68, 0.5)' : isFocused && i === code.length ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                                            borderColor: error ? 'rgba(239, 68, 68, 0.5)' : isFocused && i === code.length ? 'rgba(230, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
                                             scale: isFocused && i === code.length ? 1.1 : 1,
-                                            backgroundColor: code[i] ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                                            boxShadow: isFocused && i === code.length ? '0 0 20px rgba(255,255,255,0.1)' : 'none'
+                                            backgroundColor: code[i] ? 'rgba(230, 0, 0, 0.05)' : 'transparent',
+                                            boxShadow: isFocused && i === code.length ? '0 0 20px rgba(230,0,0,0.1)' : 'none',
+                                            color: code[i] ? '#E60000' : 'transparent'
                                         }}
-                                        className={`w-10 h-12 md:w-12 md:h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-mono transition-colors duration-200 ${code[i] ? 'text-white' : 'text-transparent'}`}
+                                        className={`w-10 h-12 md:w-12 md:h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-mono transition-colors duration-200`}
                                     >
                                         {code[i] ? '•' : ''}
                                     </motion.div>
@@ -172,7 +173,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className="text-red-400 text-xs tracking-widest font-medium uppercase flex items-center gap-2"
+                                            className="text-red-500 text-xs tracking-widest font-medium uppercase flex items-center gap-2"
                                         >
                                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                                             Access Denied
@@ -183,7 +184,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
-                                            className="text-white/20 text-xs tracking-widest uppercase"
+                                            className="text-text-muted/50 text-xs tracking-widest uppercase"
                                         >
                                             {isAdminMode ? 'Admin Access' : 'Enter 5-Digit PIN'}
                                         </motion.span>
@@ -195,7 +196,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                 </div>
             </motion.div>
 
-            <div className="absolute bottom-8 text-white/10 text-[10px] tracking-[0.2em] font-light">
+            <div className="absolute bottom-8 text-text-muted/30 text-[10px] tracking-[0.2em] font-light">
                 SECURE ACCESS SYSTEM v2.0
             </div>
         </div>

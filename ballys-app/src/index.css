@@ -7,18 +7,22 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-red-950 via-[#1a0505] to-black text-white antialiased min-h-screen;
+    @apply bg-background text-text-main antialiased min-h-screen overflow-x-hidden;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/60 shadow-md hover:shadow-xl transition-all duration-300;
   }
 
   .text-glow {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 20px rgba(230, 0, 0, 0.3);
   }
 
   .no-scrollbar::-webkit-scrollbar {
@@ -28,6 +32,10 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-ballys-red to-ballys-darkRed;
   }
 }
 

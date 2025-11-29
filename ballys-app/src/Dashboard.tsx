@@ -140,10 +140,10 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 case '3':
                     if (viewMode === 'list') setActiveTab('internal');
                     break;
-                 case 'c':
+                case 'c':
                     setViewMode(v => v === 'list' ? 'calendar' : 'list');
                     break;
-                 case 'p':
+                case 'p':
                     setSelectedProperty(p => {
                         if (p === 'All') return 'Lincoln';
                         if (p === 'Lincoln') return 'Tiverton';
@@ -236,57 +236,55 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#1a0505] via-[#2a0a0a] to-[#000000] text-white pb-40 font-sans selection:bg-red-500/30 relative overflow-x-hidden overscroll-none">
+        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-red-600/10 rounded-full blur-[150px] mix-blend-screen will-change-transform animate-pulse" style={{ animationDuration: '10s' }} />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-red-900/10 rounded-full blur-[150px] mix-blend-screen will-change-transform animate-pulse" style={{ animationDuration: '15s', animationDelay: '2s' }} />
-                <div className="absolute top-[20%] left-[30%] w-[40vw] h-[40vw] bg-orange-500/5 rounded-full blur-[120px] mix-blend-screen will-change-transform" />
-                <div className="absolute inset-0 bg-noise opacity-20 mix-blend-overlay"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform animate-pulse" style={{ animationDuration: '10s' }} />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[150px] mix-blend-multiply will-change-transform animate-pulse" style={{ animationDuration: '15s', animationDelay: '2s' }} />
             </div>
 
             {/* Bottom Fade for smooth edge */}
-            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-40" />
+            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none z-40" />
 
             {/* Header */}
             <header className="sticky top-0 z-50 pt-6 pb-4 px-4 transition-all duration-300">
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl" />
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm" />
 
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
                     {/* Top Bar */}
                     <div className="flex items-center justify-between w-full">
                         <div className="w-10" /> {/* Spacer */}
-                        <div className="flex flex-col items-center gap-1 opacity-90">
+                        <div className="flex flex-col items-center gap-1">
                             <div className="flex items-center gap-3">
-                                <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-                                <div className="h-4 w-[1px] bg-gradient-to-b from-transparent via-white/30 to-transparent" />
-                                <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-white/70">Day At A Glance</span>
+                                <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-sm" />
+                                <div className="h-4 w-[1px] bg-gray-300" />
+                                <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-text-muted">Day At A Glance</span>
                             </div>
-                            <div className="text-[9px] text-white/50 tracking-wider uppercase font-mono">
+                            <div className="text-[9px] text-text-light tracking-wider uppercase font-mono">
                                 {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </div>
                         </div>
                         <button
                             onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors"
                         >
-                            {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-white/70" /> : <List className="w-4 h-4 text-white/70" />}
+                            {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
                         </button>
                     </div>
 
                     {/* Property Toggle */}
-                    <div className="flex bg-black/40 rounded-full border border-white/10 p-1 relative">
+                    <div className="flex bg-gray-100 rounded-full border border-gray-200 p-1 relative shadow-inner">
                         {['All', 'Lincoln', 'Tiverton'].map((prop) => (
                             <button
                                 key={prop}
                                 onClick={() => setSelectedProperty(prop as any)}
-                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-white/40 hover:text-white/70'
+                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-text-light hover:text-text-muted'
                                     }`}
                             >
                                 {selectedProperty === prop && (
                                     <motion.div
                                         layoutId="activeProperty"
-                                        className="absolute inset-0 bg-white/10 rounded-full"
+                                        className="absolute inset-0 bg-ballys-red rounded-full shadow-md"
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
@@ -299,7 +297,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     {onAdminOpen && (
                         <button
                             onClick={onAdminOpen}
-                            className="w-2 h-2 rounded-full bg-white/5 hover:bg-red-500/50 transition-colors absolute top-2 right-2"
+                            className="w-2 h-2 rounded-full bg-gray-200 hover:bg-ballys-red/50 transition-colors absolute top-2 right-2"
                             title="Admin Panel"
                         />
                     )}
@@ -313,12 +311,12 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 exit={{ opacity: 0, height: 0 }}
                                 className="flex flex-col gap-3 w-full max-w-md"
                             >
-                                <div className="flex items-center justify-between bg-white/5 rounded-full p-1.5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] backdrop-blur-md">
+                                <div className="flex items-center justify-between bg-white rounded-full p-1.5 border border-gray-200 shadow-sm backdrop-blur-md">
                                     <button
                                         onClick={handlePrevDay}
-                                        className="p-2.5 hover:bg-white/10 rounded-full transition-all active:scale-95 group"
+                                        className="p-2.5 hover:bg-gray-100 rounded-full transition-all active:scale-95 group"
                                     >
-                                        <ChevronLeft className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                                        <ChevronLeft className="w-5 h-5 text-text-muted group-hover:text-text-main transition-colors" />
                                     </button>
 
                                     <div className="flex-1 text-center overflow-hidden h-6 relative">
@@ -333,7 +331,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                                 transition={{ type: "spring", stiffness: 280, damping: 28 }}
                                                 className="absolute inset-0 flex items-center justify-center"
                                             >
-                                                <h2 className="text-sm font-semibold tracking-widest text-white/90 whitespace-nowrap uppercase">
+                                                <h2 className="text-sm font-semibold tracking-widest text-text-main whitespace-nowrap uppercase">
                                                     {formatDate(selectedDate)}
                                                 </h2>
                                             </motion.div>
@@ -342,9 +340,9 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
                                     <button
                                         onClick={handleNextDay}
-                                        className="p-2.5 hover:bg-white/10 rounded-full transition-all active:scale-95 group"
+                                        className="p-2.5 hover:bg-gray-100 rounded-full transition-all active:scale-95 group"
                                     >
-                                        <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                                        <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-text-main transition-colors" />
                                     </button>
                                 </div>
 
@@ -359,7 +357,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     return (
                                         <button
                                             onClick={handleGoToToday}
-                                            className="w-full px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 group"
+                                            className="w-full px-4 py-2.5 bg-ballys-red/10 hover:bg-ballys-red/20 border border-ballys-red/20 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 group text-ballys-red"
                                         >
                                             <Home className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                                             Take Me To Today
@@ -379,10 +377,10 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 className="w-full max-w-md mb-4 text-center"
                             >
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500/20 to-green-500/20 border border-white/10 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                                    <span className="text-xl filter drop-shadow-lg">{holiday.emoji}</span>
-                                    <span className="text-sm font-bold uppercase tracking-wider text-white/90 text-glow">{holiday.name}</span>
-                                    <span className="text-xl filter drop-shadow-lg">{holiday.emoji}</span>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm">
+                                    <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
+                                    <span className="text-sm font-bold uppercase tracking-wider text-ballys-red">{holiday.name}</span>
+                                    <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
                                 </div>
                             </motion.div>
                         )}
@@ -398,18 +396,18 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="flex p-1 bg-black/40 rounded-xl border border-white/10 w-full max-w-md relative shadow-inner"
+                                className="flex p-1 bg-gray-100 rounded-xl border border-gray-200 w-full max-w-md relative shadow-inner"
                             >
                                 {['events', 'schedules', 'internal'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/60'}`}
+                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-text-light hover:text-text-muted'}`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute inset-0 bg-white/10 rounded-lg shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/10"
+                                                className="absolute inset-0 bg-white rounded-lg shadow-sm border border-gray-200"
                                                 transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                             />
                                         )}
@@ -422,7 +420,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10">
+            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10 flex-1 w-full">
                 <AnimatePresence mode="wait">
                     {viewMode === 'calendar' ? (
                         <CalendarView
@@ -447,7 +445,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     {/* Invited Guest Events */}
                                     <Section 
                                         title="Invited Guest Events" 
-                                        icon={<Star className="w-4 h-4 text-yellow-500" />}
+                                        icon={<Star className="w-4 h-4 text-ballys-gold" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined}
                                     >
                                         <div className="space-y-4">
@@ -463,7 +461,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     {/* Open To All */}
                                     <Section 
                                         title="Open To All Guests" 
-                                        icon={<Gift className="w-4 h-4 text-red-500" />}
+                                        icon={<Gift className="w-4 h-4 text-ballys-red" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined}
                                     >
                                         <div className="space-y-4">
@@ -479,7 +477,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     {/* Dining Offers */}
                                     <Section 
                                         title="Dining & Happy Hours" 
-                                        icon={<Utensils className="w-4 h-4 text-blue-400" />}
+                                        icon={<Utensils className="w-4 h-4 text-ballys-blue" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined}
                                     >
                                         <div className="space-y-4">
@@ -495,7 +493,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     {/* Promo Events */}
                                     <Section 
                                         title="Promotions" 
-                                        icon={<Gift className="w-4 h-4 text-purple-400" />}
+                                        icon={<Gift className="w-4 h-4 text-purple-500" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined}
                                     >
                                         <div className="space-y-4">
@@ -511,7 +509,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     {/* Entertainment */}
                                     <Section 
                                         title="Entertainment" 
-                                        icon={<Music className="w-4 h-4 text-pink-400" />}
+                                        icon={<Music className="w-4 h-4 text-pink-500" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined}
                                     >
                                         <div className="space-y-4">
@@ -539,17 +537,17 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         .map(([category, items]) => (
                                             <div
                                                 key={category}
-                                                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors duration-300 relative"
+                                                className="glass-card rounded-2xl overflow-hidden"
                                             >
-                                                <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
-                                                    <Clock className="w-4 h-4 text-white/40" />
-                                                    <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">{category}</h3>
+                                                <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                                                    <Clock className="w-4 h-4 text-text-light" />
+                                                    <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">{category}</h3>
                                                 </div>
                                                 <div className="p-2">
                                                     {items.map((item, idx) => (
-                                                        <div key={idx} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-colors group">
-                                                            <span className="font-medium text-sm text-white/80 group-hover:text-white transition-colors">{item.name}</span>
-                                                            <span className="text-xs font-mono text-white/50 bg-white/5 px-2 py-1 rounded-md border border-white/5">{item.time}</span>
+                                                        <div key={idx} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors group">
+                                                            <span className="font-medium text-sm text-text-main">{item.name}</span>
+                                                            <span className="text-xs font-mono text-text-muted bg-gray-100 px-2 py-1 rounded-md border border-gray-200">{item.time}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -567,7 +565,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     className="space-y-8"
                                 >
                                     {/* Promo Info */}
-                                    <Section title="Promotions (Internal)" icon={<Info className="w-4 h-4 text-purple-400" />}>
+                                    <Section title="Promotions (Internal)" icon={<Info className="w-4 h-4 text-purple-500" />}>
                                         {events.filter(e => e.category === 'Promo').map((event, index) => (
                                             <EventCard key={event.id} event={event} index={index} />
                                         ))}
@@ -575,16 +573,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </Section>
 
                                     {/* Phone Numbers */}
-                                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                                        <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-white/40" />
-                                            <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">Important Numbers</h3>
+                                    <div className="glass-card rounded-2xl overflow-hidden">
+                                        <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-text-light" />
+                                            <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">Important Numbers</h3>
                                         </div>
                                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {phoneNumbers.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center bg-white/5 hover:bg-white/10 p-3.5 rounded-xl border border-white/5 transition-all group cursor-pointer hover:border-white/10">
-                                                    <span className="text-sm font-medium text-white/80 group-hover:text-white">{item.name}</span>
-                                                    <span className="text-xs font-mono text-yellow-500/80 group-hover:text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded">{item.time}</span>
+                                                <div key={idx} className="flex justify-between items-center bg-white hover:bg-gray-50 p-3.5 rounded-xl border border-gray-100 transition-all group cursor-pointer hover:border-gray-200 shadow-sm">
+                                                    <span className="text-sm font-medium text-text-main">{item.name}</span>
+                                                    <span className="text-xs font-mono text-ballys-red/80 group-hover:text-ballys-red bg-ballys-red/5 px-2 py-1 rounded">{item.time}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -595,6 +593,23 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     )}
                 </AnimatePresence>
             </main>
+
+            {/* Footer */}
+            <footer className="relative z-50 py-8 px-4 border-t border-gray-200/50 mt-auto bg-white/50 backdrop-blur-sm">
+                <div className="max-w-3xl mx-auto text-center space-y-3">
+                    <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
+                        Created by Regional Advertising Manager Jackson Kelly
+                    </p>
+                    <p className="text-[10px] text-text-light uppercase tracking-widest">
+                        &copy; Bally's Corporation {new Date().getFullYear()} All Rights Reserved
+                    </p>
+                    <div className="pt-2 flex items-center justify-center gap-3 text-[9px] text-text-light/70 font-mono uppercase tracking-wider">
+                        <span>v8.1</span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span>Created in Lincoln, RI</span>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
@@ -628,23 +643,23 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6"
+            className="glass-card rounded-3xl p-6 bg-white/90"
         >
             <div className="flex items-center justify-between mb-8">
-                <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <ChevronLeft className="w-5 h-5 text-white/70" />
+                <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <ChevronLeft className="w-5 h-5 text-text-muted" />
                 </button>
-                <h2 className="text-lg font-bold text-white tracking-widest uppercase">
+                <h2 className="text-lg font-bold text-text-main tracking-widest uppercase">
                     {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </h2>
-                <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <ChevronRight className="w-5 h-5 text-white/70" />
+                <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <ChevronRight className="w-5 h-5 text-text-muted" />
                 </button>
             </div>
 
             <div className="grid grid-cols-7 gap-2 mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-xs font-bold text-white/30 uppercase tracking-wider py-2">
+                    <div key={day} className="text-center text-xs font-bold text-text-light uppercase tracking-wider py-2">
                         {day}
                     </div>
                 ))}
@@ -655,22 +670,29 @@ function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate:
                     if (!date) return <div key={idx} />;
                     const isSelected = date.toDateString() === selectedDate.toDateString();
                     const isToday = date.toDateString() === new Date().toDateString();
-                    const hasEvents = getEvents(date).length > 0;
+                    const dayEvents = getEvents(date);
+                    const hasTiverton = dayEvents.some(e => !e.property || e.property === 'Tiverton' || e.property === 'Both');
+                    const hasLincoln = dayEvents.some(e => !e.property || e.property === 'Lincoln' || e.property === 'Both');
 
                     return (
                         <button
                             key={idx}
                             onClick={() => onSelectDate(date)}
                             className={`
-                                relative h-12 rounded-xl flex flex-col items-center justify-center transition-all duration-200
-                                ${isSelected ? 'bg-red-600 text-white shadow-lg scale-105' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}
-                                ${isToday && !isSelected ? 'border border-red-500/50' : ''}
+                                relative h-14 rounded-xl flex flex-col items-center justify-start pt-2 transition-all duration-200
+                                ${isSelected ? 'bg-ballys-red text-white shadow-lg scale-105' : 'bg-gray-50 text-text-muted hover:bg-gray-100 hover:text-text-main'}
+                                ${isToday && !isSelected ? 'border border-ballys-red/50' : ''}
                             `}
                         >
                             <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{date.getDate()}</span>
-                            {hasEvents && !isSelected && (
-                                <div className="w-1 h-1 rounded-full bg-red-500 mt-1" />
-                            )}
+                            <div className="flex gap-1 mt-1.5">
+                                {hasLincoln && (
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-ballys-red'}`} title="Lincoln Event" />
+                                )}
+                                {hasTiverton && (
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} title="Tiverton Event" />
+                                )}
+                            </div>
                         </button>
                     );
                 })}
@@ -685,12 +707,12 @@ function Section({ title, icon, children, onAddEvent }: { title: string, icon: R
             <div className="flex items-center justify-between mb-5 px-2 opacity-70">
                 <div className="flex items-center gap-2">
                     {icon}
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em]">{title}</h3>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">{title}</h3>
                 </div>
                 {onAddEvent && (
                     <button 
                         onClick={onAddEvent}
-                        className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:text-white transition-colors"
+                        className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 text-ballys-red hover:text-ballys-darkRed transition-colors"
                     >
                         <Plus className="w-3 h-3" /> Add Event
                     </button>
@@ -705,11 +727,11 @@ function Section({ title, icon, children, onAddEvent }: { title: string, icon: R
 
 function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] group hover:bg-white/5 transition-colors cursor-pointer" onClick={onAddEvent}>
-            <CalendarIcon className="w-8 h-8 text-white/10 mb-3 group-hover:text-white/20 transition-colors" />
-            <p className="text-white/30 text-sm italic mb-2">{message}</p>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-gray-200 rounded-2xl bg-gray-50 group hover:bg-gray-100 transition-colors cursor-pointer" onClick={onAddEvent}>
+            <CalendarIcon className="w-8 h-8 text-text-light mb-3 group-hover:text-text-muted transition-colors" />
+            <p className="text-text-muted text-sm italic mb-2">{message}</p>
             {onAddEvent && (
-                <span className="text-xs text-red-400/70 font-bold uppercase tracking-wider group-hover:text-red-400 transition-colors">
+                <span className="text-xs text-ballys-red/70 font-bold uppercase tracking-wider group-hover:text-ballys-red transition-colors">
                     Click to add event
                 </span>
             )}
@@ -723,9 +745,9 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, ease: "easeOut" }}
-            className={`relative overflow-hidden rounded-2xl border transition-colors duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
-                ? 'bg-gradient-to-br from-yellow-900/20 to-black border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.1)]'
-                : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 hover:shadow-xl'
+            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] ${event.highlight
+                ? 'bg-gradient-to-br from-ballys-gold/10 to-white border-ballys-gold/30 shadow-lg'
+                : 'bg-white hover:border-ballys-red/20'
                 }`}
         >
             {onEdit && (
@@ -734,45 +756,45 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                         e.stopPropagation();
                         onEdit(event);
                     }}
-                    className="absolute top-3 right-3 z-20 p-2 bg-black/50 hover:bg-red-500/80 text-white/70 hover:text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                    className="absolute top-3 right-3 z-20 p-2 bg-white hover:bg-ballys-red text-text-light hover:text-white rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100 border border-gray-100"
                     title="Edit Event"
                 >
                     <Edit2 className="w-3 h-3" />
                 </button>
             )}
             {event.highlight && (
-                <div className="absolute top-0 right-0 bg-yellow-500 text-black text-[9px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-bl-xl z-10 shadow-lg">
+                <div className="absolute top-0 right-0 bg-ballys-gold text-black text-[9px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-bl-xl z-10 shadow-sm">
                     Featured
                 </div>
             )}
 
             {/* Shine Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start gap-4 mb-3">
                     <div>
                         {event.property && event.property !== 'Both' && (
                             <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block ${
-                                event.property === 'Lincoln' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                                event.property === 'Lincoln' ? 'bg-ballys-red/10 text-ballys-red' : 'bg-green-500/10 text-green-600'
                             }`}>
                                 {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
                             </span>
                         )}
-                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-400' : 'text-white'}`}>
+                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-600' : 'text-text-main'}`}>
                             {event.title}
                         </h4>
                     </div>
                 </div>
 
-                <p className="text-white/70 text-sm leading-relaxed mb-5 font-light">
+                <p className="text-text-muted text-sm leading-relaxed mb-5 font-normal">
                     {event.description}
                 </p>
 
                 {event.media && event.media.length > 0 && (
                     <div className="mb-5 grid grid-cols-2 gap-2">
                         {event.media.map((item, idx) => (
-                            <div key={idx} className="relative rounded-lg overflow-hidden border border-white/10 bg-black/40 group/media">
+                            <div key={idx} className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group/media">
                                 {item.type === 'image' ? (
                                     <div className="aspect-video relative cursor-pointer" onClick={() => window.open(item.url, '_blank')}>
                                         <img src={item.url} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-110" />
@@ -781,10 +803,10 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                                         </div>
                                     </div>
                                 ) : (
-                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-white/5 transition-colors aspect-video text-center">
-                                        <FileText className="w-8 h-8 text-white/50 group-hover/media:text-white/80 transition-colors" />
-                                        <span className="text-xs text-white/60 group-hover/media:text-white/90 truncate w-full px-2">{item.name}</span>
-                                        <span className="text-[9px] uppercase tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded">PDF</span>
+                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 transition-colors aspect-video text-center">
+                                        <FileText className="w-8 h-8 text-text-light group-hover/media:text-text-main transition-colors" />
+                                        <span className="text-xs text-text-muted group-hover/media:text-text-main truncate w-full px-2">{item.name}</span>
+                                        <span className="text-[9px] uppercase tracking-wider text-text-light bg-white border border-gray-100 px-2 py-0.5 rounded">PDF</span>
                                     </a>
                                 )}
                             </div>
@@ -795,8 +817,8 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                 {event.details && (
                     <ul className="space-y-2.5 mb-5">
                         {event.details.map((detail, idx) => (
-                            <li key={idx} className="flex items-start gap-3 text-xs text-white/60">
-                                <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${event.highlight ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                            <li key={idx} className="flex items-start gap-3 text-xs text-text-muted">
+                                <span className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${event.highlight ? 'bg-ballys-gold' : 'bg-ballys-red'}`} />
                                 <span className="leading-relaxed">{detail}</span>
                             </li>
                         ))}
@@ -804,11 +826,11 @@ function EventCard({ event, index = 0, onEdit }: { event: Event, index?: number,
                 )}
 
                 {event.meta && (
-                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-white/5">
+                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-100">
                         {event.meta.map((meta, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 group-hover:border-white/10 transition-colors">
-                                <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider">{meta.label}</span>
-                                <span className="text-xs text-white/90 font-medium">{meta.value}</span>
+                            <div key={idx} className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 group-hover:border-gray-200 transition-colors">
+                                <span className="text-[9px] font-bold text-text-light uppercase tracking-wider">{meta.label}</span>
+                                <span className="text-xs text-text-main font-medium">{meta.value}</span>
                             </div>
                         ))}
                     </div>

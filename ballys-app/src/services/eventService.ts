@@ -4,6 +4,7 @@ import { getDefaultPromotions, DEFAULT_SCHEDULES } from '../data';
 
 const EVENTS_KEY = 'ballys_events';
 const SCHEDULES_KEY = 'ballys_schedules';
+const TAGS_KEY = 'ballys_tags';
 
 // Helper to check if an event should be shown on a given date
 export const shouldShowEvent = (event: AdminEvent, date: Date): boolean => {
@@ -191,6 +192,43 @@ export const eventService = {
     }
   },
 
+  // Tags Management
+  async getTags(): Promise<string[]> {
+    try {
+        if (sql) {
+            const data = await sql`SELECT name FROM tags ORDER BY name ASC`;
+            if (data) return data.map((r: any) => r.name);
+        }
+    } catch (e) {
+        console.warn('Failed to fetch tags from DB');
+    }
+    
+    const saved = localStorage.getItem(TAGS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  },
+
+  async saveTag(tag: string): Promise<void> {
+    // Local Storage
+    const currentTags = await this.getTags();
+    if (!currentTags.includes(tag)) {
+        const newTags = [...currentTags, tag];
+        localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+    }
+
+    // DB
+    if (sql) {
+        try {
+            await sql`
+                INSERT INTO tags (id, name) 
+                VALUES (${tag.toLowerCase().replace(/\s+/g, '-')}, ${tag})
+                ON CONFLICT (id) DO NOTHING
+            `;
+        } catch(e) {
+            console.error('Failed to save tag to DB', e);
+        }
+    }
+  },
+
   // Initialize Database Tables
   async initDatabase(): Promise<void> {
     if (!sql) return;
@@ -244,6 +282,14 @@ export const eventService = {
           items JSONB NOT NULL
         );
       `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS tags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL UNIQUE
+        );
+      `;
+
       console.log('Database initialized successfully');
     } catch (e) {
       console.error('Failed to initialize database:', e);

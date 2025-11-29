@@ -16,6 +16,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   // Local state (working copy)
   const [events, setEvents] = useState<AdminEvent[]>([]);
   const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   
   // Persisted state (live copy)
   const [savedEvents, setSavedEvents] = useState<AdminEvent[]>([]);
@@ -45,12 +46,20 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const loadData = async () => {
     const loadedEvents = await eventService.getEvents();
     const loadedSchedules = await eventService.getSchedules();
+    const loadedTags = await eventService.getTags();
     
     setEvents(loadedEvents);
     setSavedEvents(JSON.parse(JSON.stringify(loadedEvents))); // Deep copy
     
     setSchedules(loadedSchedules);
     setSavedSchedules(JSON.parse(JSON.stringify(loadedSchedules))); // Deep copy
+
+    setAvailableTags(loadedTags);
+  };
+
+  const refreshTags = async () => {
+      const tags = await eventService.getTags();
+      setAvailableTags(tags);
   };
 
   const initializeWithDefaults = async () => {
@@ -314,17 +323,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const currentEvent = editingId ? events.find(e => e.id === editingId) : null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#050505] text-white overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-background text-text-main overflow-hidden font-sans">
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-red-900/20 rounded-full blur-[120px] mix-blend-screen" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-blue-900/10 rounded-full blur-[120px] mix-blend-screen" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-ballys-red/10 rounded-full blur-[120px] mix-blend-multiply" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-ballys-blue/10 rounded-full blur-[120px] mix-blend-multiply" />
       </div>
 
       {/* Preview Mode Overlay */}
       {showPreview && (
-        <div className="fixed inset-0 z-[200] bg-black">
-          <div className="sticky top-0 z-[210] bg-red-600 text-white px-4 py-2 flex items-center justify-between shadow-lg">
+        <div className="fixed inset-0 z-[200] bg-white">
+          <div className="sticky top-0 z-[210] bg-ballys-red text-white px-4 py-2 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-2 font-bold text-sm">
               <Eye className="w-4 h-4" />
               PREVIEW MODE (Unsaved Changes Visible)
@@ -356,13 +365,13 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
       <div className="relative z-10 h-full flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-[#050505]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-6 py-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Settings className="w-6 h-6 text-red-500" />
+              <Settings className="w-6 h-6 text-ballys-red" />
               <div>
-                <h1 className="text-xl font-bold">Admin Panel</h1>
-                <p className="text-xs text-white/50">Manage Events & Schedules</p>
+                <h1 className="text-xl font-bold text-text-main">Admin Panel</h1>
+                <p className="text-xs text-text-muted">Manage Events & Schedules</p>
               </div>
             </div>
             
@@ -370,10 +379,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <div className="flex-1 flex justify-center gap-3">
               <button
                 onClick={() => setShowPreview(true)}
-                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold flex items-center gap-2 transition-colors"
+                className="px-6 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-sm font-bold flex items-center gap-2 transition-colors shadow-sm text-text-main"
                 title="Preview changes as they would appear on the live site"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-4 h-4 text-text-muted" />
                 Preview Site
               </button>
               
@@ -381,8 +390,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 onClick={handlePublishAll}
                 className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all shadow-lg ${
                   hasUnsavedChanges()
-                    ? 'bg-green-500 hover:bg-green-600 text-white hover:scale-105 shadow-green-500/20'
-                    : 'bg-white/5 text-white/40 cursor-default'
+                    ? 'bg-green-600 hover:bg-green-700 text-white hover:scale-105 shadow-green-500/20'
+                    : 'bg-gray-100 text-text-muted cursor-default border border-gray-200'
                 }`}
               >
                 <Globe className="w-4 h-4" />
@@ -395,8 +404,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <button
                 onClick={() => setActiveView('events')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'events'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  ? 'bg-ballys-red text-white shadow-md'
+                  : 'bg-white border border-gray-200 text-text-muted hover:bg-gray-50'
                   }`}
               >
                 Events
@@ -404,8 +413,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <button
                 onClick={() => setActiveView('schedules')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'schedules'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  ? 'bg-ballys-red text-white shadow-md'
+                  : 'bg-white border border-gray-200 text-text-muted hover:bg-gray-50'
                   }`}
               >
                 Schedules
@@ -423,7 +432,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     }
                   }
                 }}
-                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 rounded-lg flex items-center gap-2 text-sm transition-colors"
                 title="Create database tables if missing"
               >
                 <Database className="w-4 h-4" />
@@ -435,7 +444,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     initializeWithDefaults();
                   }
                 }}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg flex items-center gap-2 text-sm transition-colors"
                 title="Load default promotions"
               >
                 <Settings className="w-4 h-4" />
@@ -443,14 +452,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 onClick={handleExport}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-text-main rounded-lg flex items-center gap-2 text-sm transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Export
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-ballys-red hover:bg-ballys-darkRed text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-md"
               >
                 <X className="w-4 h-4" />
                 Back to Site
@@ -461,24 +470,24 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1 overflow-hidden flex">
           {/* Sidebar */}
-          <div className="w-96 border-r border-white/10 bg-[#050505]/50 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain">
+          <div className="w-96 border-r border-gray-200 bg-white/60 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain">
             {activeView === 'events' ? (
               <div className="p-4 space-y-4">
                 {/* Search & Filters */}
                 <div className="space-y-3">
                   <div className="relative">
-                    <Search className="w-4 h-4 text-white/40 absolute left-3 top-3 pointer-events-none" />
+                    <Search className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
                     <input
                       type="text"
                       placeholder="Search title, details, tags..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2.5 pl-9 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
+                      className="w-full px-4 py-2.5 pl-9 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-sm text-text-main placeholder:text-text-light"
                     />
                     {searchTerm && (
                         <button
                             onClick={() => setSearchTerm('')}
-                            className="absolute right-3 top-2.5 text-white/40 hover:text-white transition-colors"
+                            className="absolute right-3 top-2.5 text-text-light hover:text-text-main transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -488,7 +497,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     <select
                       value={filterCategory}
                       onChange={(e) => setFilterCategory(e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
+                      className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
                     >
                       <option value="all">All Categories</option>
                       {CATEGORIES.map(cat => (
@@ -499,14 +508,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       <select
                         value={sortOption}
                         onChange={(e) => setSortOption(e.target.value as any)}
-                        className="w-full px-4 py-2.5 pl-9 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm appearance-none cursor-pointer"
+                        className="w-full px-4 py-2.5 pl-9 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-sm appearance-none cursor-pointer text-text-main"
                       >
                         <option value="date-desc">Newest Date</option>
                         <option value="date-asc">Oldest Date</option>
                         <option value="last-edited">Last Edited</option>
                         <option value="property">Property</option>
                       </select>
-                      <ArrowUpDown className="w-4 h-4 text-white/50 absolute left-3 top-3 pointer-events-none" />
+                      <ArrowUpDown className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -516,12 +525,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between"
+                    className="p-3 bg-red-50 border border-red-100 rounded-lg flex items-center justify-between"
                   >
-                    <span className="text-sm">{selectedEvents.size} selected</span>
+                    <span className="text-sm text-red-800">{selectedEvents.size} selected</span>
                     <button
                       onClick={handleBulkDelete}
-                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded text-sm flex items-center gap-2 transition-colors"
+                      className="px-3 py-1.5 bg-white hover:bg-red-50 border border-red-200 text-red-600 rounded text-sm flex items-center gap-2 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
@@ -533,7 +542,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAdd()}
-                    className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
                   >
                     <Plus className="w-4 h-4" />
                     Add Event
@@ -544,7 +553,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       setShowAddForm(false);
                       setEditingId(null);
                     }}
-                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                    className="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
                   >
                     <Upload className="w-4 h-4" />
                   </button>
@@ -553,20 +562,20 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 {/* Event List */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-2 py-1">
-                    <span className="text-xs text-white/50 uppercase tracking-wider">
+                    <span className="text-xs text-text-light uppercase tracking-wider">
                       Events ({filteredEvents.length})
                     </span>
                     {filteredEvents.length > 0 && (
                       <button
                         onClick={toggleSelectAll}
-                        className="text-xs text-white/50 hover:text-white transition-colors"
+                        className="text-xs text-text-light hover:text-text-main transition-colors"
                       >
                         {selectedEvents.size === filteredEvents.length ? 'Deselect All' : 'Select All'}
                       </button>
                     )}
                   </div>
                   {filteredEvents.length === 0 ? (
-                    <div className="text-center py-12 text-white/30 text-sm">
+                    <div className="text-center py-12 text-text-light text-sm border border-dashed border-gray-200 rounded-lg bg-gray-50">
                       No events found
                     </div>
                   ) : (
@@ -576,8 +585,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         <div
                           key={event.id}
                           className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === event.id
-                            ? 'bg-red-500/20 border-red-500/50'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                            ? 'bg-red-50 border-red-200 shadow-sm'
+                            : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                             }`}
                           onClick={() => handleEdit(event.id)}
                         >
@@ -597,25 +606,25 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 toggleSelect(event.id);
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5"
+                              className="mt-1 w-4 h-4 rounded border-gray-300 text-ballys-red focus:ring-ballys-red"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-sm truncate">{event.title || 'Untitled'}</h3>
+                                <h3 className={`font-semibold text-sm truncate ${editingId === event.id ? 'text-red-900' : 'text-text-main'}`}>{event.title || 'Untitled'}</h3>
                                 {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs px-2 py-0.5 bg-white/10 rounded text-white/60">
+                                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-text-muted border border-gray-200">
                                   {event.category}
                                 </span>
                                 {event.isRecurring && (
-                                  <span className="text-xs px-2 py-0.5 bg-blue-500/20 rounded text-blue-400">
+                                  <span className="text-xs px-2 py-0.5 bg-blue-50 rounded text-blue-600 border border-blue-100">
                                     Recurring
                                   </span>
                                 )}
                                 {status !== 'synced' && (
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                    status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                                    status === 'new' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'
                                   }`}>
                                     {status === 'new' ? 'New' : 'Edited'}
                                   </span>
@@ -627,9 +636,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 e.stopPropagation();
                                 handleDelete(event.id);
                               }}
-                              className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                              className="p-1.5 hover:bg-red-100 rounded text-text-light hover:text-red-600 transition-colors"
                             >
-                              <Trash2 className="w-4 h-4 text-white/40" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
@@ -641,13 +650,13 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             ) : (
               <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider">Schedule Categories</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted">Schedule Categories</h3>
                   <button
                     onClick={() => {
                       const name = prompt('Enter category name:');
                       if (name) addScheduleCategory(name);
                     }}
-                    className="px-3 py-1.5 bg-red-500 hover:bg-red-600 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors"
+                    className="px-3 py-1.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg text-xs font-medium flex items-center gap-2 transition-colors text-white shadow-sm"
                   >
                     <Plus className="w-3 h-3" />
                     Add Category
@@ -661,8 +670,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         key={category}
                         onClick={() => setEditingId(category)}
                         className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === category
-                          ? 'bg-red-500/20 border-red-500/50'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                          ? 'bg-red-50 border-red-200 shadow-sm'
+                          : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                           }`}
                       >
                         {/* Status Indicator Strip */}
@@ -673,16 +682,16 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         )}
                         <div className="flex items-center justify-between pl-2">
                           <div className="flex items-center gap-2">
-                             <h4 className="font-semibold text-sm">{category}</h4>
+                             <h4 className={`font-semibold text-sm ${editingId === category ? 'text-red-900' : 'text-text-main'}`}>{category}</h4>
                              {status !== 'synced' && (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                  status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                                  status === 'new' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'
                                 }`}>
                                   {status === 'new' ? 'New' : 'Edited'}
                                 </span>
                               )}
                           </div>
-                          <span className="text-xs text-white/50">{schedules[category].length} items</span>
+                          <span className="text-xs text-text-light">{schedules[category].length} items</span>
                         </div>
                       </div>
                     );
@@ -693,13 +702,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Main Content - Edit Form */}
-          <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain">
+          <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain bg-gray-50/50">
             <AnimatePresence mode="wait">
               {activeView === 'events' ? (
                 showAddForm && currentEvent ? (
                   <EventForm
                     key={editingId}
                     event={currentEvent}
+                    availableTags={availableTags}
+                    onRefreshTags={refreshTags}
                     onSave={handleSaveEvent}
                     onCancel={() => {
                       setEditingId(null);
@@ -734,10 +745,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 max-w-md">
-                    <Settings className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold mb-2">No Category Selected</h3>
-                    <p className="text-white/50 text-sm">
+                  <div className="bg-white border border-gray-200 rounded-2xl p-12 max-w-md shadow-sm">
+                    <Settings className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2 text-text-main">No Category Selected</h3>
+                    <p className="text-text-muted text-sm">
                       Select a schedule category from the sidebar to edit, or create a new one.
                     </p>
                   </div>
@@ -754,7 +765,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-6 right-6 z-[200] bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-green-400/50"
+            className="fixed bottom-6 right-6 z-[200] bg-green-600 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 border border-green-500"
           >
             <div className="bg-white/20 p-1 rounded-full">
               <Check className="w-4 h-4" />
@@ -856,30 +867,30 @@ function ScheduleForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{category}</h2>
-            <p className="text-sm text-white/50 mt-1">Edit hours and locations</p>
+            <h2 className="text-2xl font-bold text-text-main">{category}</h2>
+            <p className="text-sm text-text-muted mt-1">Edit hours and locations</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleExport}
-              className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
+              className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
               title="Export JSON"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={handleImport}
-              className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
+              className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
               title="Import JSON"
             >
               <Upload className="w-4 h-4" />
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-ballys-red/10 hover:bg-ballys-red/20 border border-ballys-red/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors text-ballys-red"
             >
               <Check className="w-4 h-4" />
               Save Draft
@@ -889,13 +900,13 @@ function ScheduleForm({
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={onDeleteCategory}
-            className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-sm transition-colors"
+            className="px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-lg text-sm transition-colors"
           >
             Delete Category
           </button>
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
+            className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm transition-colors text-text-main"
           >
             Back
           </button>
@@ -904,24 +915,24 @@ function ScheduleForm({
 
         <div className="space-y-4">
           {localItems.map((item, index) => (
-            <div key={index} className="flex gap-2 items-center bg-white/5 p-4 rounded-lg border border-white/10">
+            <div key={index} className="flex gap-2 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
               <input
                 type="text"
                 value={item.name}
                 onChange={(e) => updateItem(index, 'name', e.target.value)}
                 placeholder="Location name"
-                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
               />
               <input
                 type="text"
                 value={item.time}
                 onChange={(e) => updateItem(index, 'time', e.target.value)}
                 placeholder="Hours (e.g., 10am – 10pm)"
-                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
               />
               <button
                 onClick={() => removeItem(index)}
-                className="p-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg transition-colors"
+                className="p-2 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-colors text-text-light hover:text-red-600"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -929,7 +940,7 @@ function ScheduleForm({
           ))}
           <button
             onClick={addItem}
-            className="w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center gap-2 text-sm transition-colors"
+            className="w-full px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 border-dashed rounded-lg flex items-center justify-center gap-2 text-sm transition-colors text-text-muted hover:text-text-main"
           >
             <Plus className="w-4 h-4" />
             Add Item
@@ -1040,11 +1051,11 @@ function MediaUpload({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
           <Upload className="w-4 h-4" />
           Media (Images & PDFs)
         </h3>
-        <label className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors cursor-pointer">
+        <label className="px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors cursor-pointer text-text-main shadow-sm">
           <Plus className="w-4 h-4" />
           Add Media
           <input
@@ -1059,30 +1070,30 @@ function MediaUpload({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {media?.map((item, index) => (
-          <div key={index} className="relative group bg-black/40 rounded-lg overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
+          <div key={index} className="relative group bg-gray-100 rounded-lg overflow-hidden border border-gray-200 aspect-video flex items-center justify-center">
             {item.type === 'image' ? (
               <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-2 text-white/70">
+              <div className="flex flex-col items-center gap-2 text-text-muted">
                 <FileText className="w-8 h-8" />
                 <span className="text-xs truncate max-w-[90%] px-2">{item.name || 'PDF Document'}</span>
               </div>
             )}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
               <button
                 onClick={() => removeMedia(index)}
-                className="p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white transition-colors"
+                className="p-2 bg-white text-red-600 hover:bg-red-50 rounded-full transition-colors shadow-sm"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded text-[10px] uppercase font-bold text-white/80">
+            <div className="absolute top-2 left-2 px-2 py-1 bg-white/90 rounded text-[10px] uppercase font-bold text-text-main shadow-sm">
               {item.type}
             </div>
           </div>
         ))}
         {(!media || media.length === 0) && (
-          <div className="col-span-full py-8 text-center border border-dashed border-white/10 rounded-lg text-white/30 text-sm">
+          <div className="col-span-full py-8 text-center border border-dashed border-gray-300 rounded-lg text-text-light text-sm bg-gray-50">
             No media uploaded. Add images or PDFs.
           </div>
         )}
@@ -1093,15 +1104,20 @@ function MediaUpload({
 
 function EventForm({
   event,
+  availableTags,
+  onRefreshTags,
   onSave,
   onCancel
 }: {
   event: AdminEvent;
+  availableTags: string[];
+  onRefreshTags: () => void;
   onSave: (event: AdminEvent, publish?: boolean) => void;
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<AdminEvent>(event);
   const [activeTab, setActiveTab] = useState<'details' | 'media' | 'time'>('details');
+  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     setFormData(event);
@@ -1143,6 +1159,13 @@ function EventForm({
     updateField('meta', meta);
   };
 
+  const handleAddNewTag = async () => {
+      if (!newTag.trim()) return;
+      await eventService.saveTag(newTag.trim());
+      onRefreshTags();
+      setNewTag('');
+  };
+
   const toggleDayOfWeek = (day: number) => {
     const days = formData.daysOfWeek || [];
     const newDays = days.includes(day)
@@ -1158,22 +1181,22 @@ function EventForm({
       exit={{ opacity: 0, x: 20 }}
       className="max-w-4xl mx-auto pb-20"
     >
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
         {/* Form Header */}
-        <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
           <div className="flex items-center gap-4">
              <button
               onClick={onCancel}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-200 rounded-full transition-colors text-text-muted"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div>
-              <h2 className="text-lg font-bold flex items-center gap-2">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-text-main">
                  {event.id.startsWith('event-') ? 'Create New Event' : 'Edit Event'}
                  {formData.highlight && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}
               </h2>
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-text-muted">
                 {formData.title || 'Untitled Event'}
               </p>
             </div>
@@ -1181,13 +1204,13 @@ function EventForm({
           <div className="flex gap-2">
             <button
               onClick={() => onSave(formData, false)}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
             >
               Save Draft
             </button>
             <button
               onClick={() => onSave(formData, true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-lg shadow-green-900/20"
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
             >
               <Globe className="w-4 h-4" />
               Save & Publish
@@ -1199,12 +1222,12 @@ function EventForm({
           {/* Title & Basic Info */}
           <div className="space-y-4">
              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Event Title</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-1">Event Title</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-red-500/50 focus:bg-white/10 text-xl font-bold placeholder:text-white/20 transition-all"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-xl font-bold placeholder:text-text-light/50 transition-all text-text-main"
                   placeholder="Enter event name..."
                   autoFocus
                 />
@@ -1212,43 +1235,43 @@ function EventForm({
              
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Category</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-1">Category</label>
                     <div className="relative">
                         <select
                         value={formData.category}
                         onChange={(e) => updateField('category', e.target.value as any)}
-                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 transition-colors text-text-main"
                         >
                         {CATEGORIES.map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
                         ))}
                         </select>
-                        <div className="absolute right-3 top-3 pointer-events-none opacity-50">
+                        <div className="absolute right-3 top-3 pointer-events-none text-text-light">
                             <ArrowUpDown className="w-4 h-4" />
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Property</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-1">Property</label>
                      <div className="relative">
                         <select
                         value={formData.property || 'Both'}
                         onChange={(e) => updateField('property', e.target.value as any)}
-                        className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer hover:bg-white/10 transition-colors"
+                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 transition-colors text-text-main"
                         >
                         <option value="Both">Both Properties</option>
                         <option value="Lincoln">Bally's Lincoln</option>
                         <option value="Tiverton">Bally's Tiverton</option>
                         </select>
-                         <div className="absolute right-3 top-3 pointer-events-none opacity-50">
+                         <div className="absolute right-3 top-3 pointer-events-none text-text-light">
                             <ArrowUpDown className="w-4 h-4" />
                         </div>
                     </div>
                 </div>
                 <div className="flex items-end pb-1">
                      <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.highlight ? 'bg-yellow-500 border-yellow-500' : 'border-white/20 bg-white/5 group-hover:border-white/40'}`}>
-                             {formData.highlight && <Check className="w-3 h-3 text-black" />}
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.highlight ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                             {formData.highlight && <Check className="w-3 h-3 text-white" />}
                         </div>
                         <input
                             type="checkbox"
@@ -1256,7 +1279,7 @@ function EventForm({
                             onChange={(e) => updateField('highlight', e.target.checked)}
                             className="hidden"
                         />
-                        <span className={`text-sm font-medium transition-colors ${formData.highlight ? 'text-yellow-500' : 'text-white/60 group-hover:text-white'}`}>
+                        <span className={`text-sm font-medium transition-colors ${formData.highlight ? 'text-yellow-600' : 'text-text-muted group-hover:text-text-main'}`}>
                             Featured Event
                         </span>
                     </label>
@@ -1264,29 +1287,29 @@ function EventForm({
              </div>
 
              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-1">Description</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-1">Description</label>
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => updateField('description', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-red-500/50 focus:bg-white/10 resize-none text-white/80 leading-relaxed"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-ballys-red resize-none text-text-main leading-relaxed placeholder:text-text-light/50"
                   placeholder="Write a brief description..."
                 />
              </div>
           </div>
 
           {/* Tabs for other sections */}
-          <div className="border-t border-white/10 pt-6">
-             <div className="flex gap-2 mb-6 bg-black/20 p-1 rounded-lg inline-flex">
+          <div className="border-t border-gray-200 pt-6">
+             <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg inline-flex">
                 <button 
                     onClick={() => setActiveTab('details')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-white text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Details & Media
                 </button>
                  <button 
                     onClick={() => setActiveTab('time')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-white text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Date & Time
                 </button>
@@ -1302,7 +1325,7 @@ function EventForm({
                         className="space-y-8"
                     >
                         {/* Media */}
-                         <div className="bg-white/5 border border-white/5 rounded-xl p-5">
+                         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
                             <MediaUpload
                                 media={formData.media}
                                 onChange={(media) => updateField('media', media)}
@@ -1312,33 +1335,33 @@ function EventForm({
                         {/* Bullet Points */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40">Bullet Points</label>
-                                <button onClick={addDetail} className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-light">Bullet Points</label>
+                                <button onClick={addDetail} className="text-xs text-ballys-red hover:text-ballys-darkRed font-medium flex items-center gap-1">
                                     <Plus className="w-3 h-3" /> Add Point
                                 </button>
                             </div>
                              <div className="space-y-2">
                                 {formData.details?.map((detail, index) => (
                                 <div key={index} className="flex gap-2 group">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-4 shrink-0 group-hover:bg-red-500 transition-colors" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-4 shrink-0 group-hover:bg-ballys-red transition-colors" />
                                     <input
                                     type="text"
                                     value={detail}
                                     onChange={(e) => updateDetail(index, e.target.value)}
-                                    className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 focus:bg-white/10"
+                                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     placeholder="Detail point"
                                     />
                                     <button
                                     onClick={() => removeDetail(index)}
-                                    className="p-2 text-white/20 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                     <X className="w-4 h-4" />
                                     </button>
                                 </div>
                                 ))}
                                 {(!formData.details || formData.details.length === 0) && (
-                                    <div onClick={addDetail} className="px-4 py-8 border border-dashed border-white/10 rounded-lg text-center cursor-pointer hover:bg-white/5 transition-colors">
-                                        <p className="text-sm text-white/30">No details added. Click to add bullet points.</p>
+                                    <div onClick={addDetail} className="px-4 py-8 border border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <p className="text-sm text-text-light">No details added. Click to add bullet points.</p>
                                     </div>
                                 )}
                             </div>
@@ -1347,31 +1370,53 @@ function EventForm({
                          {/* Meta */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40">Meta Info (Tags)</label>
-                                <button onClick={addMeta} className="text-xs text-red-400 hover:text-red-300 font-medium flex items-center gap-1">
-                                    <Plus className="w-3 h-3" /> Add Tag
-                                </button>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-light">Meta Info (Tags)</label>
+                                <div className="flex gap-2">
+                                    <div className="flex items-center gap-1">
+                                        <input 
+                                            type="text" 
+                                            value={newTag}
+                                            onChange={(e) => setNewTag(e.target.value)}
+                                            className="px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs focus:outline-none focus:border-ballys-red"
+                                            placeholder="New Tag Name"
+                                        />
+                                        <button onClick={handleAddNewTag} disabled={!newTag.trim()} className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-text-main disabled:opacity-50">
+                                            Save Tag
+                                        </button>
+                                    </div>
+                                    <button onClick={addMeta} className="text-xs text-ballys-red hover:text-ballys-darkRed font-medium flex items-center gap-1">
+                                        <Plus className="w-3 h-3" /> Add Tag
+                                    </button>
+                                </div>
                             </div>
                              <div className="space-y-2">
                                 {formData.meta?.map((meta, index) => (
                                 <div key={index} className="flex gap-2 items-center">
-                                    <input
-                                    type="text"
-                                    value={meta.label}
-                                    onChange={(e) => updateMeta(index, 'label', e.target.value)}
-                                    className="w-1/3 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-xs font-bold uppercase tracking-wider placeholder:text-white/20"
-                                    placeholder="LABEL"
-                                    />
+                                    <div className="w-1/3 relative">
+                                        <input
+                                            type="text"
+                                            value={meta.label}
+                                            onChange={(e) => updateMeta(index, 'label', e.target.value)}
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-xs font-bold uppercase tracking-wider text-text-muted"
+                                            placeholder="LABEL"
+                                            list="available-tags"
+                                        />
+                                        <datalist id="available-tags">
+                                            {availableTags.map(tag => (
+                                                <option key={tag} value={tag} />
+                                            ))}
+                                        </datalist>
+                                    </div>
                                     <input
                                     type="text"
                                     value={meta.value}
                                     onChange={(e) => updateMeta(index, 'value', e.target.value)}
-                                    className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     placeholder="Value"
                                     />
                                     <button
                                     onClick={() => removeMeta(index)}
-                                    className="p-2 text-white/20 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                     <X className="w-4 h-4" />
                                     </button>
@@ -1387,26 +1432,26 @@ function EventForm({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="bg-white/5 border border-white/5 rounded-xl p-6"
+                        className="bg-white border border-gray-200 rounded-xl p-6"
                     >
                          <div className="space-y-6">
-                            <div className="flex items-center gap-3 mb-6 p-4 bg-white/5 rounded-lg border border-white/5">
+                            <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <input
                                 type="checkbox"
                                 id="recurring"
                                 checked={formData.isRecurring || false}
                                 onChange={(e) => updateField('isRecurring', e.target.checked)}
-                                className="w-5 h-5 rounded border-white/20 bg-black"
+                                className="w-5 h-5 rounded border-gray-300 text-black focus:ring-black"
                             />
                             <label htmlFor="recurring" className="text-sm font-medium cursor-pointer flex-1">
-                                <span className="block text-white">Recurring Event</span>
-                                <span className="block text-xs text-white/50">Repeats weekly on specific days</span>
+                                <span className="block text-text-main">Recurring Event</span>
+                                <span className="block text-xs text-text-muted">Repeats weekly on specific days</span>
                             </label>
                             </div>
 
                             {formData.isRecurring ? (
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-3">Active Days</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-3">Active Days</label>
                                 <div className="flex flex-wrap gap-2">
                                 {DAYS_OF_WEEK.map((day, index) => (
                                     <button
@@ -1414,8 +1459,8 @@ function EventForm({
                                     type="button"
                                     onClick={() => toggleDayOfWeek(index)}
                                     className={`h-10 px-4 rounded-lg border text-sm font-medium transition-all ${formData.daysOfWeek?.includes(index)
-                                        ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-900/20'
-                                        : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white'
+                                        ? 'bg-ballys-red border-ballys-red text-white shadow-md'
+                                        : 'bg-white border-gray-200 text-text-muted hover:bg-gray-50 hover:text-text-main'
                                         }`}
                                     >
                                     {day}
@@ -1426,43 +1471,43 @@ function EventForm({
                             ) : (
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Start Date</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">Start Date</label>
                                 <input
                                     type="date"
                                     value={formData.startDate || ''}
                                     onChange={(e) => updateField('startDate', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                 />
                                 </div>
                                 <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">End Date</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">End Date</label>
                                 <input
                                     type="date"
                                     value={formData.endDate || ''}
                                     onChange={(e) => updateField('endDate', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                 />
                                 </div>
                             </div>
                             )}
                             
-                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Start Time</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">Start Time</label>
                                     <input
                                     type="time"
                                     value={formData.startTime || '00:00'}
                                     onChange={(e) => updateField('startTime', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-white/40 mb-2">End Time</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">End Time</label>
                                     <input
                                     type="time"
                                     value={formData.endTime || '23:59'}
                                     onChange={(e) => updateField('endTime', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     />
                                 </div>
                             </div>
@@ -1496,15 +1541,15 @@ function BulkUploadForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Bulk Upload Events</h2>
-            <p className="text-sm text-white/50 mt-1">Paste JSON array of events to upload</p>
+            <h2 className="text-2xl font-bold text-text-main">Bulk Upload Events</h2>
+            <p className="text-sm text-text-muted mt-1">Paste JSON array of events to upload</p>
           </div>
           <button
             onClick={onCancel}
-            className="p-2 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors text-text-muted"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1512,21 +1557,21 @@ function BulkUploadForm({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">JSON Data</label>
+            <label className="block text-sm font-medium mb-2 text-text-main">JSON Data</label>
             <textarea
               value={json}
               onChange={(e) => onChange(e.target.value)}
               rows={15}
-              className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 resize-none font-mono text-sm"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red resize-none font-mono text-sm text-text-main"
               placeholder='[{"id": "event-1", "title": "Event Title", "category": "Open", ...}]'
             />
           </div>
 
-          <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
-            <div className="text-sm text-white/70">
+          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+            <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Format Requirements:</p>
-              <ul className="list-disc list-inside space-y-1 text-white/50">
+              <ul className="list-disc list-inside space-y-1 text-blue-600">
                 <li>Must be a valid JSON array</li>
                 <li>Each event must have an "id" and "title"</li>
                 <li>Events with existing IDs will be updated</li>
@@ -1538,13 +1583,13 @@ function BulkUploadForm({
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
+              className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm transition-colors text-text-main"
             >
               Cancel
             </button>
             <button
               onClick={onUpload}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-ballys-red hover:bg-ballys-darkRed rounded-lg text-sm font-medium flex items-center gap-2 transition-colors text-white shadow-sm"
             >
               <Upload className="w-4 h-4" />
               Upload & Publish
@@ -1563,10 +1608,10 @@ function EmptyState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center h-full text-center"
     >
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-12 max-w-md">
-        <Settings className="w-16 h-16 text-white/20 mx-auto mb-4" />
-        <h3 className="text-xl font-bold mb-2">No Event Selected</h3>
-        <p className="text-white/50 text-sm">
+      <div className="bg-white border border-gray-200 rounded-2xl p-12 max-w-md shadow-sm">
+        <Settings className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-xl font-bold mb-2 text-text-main">No Event Selected</h3>
+        <p className="text-text-muted text-sm">
           Select an event from the sidebar to edit, or create a new event to get started.
         </p>
       </div>

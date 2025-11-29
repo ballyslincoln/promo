@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS events (
   description TEXT,
   details JSONB,
   meta JSONB,
+  media JSONB,
   highlight BOOLEAN DEFAULT FALSE,
   "startDate" TEXT,
   "endDate" TEXT,
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS events (
   "endTime" TEXT,
   "daysOfWeek" JSONB,
   "isRecurring" BOOLEAN DEFAULT FALSE,
-  property TEXT DEFAULT 'Both'
+  property TEXT DEFAULT 'Both',
+  "lastUpdated" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS schedules (
@@ -20,3 +22,7 @@ CREATE TABLE IF NOT EXISTS schedules (
   items JSONB NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS tags (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE
+);
