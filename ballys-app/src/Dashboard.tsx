@@ -283,22 +283,27 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     </div>
 
                     {/* Property Toggle */}
-                    <div className="flex bg-gray-100/80 backdrop-blur-sm rounded-full border border-gray-200/50 p-1.5 relative shadow-inner">
+                    <div className="flex bg-white/40 backdrop-blur-md rounded-full border border-white/50 p-1.5 relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
                         {['All', 'Lincoln', 'Tiverton'].map((prop) => (
                             <button
                                 key={prop}
                                 onClick={() => setSelectedProperty(prop as any)}
-                                className={`relative z-10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${selectedProperty === prop ? 'text-white' : 'text-gray-500 hover:text-text-main'
-                                    }`}
+                                className={`relative z-10 px-5 py-2 text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
+                                    selectedProperty === prop 
+                                    ? 'text-white' 
+                                    : 'text-gray-500 hover:text-gray-800'
+                                }`}
                             >
                                 {selectedProperty === prop && (
                                     <motion.div
                                         layoutId="activeProperty"
-                                        className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/20"
+                                        className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/30"
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                {prop === 'All' ? 'All Properties' : prop}
+                                <span className="relative z-20 drop-shadow-sm">
+                                    {prop === 'All' ? 'All Properties' : prop}
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -406,22 +411,26 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="flex p-1.5 bg-gray-100/80 rounded-2xl border border-gray-200/50 w-full max-w-md relative shadow-inner backdrop-blur-sm"
+                                className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm"
                             >
                                 {['events', 'schedules', 'internal'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 ${activeTab === tab ? 'text-ballys-red' : 'text-gray-500 hover:text-text-main'}`}
+                                        className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.2em] relative z-10 transition-colors duration-300 ${
+                                            activeTab === tab 
+                                            ? 'text-ballys-red' 
+                                            : 'text-gray-500 hover:text-gray-800'
+                                        }`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute inset-0 bg-white rounded-xl shadow-sm border border-black/5"
+                                                className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
                                                 transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                             />
                                         )}
-                                        {tab}
+                                        <span className="relative z-20">{tab}</span>
                                     </button>
                                 ))}
                             </motion.div>
