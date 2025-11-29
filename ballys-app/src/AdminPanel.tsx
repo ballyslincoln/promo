@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download, Calendar,
-  AlertCircle, FileText, Tag, Star, Settings, Check, Database, Globe, Eye
+  AlertCircle, FileText, Tag, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
@@ -31,6 +31,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [activeView, setActiveView] = useState<'events' | 'schedules'>('events');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'last-edited' | 'property'>('date-desc');
 
   useEffect(() => {
     loadData();
@@ -179,9 +180,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       return;
     }
 
+    const eventToSave = {
+      ...eventData,
+      lastUpdated: new Date().toISOString()
+    };
+
     const updated = editingId
-      ? events.map(e => e.id === editingId ? eventData : e)
-      : [...events, eventData];
+      ? events.map(e => e.id === editingId ? eventToSave : e)
+      : [...events, eventToSave];
 
     setEvents(updated);
     setEditingId(null);
@@ -254,12 +260,27 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   };
 
   const getFilteredEvents = () => {
-    return events.filter(e => {
+    const filtered = events.filter(e => {
       const matchesSearch = !searchTerm ||
         e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = filterCategory === 'all' || e.category === filterCategory;
       return matchesSearch && matchesCategory;
+    });
+
+    return filtered.sort((a, b) => {
+      switch (sortOption) {
+        case 'date-desc':
+          return (b.startDate || '0000-00-00').localeCompare(a.startDate || '0000-00-00');
+        case 'date-asc':
+          return (a.startDate || '9999-12-31').localeCompare(b.startDate || '9999-12-31');
+        case 'last-edited':
+          return (b.lastUpdated || '').localeCompare(a.lastUpdated || '');
+        case 'property':
+          return (a.property || 'Both').localeCompare(b.property || 'Both');
+        default:
+          return 0;
+      }
     });
   };
 
@@ -404,9 +425,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
+                Back to Site
               </button>
             </div>
           </div>
@@ -426,16 +448,31 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
                   />
-                  <select
-                    value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
-                  >
-                    <option value="all">All Categories</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => setFilterCategory(e.target.value)}
+                      className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm"
+                    >
+                      <option value="all">All Categories</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                    <div className="relative">
+                      <select
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value as any)}
+                        className="w-full px-4 py-2.5 pl-9 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-sm appearance-none cursor-pointer"
+                      >
+                        <option value="date-desc">Newest Date</option>
+                        <option value="date-asc">Oldest Date</option>
+                        <option value="last-edited">Last Edited</option>
+                        <option value="property">Property</option>
+                      </select>
+                      <ArrowUpDown className="w-4 h-4 text-white/50 absolute left-3 top-3 pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Bulk Actions */}
@@ -886,12 +923,20 @@ function MediaUpload({
       if (file.type.startsWith('image/')) {
         // Compress image
         const compressed = await compressImage(file);
+        if (compressed.length > 5 * 1024 * 1024) { // ~5MB base64 limit
+            alert(`Image ${file.name} is too large even after compression. Please use a smaller image.`);
+            continue;
+        }
         newMedia.push({
           type: 'image',
           url: compressed,
           name: file.name
         });
       } else if (file.type === 'application/pdf') {
+        if (file.size > 5 * 1024 * 1024) {
+             alert(`PDF ${file.name} is too large (>5MB).`);
+             continue;
+        }
         // Convert PDF to base64
         const base64 = await fileToBase64(file);
         newMedia.push({
@@ -1085,9 +1130,10 @@ function EventForm({
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors flex items-center gap-2"
             >
-              Cancel
+              <ChevronLeft className="w-4 h-4" />
+              Back to List
             </button>
             <button
               onClick={() => onSave(formData)}

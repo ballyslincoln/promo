@@ -28,6 +28,7 @@ export interface AdminEvent extends Event {
   endTime?: string;
   daysOfWeek?: number[];
   isRecurring?: boolean;
+  lastUpdated?: string; // ISO string for sort by last edited
 }
 
 export interface ScheduleItem {

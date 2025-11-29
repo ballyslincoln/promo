@@ -93,12 +93,12 @@ export const eventService = {
           await sql`
                 INSERT INTO events (
                     id, title, category, description, details, meta, media, highlight, 
-                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring", property
+                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring", property, "lastUpdated"
                 ) VALUES (
                     ${event.id}, ${event.title}, ${event.category}, ${event.description || null}, 
                     ${JSON.stringify(event.details || [])}, ${JSON.stringify(event.meta || [])}, ${JSON.stringify(event.media || [])}, ${event.highlight || false},
                     ${event.startDate || null}, ${event.endDate || null}, ${event.startTime || null}, ${event.endTime || null},
-                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}, ${event.property || 'Both'}
+                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}, ${event.property || 'Both'}, ${event.lastUpdated || new Date().toISOString()}
                 )
                 ON CONFLICT (id) DO UPDATE SET
                     title = EXCLUDED.title,
@@ -114,7 +114,8 @@ export const eventService = {
                     "endTime" = EXCLUDED."endTime",
                     "daysOfWeek" = EXCLUDED."daysOfWeek",
                     "isRecurring" = EXCLUDED."isRecurring",
-                    property = EXCLUDED.property
+                    property = EXCLUDED.property,
+                    "lastUpdated" = EXCLUDED."lastUpdated"
             `;
         }
 
@@ -227,6 +228,13 @@ export const eventService = {
         await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS property TEXT DEFAULT 'Both';`;
       } catch (e) {
         console.log('Migration note: property column check', e);
+      }
+
+      // Attempt to add lastUpdated column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS "lastUpdated" TEXT;`;
+      } catch (e) {
+        console.log('Migration note: lastUpdated column check', e);
       }
 
       await sql`
