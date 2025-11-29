@@ -598,6 +598,44 @@ function ScheduleForm({
   };
 
   const removeItem = (index: number) => {
+
+
+    const handleExport = () => {
+      const dataStr = JSON.stringify(localItems, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${category.toLowerCase().replace(/\s+/g, '-')}-schedule.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const handleImport = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const json = JSON.parse(event.target?.result as string);
+            if (Array.isArray(json)) {
+              setLocalItems(json);
+            } else {
+              alert('Invalid JSON format: Must be an array of schedule items');
+            }
+          } catch (err) {
+            alert('Failed to parse JSON file');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    };
     const updated = localItems.filter((_, i) => i !== index);
     setLocalItems(updated);
   };
@@ -619,13 +657,31 @@ function ScheduleForm({
             <h2 className="text-2xl font-bold">{category}</h2>
             <p className="text-sm text-white/50 mt-1">Edit hours and locations</p>
           </div>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            Publish Changes
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
+              title="Export JSON"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleImport}
+              className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors"
+              title="Import JSON"
+            >
+              <Upload className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              Publish Changes
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2">
           <button
             onClick={onDeleteCategory}
             className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-sm transition-colors"
