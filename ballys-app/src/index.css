@@ -1,7 +1,38 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ballys-red: #E60000;
+  --color-ballys-darkRed: #B30000;
+  --color-ballys-black: #000000;
+  --color-ballys-gold: #FFD700;
+  --color-ballys-blue: #0057B8;
+
+  --color-primary: #E60000;
+  --color-primary-dark: #B30000;
+  --color-secondary: #0057B8;
+  --color-accent: #FFD700;
+  
+  --color-background: #F8F9FA;
+  --color-surface: #FFFFFF;
+  
+  --color-text-main: #111827;
+  --color-text-muted: #6B7280;
+  --color-text-light: #9CA3AF;
+
+  --font-sans: Inter, system-ui, sans-serif;
+  
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+}
+
 @layer base {
   :root {
+    /* Keep these for potential legacy compatibility if needed, but usually safe to remove if we strictly use tailwind classes */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
   }
