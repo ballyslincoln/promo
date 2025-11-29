@@ -6,7 +6,7 @@ export interface EventDetail {
 export interface Event {
   id: string;
   title: string;
-  category: 'Invited' | 'Open' | 'Dining' | 'Promo' | 'Internal' | 'Schedule';
+  category: 'Invited' | 'Open' | 'Dining' | 'Promo' | 'Internal' | 'Schedule' | 'Entertainment';
   description?: string;
   details?: string[]; // Bullet points
   meta?: EventDetail[]; // Key-value pairs like WHEN, WHERE
@@ -155,540 +155,6 @@ export const getEventsForDate = (date: Date): Event[] => {
     return events;
   }
 
-  // NOVEMBER 2025 PROMOTIONS
-  if (isNovember2025 || isDecember2025) {
-    // TV1 HIGH-END LUCKY FREE BET – TABLE GAMES GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 20), createDate(2025, 11, 20))) {
-      events.push({
-        id: 'tv1-offer9',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 9: Thursday, November 20',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 21), createDate(2025, 11, 21))) {
-      events.push({
-        id: 'tv1-offer10',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 10: Friday, November 21',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 22), createDate(2025, 11, 26))) {
-      events.push({
-        id: 'tv1-offer11',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 11: Saturday, November 22 – Wednesday November 26',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 27), createDate(2025, 11, 27))) {
-      events.push({
-        id: 'tv1-offer12',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 12: Thursday, November 27',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 28), createDate(2025, 11, 28))) {
-      events.push({
-        id: 'tv1-offer13',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 13: Friday, November 28',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 29), createDate(2025, 12, 3))) {
-      events.push({
-        id: 'tv1-offer14',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 14: Saturday, November 29 – Wednesday Dec. 3',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 12, 4), createDate(2025, 12, 4))) {
-      events.push({
-        id: 'tv1-offer15',
-        title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 15: Thursday, December 4',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-
-    // TV2 MID-LEVEL LUCKY FREE BET
-    if (isDateInRange(date, createDate(2025, 11, 17), createDate(2025, 11, 20))) {
-      events.push({
-        id: 'tv2-offer6',
-        title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 6: Mon. Nov. 17 – Thu. Nov. 20',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 21), createDate(2025, 11, 23))) {
-      events.push({
-        id: 'tv2-offer7',
-        title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 7: Fri. Nov. 21 – Sun. Nov. 23',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 24), createDate(2025, 11, 27))) {
-      events.push({
-        id: 'tv2-offer8',
-        title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 8: Mon. Nov. 24 – Thu. Nov. 27',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 28), createDate(2025, 11, 30))) {
-      events.push({
-        id: 'tv2-offer9',
-        title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 9: Fri. Nov. 28 – Sun. Nov. 30',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 12, 1), createDate(2025, 12, 4))) {
-      events.push({
-        id: 'tv2-offer10',
-        title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 10: Mon. Dec.1 – Thu. Dec. 4',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'Valid once during the date range above.',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-
-    // TV3 LOW-END TABLE GAMES FREE BET
-    if (isDateInRange(date, createDate(2025, 11, 20), createDate(2025, 11, 22))) {
-      events.push({
-        id: 'tv3-offer6',
-        title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 6: Thursday, November 20 – Saturday, November 22',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 23), createDate(2025, 11, 26))) {
-      events.push({
-        id: 'tv3-offer7',
-        title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 7: Sunday, November 23 – Wednesday, November 26',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 27), createDate(2025, 11, 29))) {
-      events.push({
-        id: 'tv3-offer8',
-        title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 8: Thursday, November 27 – Saturday, November 29',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-    if (isDateInRange(date, createDate(2025, 11, 30), createDate(2025, 12, 3))) {
-      events.push({
-        id: 'tv3-offer9',
-        title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
-        category: 'Promo',
-        description: 'OFFER 9: Sunday, November 30 – Wednesday, December 3',
-        details: [
-          '10am – 11:59pm @ Promotion Kiosk',
-          'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-          'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-          'Amount awarded is based on play.',
-          'Only eligible for Live table games.'
-        ]
-      });
-    }
-
-    // NEWSLETTER FREE SLOT PLAY GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 23), createDate(2025, 11, 29))) {
-      events.push({
-        id: 'newsletter-slot-play',
-        title: 'Newsletter Free Slot Play Giveaway',
-        category: 'Invited',
-        description: 'Daily, Sunday, November 23rd – Saturday, November 29th, 2025',
-        details: [
-          '9am – 11:59pm @ Promotion Kiosk',
-          'Invited guests can report to any Promotion Kiosk to swipe and receive their Free Slot Play offer.',
-          'The amount of Free Slot Play is based on their level of play.'
-        ]
-      });
-    }
-
-    // WOODEN DINING CUTTING BOARD
-    if (isDateInRange(date, createDate(2025, 11, 23), createDate(2025, 11, 23))) {
-      events.push({
-        id: 'wooden-cutting-board',
-        title: 'Wooden Dining Cutting Board -OR- Free Slot Play Giveaway',
-        category: 'Invited',
-        description: 'Sunday, November 23rd, 2025',
-        details: [
-          '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift option',
-          '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-          'Preference is selected on the day of the giveaway.',
-          'The amount of Free Slot Play awarded is based on their level of play.'
-        ]
-      });
-    }
-
-    // SWIPE FOR A CHANCE-TO-WIN $10 – $1,000 FREE SLOT PLAY (Nov 23)
-    if (isDateInRange(date, createDate(2025, 11, 23), createDate(2025, 11, 23))) {
-      events.push({
-        id: 'swipe-chance-1000-nov23',
-        title: 'Swipe For A Chance-To-Win $10 – $1,000 Free Slot Play',
-        category: 'Invited',
-        description: 'Sunday, November 23rd, 2025',
-        details: [
-          '1pm – 7pm @ Promotion Kiosk',
-          'Invited guests can swipe at any Kiosk for their chance to win $10 – $1,000 Free Slot Play.',
-          'If a winner, the Free Slot Play prize won will automatically be loaded onto the guests\' Bally Rewards Card.'
-        ]
-      });
-    }
-
-    // NEW SWIPE FOR A CHANCE-TO-WIN $5 – $1,000 FREE SLOT PLAY (Nov 23)
-    if (isDateInRange(date, createDate(2025, 11, 23), createDate(2025, 11, 23))) {
-      events.push({
-        id: 'swipe-chance-5-1000-nov23',
-        title: 'NEW Swipe For A Chance-To-Win $5 – $1,000 Free Slot Play',
-        category: 'Invited',
-        description: 'Sunday, November 23rd, 2025',
-        details: [
-          '1pm – 7pm @ Promotion Kiosk',
-          'Invited guests can swipe at any Kiosk for their chance to win $5 – $1,000 Free Slot Play.',
-          'If a winner, the Free Slot Play prize won will automatically be loaded onto the guests\' Bally Rewards Card.'
-        ]
-      });
-    }
-
-    // BONUS MONDAY XTRA PLAY
-    if (dayOfWeek === 1 && (day === 3 || day === 10 || day === 17 || day === 24) && month === 11 && year === 2025) {
-      events.push({
-        id: 'bonus-monday-xtra-play',
-        title: 'Bonus Monday Xtra Play',
-        category: 'Invited',
-        description: 'Mondays: November 3rd, 10th, 17th, 24th & December 1st, 2025',
-        details: [
-          '10am – 10pm @ Promotion Kiosk',
-          'Invited guests will receive a direct mail piece which will provide details about this promotion as well as instructions on how to redeem their Bonus Monday Xtra Play.',
-          'The amount of Free Slot Play each guest will receive is based on their level of play.',
-          'Free Slot Play will automatically be loaded onto the guests\' Bally Rewards Card after they swipe at Kiosk.',
-          'Free Slot Play prizes will be valid for 12 hours from the point of issue.'
-        ]
-      });
-    }
-    if (dayOfWeek === 1 && day === 1 && month === 12 && year === 2025) {
-      events.push({
-        id: 'bonus-monday-xtra-play-dec1',
-        title: 'Bonus Monday Xtra Play',
-        category: 'Invited',
-        description: 'Monday, December 1st, 2025',
-        details: [
-          '10am – 10pm @ Promotion Kiosk',
-          'Invited guests will receive a direct mail piece which will provide details about this promotion as well as instructions on how to redeem their Bonus Monday Xtra Play.',
-          'The amount of Free Slot Play each guest will receive is based on their level of play.',
-          'Free Slot Play will automatically be loaded onto the guests\' Bally Rewards Card after they swipe at Kiosk.',
-          'Free Slot Play prizes will be valid for 12 hours from the point of issue.'
-        ]
-      });
-    }
-
-    // 14 IN 1 FOOD CHOPPER
-    if (isDateInRange(date, createDate(2025, 11, 25), createDate(2025, 11, 25))) {
-      events.push({
-        id: 'food-chopper',
-        title: '14 In 1 Food Chopper -OR- Free Slot Play -OR- Free Bet Giveaway Contingency',
-        category: 'Invited',
-        description: 'Tuesday, November 25th, 2025',
-        details: [
-          '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift (*s) option',
-          '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-          '10am – 11pm @ Level 1 Bally\'s Players Club for the Free Bet option',
-          'Preference is selected on the day of the giveaway.',
-          'The amount of Free Slot Play awarded is based on their level of play.',
-          '*Invited Table Game patrons are not eligible for Free Slot Play.'
-        ]
-      });
-    }
-
-    // SWIPE FOR A CHANCE-TO-WIN $10 – $1,000 FREE SLOT PLAY (Nov 25)
-    if (isDateInRange(date, createDate(2025, 11, 25), createDate(2025, 11, 25))) {
-      events.push({
-        id: 'swipe-chance-1000-nov25',
-        title: 'Swipe For A Chance-To-Win $10 – $1,000 Free Slot Play',
-        category: 'Invited',
-        description: 'Tuesday, November 25th, 2025',
-        details: [
-          '1pm – 7pm @ Promotion Kiosk',
-          'Invited guests can swipe at any Kiosk for their chance to win $10 – $1,000 Free Slot Play.',
-          'If a winner, the Free Slot Play prize won will automatically be loaded onto the guests\' Bally Rewards Card.'
-        ]
-      });
-    }
-
-    // NEW SWIPE FOR A CHANCE-TO-WIN $5 – $1,000 FREE SLOT PLAY (Nov 25)
-    if (isDateInRange(date, createDate(2025, 11, 25), createDate(2025, 11, 25))) {
-      events.push({
-        id: 'swipe-chance-5-1000-nov25',
-        title: 'NEW! Swipe For A Chance-To-Win $5 – $1,000 Free Slot Play',
-        category: 'Invited',
-        description: 'Tuesday, November 25th, 2025',
-        details: [
-          '1pm – 7pm @ Promotion Kiosk',
-          'Invited guests can swipe at any Kiosk for their chance to win $5 – $1,000 Free Slot Play.',
-          'If a winner, the Free Slot Play prize won will automatically be loaded onto the guests\' Bally Rewards Card.'
-        ]
-      });
-    }
-
-    // VISA -OR- TEXAS ROADHOUSE -OR- MACYS -OR- FREE SLOT PLAY GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 26), createDate(2025, 11, 26))) {
-      events.push({
-        id: 'visa-texas-macys-slot',
-        title: 'VISA -OR- Texas Roadhouse -OR- Macys -OR- Free Slot Play Giveaway',
-        category: 'Invited',
-        description: 'Wednesday, November 26th, 2025',
-        details: [
-          '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift Card option',
-          '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-          'Preference is selected on the day of the giveaway.',
-          '$25 or $50 gift card. Free Slot Play option is $20 or $40 for slot patrons only.',
-          'The amount of the gift card and Free Slot Play awarded is based on their level of play.'
-        ]
-      });
-    }
-
-    // NEW! ASIAN PD VISA REWARDS CARD OR MACY'S GIFT CARD GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 27), createDate(2025, 11, 27))) {
-      events.push({
-        id: 'asian-pd-visa-macys',
-        title: 'NEW! Asian PD VISA Rewards Card OR Macy\'s Gift Card Giveaway',
-        category: 'Invited',
-        description: 'Thursday, November 27th, 2025',
-        details: [
-          '5:30pm – 9:30pm @ Casino Expansion Area Adjacent Host Podium',
-          'Exclusive event offered to guests who fit the pre-determined criteria with the aforementioned offer.',
-          'Invited guests will be sent a direct mail invitation to receive a $100 VISA rewards card OR $100 Macy\'s gift card.'
-        ],
-        highlight: true
-      });
-    }
-
-    // NEW! XTRA PLAY GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 27), createDate(2025, 11, 27))) {
-      events.push({
-        id: 'xtra-play-giveaway',
-        title: 'NEW! Xtra Play Giveaway',
-        category: 'Invited',
-        description: 'Thursday, November 27th, 2025',
-        details: [
-          '10am – 10pm @ Promotion Kiosk',
-          'Invited guests will receive a direct mail piece which will provide details about this promotion as well as instructions on how to redeem their Xtra Play.',
-          'The amount of Free Slot Play each guest will receive is based on their level of play.',
-          'Free Slot Play will automatically be loaded onto the guests\' Bally Rewards Card after they swipe at Kiosk.',
-          'Free Slot Play prizes will be valid for 12 hours from the point of issue.'
-        ]
-      });
-    }
-
-    // VISA -OR- MACYS -OR- TEXAS ROADHOUSE -OR- FREE SLOT PLAY -OR-*FREE BET GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 28), createDate(2025, 11, 28))) {
-      events.push({
-        id: 'visa-macys-texas-slot-bet',
-        title: 'VISA -OR- Macys -OR- Texas Roadhouse -OR- Free Slot Play -OR-*Free Bet Giveaway',
-        category: 'Invited',
-        description: 'Friday, November 28th, 2025',
-        details: [
-          '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift Card option',
-          '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-          '10am – 11pm @ Level 1 Bally\'s Players Club for the Free Bet option',
-          'Preference is selected on the day of the giveaway.',
-          '$25 or $50 or $100 gift card options.',
-          '$50 or $100 Free Bet option for table game patrons.',
-          'The amount of the gift card and Free Slot Play awarded is based on their level of play.',
-          '*Invited Table Game patrons are not eligible for Free Slot Play.'
-        ]
-      });
-    }
-
-    // NEW! PROVIDENCE COLLEGE WINNERS WHEEL DRAWING
-    if (isDateInRange(date, createDate(2025, 11, 28), createDate(2025, 11, 28))) {
-      events.push({
-        id: 'providence-college-wheel',
-        title: 'NEW! Providence College Winners Wheel Drawing',
-        category: 'Open',
-        description: 'Friday, November 28th, 2025',
-        details: [
-          '9pm Drawing @ Level 1 Players Club',
-          'Attendees after every home PC Men\'s Basketball game at the AMP, may present their game ticket (i.e., virtual ticket on a smartphone, physical ticket) to receive entry into the scheduled drawings',
-          'Players Club Representatives or above will validate the PC Basketball ticket from the AMP, according to the drawing schedule and corresponding home games, and present a drawing entry ticket that identifies the day and date/time of the drawing',
-          'Participants must legibly print first name, last name and Rewards Card ID number and place in the drawing drum located at the Players Club.',
-          'There will be five (5) total winners for this promotion, having 10 (ten) minutes to claim their prize.',
-          'One redraw will occur for any of the five (5) contestants who did not claim or properly validate their identity.',
-          'Those who have successfully claimed will spin the Winning Combination Winners Wheel containing fifty (50) prize slots. Prizes range from $250-$5,000 in cash, $50-$2,500 in free slot play and $50-$500 in retail brand gift cards.'
-        ],
-        meta: [
-          { label: 'WHEN', value: '9pm Drawing' },
-          { label: 'WHERE', value: 'Level 1 Players Club' }
-        ]
-      });
-    }
-
-    // VIP PICK 1 HIGH END OR MID TIER GIFT -OR- FREE SLOT PLAY OR *FREE BET GIVEAWAY
-    if (isDateInRange(date, createDate(2025, 11, 29), createDate(2025, 11, 29))) {
-      events.push({
-        id: 'vip-pick1-gift',
-        title: 'VIP Pick 1 High End OR Mid Tier Gift -OR- Free Slot Play OR *Free Bet Giveaway',
-        category: 'Invited',
-        description: 'Saturday, November 29th, 2025',
-        details: [
-          '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift option',
-          '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-          '10am – 11pm @ Level 1 Bally\'s Players Club for the Free Bet option',
-          'Preference is selected on the day of the giveaway.',
-          'The amount of Free Slot Play awarded is based on their level of play.',
-          '*Invited Table Game patrons are not eligible for Free Slot Play.'
-        ]
-      });
-    }
-
-    // ONGOING: Accelerate Your Dreams! Win a Car-Every-Saturday Spectacular!
-    if (isDateInRange(date, createDate(2025, 10, 4), createDate(2025, 12, 27)) && dayOfWeek === 6) {
-      events.push({
-        id: 'accelerate-dreams-car',
-        title: 'Accelerate Your Dreams! Win a Car-Every-Saturday Spectacular!',
-        category: 'Open',
-        description: 'Saturdays, October 4-December 27, 2025',
-        details: [
-          '*Slot Only Promotional Program',
-          'Car Prize Schedule:',
-          'OCTOBER: 2025 ACURA MDX',
-          'NOVEMBER: 2025 FORD F-150 SUPERCREW 4X4',
-          'DECEMBER: 2026 BMW X3',
-          'Entry Earning Period: Friday, October 3 – Saturday, December 27',
-          'Accelerated Entries: All Rewards Members qualify for accelerated entry earnings where for every one (1) point earned on the VLTs during the earning period, Rewards Members will receive ten (10) additional entries.',
-          'Bonus Entry Criteria: Legend Members will be eligible to receive 50 bonus entries and Champion Members will be eligible to receive 100 bonus entries per drawing.',
-          'Cash Drawing Times: 6:00 pm – 8:00 pm',
-          'Prize Structure:',
-          '6:00 pm (5) = $500 in Cash',
-          '7:00 pm (5) = $500 in Cash',
-          '8:00 pm (5) = $1,000 in Cash',
-          'Total Cash: $10,000',
-          'Grand Prize Envelope Game Drawing: 9:00 pm',
-          'Grand Prize: Car or Cash Prize Option: $35,000'
-        ],
-        meta: [
-          { label: 'WHEN', value: 'Cash Drawings: 6:00pm – 8:00pm, Grand Prize: 9:00pm' },
-          { label: 'WHERE', value: '1st Level Players Club' }
-        ],
-        highlight: true
-      });
-    }
-  }
-
   return events;
 };
 
@@ -696,366 +162,417 @@ export const getEventsForDate = (date: Date): Event[] => {
 export const getDefaultPromotions = (): AdminEvent[] => {
   const promotions: AdminEvent[] = [];
 
-  // TV1 HIGH-END LUCKY FREE BET
+  // Princess / Holland America / Carnival Cruise Giveaway
   promotions.push({
-    id: 'tv1-offer9',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 9: Thursday, November 20',
+    id: 'cruise-giveaway-dec5',
+    title: 'Princess / Holland America / Carnival Cruise Giveaway',
+    category: 'Invited',
+    description: 'Friday, December 5 OR Saturday, December 6',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '8a-10p @ Promotion Kiosk',
+      'Invited Bally Rewards members will receive a certificate for a complimentary Princess / Holland America / Carnival Cruise for two.',
+      'Must swipe Bally Rewards Card at a promotion kiosk to redeem.',
+      'Cruise certificates mailed within 21 business days.',
+      'Offer redeemed only once between the two Rhode Island properties.'
     ],
-    startDate: '2025-11-20',
-    endDate: '2025-11-20',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-05',
+    endDate: '2025-12-06',
+    startTime: '08:00',
+    endTime: '22:00'
   });
 
+  // 2nd Chance Cruise Giveaway
   promotions.push({
-    id: 'tv1-offer10',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 10: Friday, November 21',
+    id: 'cruise-giveaway-2nd-chance',
+    title: '2nd Chance: Princess / Holland America / Carnival Cruise Giveaway',
+    category: 'Invited',
+    description: 'Saturday, December 27',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '8a-10p @ Promotion Kiosk',
+      'For invited members who did not redeem on Dec 5 or 6.',
+      'Must swipe Bally Rewards Card at a promotion kiosk to redeem.',
+      'Cruise certificates mailed within 21 business days.'
     ],
-    startDate: '2025-11-21',
-    endDate: '2025-11-21',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-27',
+    endDate: '2025-12-27',
+    startTime: '08:00',
+    endTime: '22:00'
   });
 
+  // $15,000 Blackjack Tournament - Qualifying
   promotions.push({
-    id: 'tv1-offer11',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
+    id: 'blackjack-qualifying',
+    title: '$15,000 Blackjack Tournament - Qualifying Round',
     category: 'Promo',
-    description: 'OFFER 11: Saturday, November 22 – Wednesday November 26',
+    description: 'Friday, December 5',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '6p-11p',
+      'Top 10 participants advance to Quarter Finals on Dec 12.'
     ],
-    startDate: '2025-11-22',
-    endDate: '2025-11-26',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-05',
+    endDate: '2025-12-05',
+    startTime: '18:00',
+    endTime: '23:00'
   });
 
+  // $15,000 Blackjack Tournament - Grand Prize
   promotions.push({
-    id: 'tv1-offer12',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
+    id: 'blackjack-grand-prize',
+    title: '$15,000 Blackjack Tournament - Grand Prize',
     category: 'Promo',
-    description: 'OFFER 12: Thursday, November 27',
+    description: 'Friday, December 12',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      'Registration: 5:30p @ Bally Rewards Center',
+      'Quarter Final Rounds: 6p - 8:30p',
+      'Semi-Final Rounds: 9p - 10p',
+      'Final Round: 10:30p',
+      '1st Place: $6,000 CASH',
+      '2nd Place: $2,500 Free Bets',
+      '3rd Place: $1,000 Free Bets',
+      '4th-6th Place: $500 Free Bets'
     ],
-    startDate: '2025-11-27',
-    endDate: '2025-11-27',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-12',
+    endDate: '2025-12-12',
+    startTime: '17:30',
+    endTime: '23:00'
   });
 
+  // Champions Event
   promotions.push({
-    id: 'tv1-offer13',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 13: Friday, November 28',
+    id: 'champions-event',
+    title: 'Champions Event',
+    category: 'Invited',
+    description: 'Saturday, December 13',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '1p – 9p',
+      'Invited CHAMPIONS Rewards Card members receive a retail brand gift card & dining invitation.',
+      'Gift Card Redemption: Bally Rewards Center',
+      'Free Slot Play Redemption: Promotions Kiosk',
+      'Free Bet Redemption: Bally Rewards Center'
     ],
-    startDate: '2025-11-28',
-    endDate: '2025-11-28',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-13',
+    endDate: '2025-12-13',
+    startTime: '13:00',
+    endTime: '21:00'
   });
 
+  // 15k Holiday Free Slot Play Sweepstakes
   promotions.push({
-    id: 'tv1-offer14',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
+    id: 'holiday-sweepstakes',
+    title: '15k Holiday Free Slot Play Sweepstakes',
     category: 'Promo',
-    description: 'OFFER 14: Saturday, November 29 – Wednesday Dec. 3',
+    description: 'Friday, December 19',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '5p-9p: 2 winners @ $1,500 Free Slot Play (hourly)',
+      'Earning Period: 3p-8:59p (Swipe or use card at VLT)',
+      '1 entry for every 10 points earned on VLTs.',
+      'Must be present to win. Claim within 10 mins.'
     ],
-    startDate: '2025-11-29',
-    endDate: '2025-12-03',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-19',
+    endDate: '2025-12-19',
+    startTime: '17:00',
+    endTime: '21:00'
   });
 
+  // $20,260 Countdown to 2026 Sweepstakes
   promotions.push({
-    id: 'tv1-offer15',
-    title: 'TV1 High-End Lucky Free Bet – Table Games Giveaway',
+    id: 'countdown-2026-sweepstakes',
+    title: '$20,260 Countdown to 2026 Sweepstakes',
     category: 'Promo',
-    description: 'OFFER 15: Thursday, December 4',
+    description: 'Wednesday, December 31',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '5p-9p: 2 winners @ $2,026 Free Slot Play (hourly)',
+      'Earning Period: 3p-8:59p (Swipe or use card at VLT)',
+      '1 entry for every 10 points earned on VLTs.',
+      'Must be present to win.'
+    ],
+    startDate: '2025-12-31',
+    endDate: '2025-12-31',
+    startTime: '17:00',
+    endTime: '21:00'
+  });
+
+  // $5,000 Bonus Slot Tournaments
+  promotions.push({
+    id: 'bonus-slot-tournaments',
+    title: '$5,000 Bonus Slot Tournaments (EBS @ VLTs)',
+    category: 'Promo',
+    description: 'Tuesdays in December',
+    details: [
+      '12p-8p',
+      '1st Place: $1,000 | 2nd: $500 | 3rd-6th: $250',
+      'All prizes awarded in Free Slot Play.',
+      'Valid for 7 days.'
+    ],
+    daysOfWeek: [2], // Tuesday
+    isRecurring: true,
+    startDate: '2025-12-01',
+    endDate: '2025-12-31',
+    startTime: '12:00',
+    endTime: '20:00'
+  });
+
+  // SUPER Xtra Play
+  promotions.push({
+    id: 'super-xtra-play',
+    title: 'SUPER Xtra Play (EBS @ VLTs)',
+    category: 'Promo',
+    description: 'Wednesday, Dec 24 & Thursday, Dec 25',
+    details: [
+      '10a-10p',
+      'Insert card and press "TiverSpin" at eligible VLT.',
+      'Win up to $1,000 in Free Slot Play (valid 24 hours).'
+    ],
+    startDate: '2025-12-24',
+    endDate: '2025-12-25',
+    startTime: '10:00',
+    endTime: '22:00'
+  });
+
+  // Xtra Play - Wednesdays
+  promotions.push({
+    id: 'xtra-play-wed',
+    title: 'Xtra Play (EBS @ VLTs)',
+    category: 'Promo',
+    description: 'Wednesdays (Dec 3, 17)',
+    details: [
+      '10a-10p',
+      'Win up to $1,000 in Free Slot Play.'
+    ],
+    startDate: '2025-12-03',
+    endDate: '2025-12-17',
+    daysOfWeek: [3],
+    isRecurring: true,
+    startTime: '10:00',
+    endTime: '22:00'
+  });
+
+  // Xtra Play - Thursdays
+  promotions.push({
+    id: 'xtra-play-thu',
+    title: 'Xtra Play (EBS @ VLTs)',
+    category: 'Promo',
+    description: 'Thursdays (Dec 4, 11, 18)',
+    details: [
+      '10a-10p',
+      'Win up to $1,000 in Free Slot Play.'
     ],
     startDate: '2025-12-04',
-    endDate: '2025-12-04',
+    endDate: '2025-12-18',
+    daysOfWeek: [4],
+    isRecurring: true,
     startTime: '10:00',
-    endTime: '23:59'
+    endTime: '22:00'
   });
 
-  // TV2 MID-LEVEL LUCKY FREE BET
+  // Xtra Play - Saturdays
   promotions.push({
-    id: 'tv2-offer6',
-    title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
+    id: 'xtra-play-sat',
+    title: 'Xtra Play (EBS @ VLTs)',
     category: 'Promo',
-    description: 'OFFER 6: Mon. Nov. 17 – Thu. Nov. 20',
+    description: 'Saturdays',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
-    ],
-    startDate: '2025-11-17',
-    endDate: '2025-11-20',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'tv2-offer7',
-    title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 7: Fri. Nov. 21 – Sun. Nov. 23',
-    details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
-    ],
-    startDate: '2025-11-21',
-    endDate: '2025-11-23',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'tv2-offer8',
-    title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 8: Mon. Nov. 24 – Thu. Nov. 27',
-    details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
-    ],
-    startDate: '2025-11-24',
-    endDate: '2025-11-27',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'tv2-offer9',
-    title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 9: Fri. Nov. 28 – Sun. Nov. 30',
-    details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
-    ],
-    startDate: '2025-11-28',
-    endDate: '2025-11-30',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'tv2-offer10',
-    title: 'TV2 Mid-Level Lucky Free Bet – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 10: Mon. Dec.1 – Thu. Dec. 4',
-    details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'Valid once during the date range above.',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '8a-10p',
+      'Win up to $1,000 in Free Slot Play.'
     ],
     startDate: '2025-12-01',
-    endDate: '2025-12-04',
-    startTime: '10:00',
-    endTime: '23:59'
+    endDate: '2025-12-31',
+    daysOfWeek: [6],
+    isRecurring: true,
+    startTime: '08:00',
+    endTime: '22:00'
   });
 
-  // TV3 LOW-END TABLE GAMES FREE BET
+  // Swipe for Gift Card
   promotions.push({
-    id: 'tv3-offer6',
-    title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
+    id: 'swipe-gift-card',
+    title: 'Swipe for a Chance to Win a $10-$100 Gift Card',
     category: 'Promo',
-    description: 'OFFER 6: Thursday, November 20 – Saturday, November 22',
+    description: 'Wednesdays, Dec 3 & 17',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '1p-7p @ Promotions Kiosk',
+      'Chance to win $10-$100 retail brand gift card.',
+      'Claim at Bally Rewards Center.'
     ],
-    startDate: '2025-11-20',
-    endDate: '2025-11-22',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-03',
+    endDate: '2025-12-17',
+    daysOfWeek: [3],
+    isRecurring: true,
+    startTime: '13:00',
+    endTime: '19:00'
   });
 
+  // $100 Gift Card OR Free Slot Play
   promotions.push({
-    id: 'tv3-offer7',
-    title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
+    id: 'gift-card-or-slot-play',
+    title: '$100 Retail Gift Card OR $100 Free Slot Play',
     category: 'Promo',
-    description: 'OFFER 7: Sunday, November 23 – Wednesday, November 26',
+    description: 'Saturday, Dec 20 & Friday, Dec 26',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      '1p-7p',
+      'Gift Card @ Bally Rewards Center | Free Slot Play @ Promotion Kiosk',
+      'Choose between $100 gift card or $100 Free Slot Play.'
     ],
-    startDate: '2025-11-23',
-    endDate: '2025-11-26',
-    startTime: '10:00',
-    endTime: '23:59'
+    startDate: '2025-12-20',
+    endDate: '2025-12-26',
+    daysOfWeek: [5, 6],
+    isRecurring: true,
+    startTime: '13:00',
+    endTime: '19:00'
   });
 
+  // $100 Gift Card OR Lucky Free Bet
   promotions.push({
-    id: 'tv3-offer8',
-    title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
+    id: 'gift-card-or-free-bet',
+    title: '$100 Retail Gift Card OR $100 Lucky Free Bet',
     category: 'Promo',
-    description: 'OFFER 8: Thursday, November 27 – Saturday, November 29',
+    description: 'Saturday, Dec 20 & Friday, Dec 26',
     details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
+      'Gift Card: 1p-7p @ Bally Rewards Center',
+      'Lucky Free Bet: 1p-10p @ Bally Rewards Center',
+      'Choose between $100 gift card or $100 Lucky Free Bets.'
     ],
-    startDate: '2025-11-27',
-    endDate: '2025-11-29',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'tv3-offer9',
-    title: 'TV3 Low-End Table Games Free Bet Offer – Table Games Giveaway',
-    category: 'Promo',
-    description: 'OFFER 9: Sunday, November 30 – Wednesday, December 3',
-    details: [
-      '10am – 11:59pm @ Promotion Kiosk',
-      'May be redeemed once during the following bi-weekly periods (or 2 offers per week).',
-      'Pick up Free Bet vouchers @ Level 1 Bally\'s Players Club after swiping from the Kiosk.',
-      'Amount awarded is based on play.',
-      'Only eligible for Live table games.'
-    ],
-    startDate: '2025-11-30',
-    endDate: '2025-12-03',
-    startTime: '10:00',
-    endTime: '23:59'
-  });
-
-  // Add more key promotions - Newsletter, special events, etc.
-  promotions.push({
-    id: 'newsletter-slot-play',
-    title: 'Newsletter Free Slot Play Giveaway',
-    category: 'Invited',
-    description: 'Daily, Sunday, November 23rd – Saturday, November 29th, 2025',
-    details: [
-      '9am – 11:59pm @ Promotion Kiosk',
-      'Invited guests can report to any Promotion Kiosk to swipe and receive their Free Slot Play offer.',
-      'The amount of Free Slot Play is based on their level of play.'
-    ],
-    startDate: '2025-11-23',
-    endDate: '2025-11-29',
-    startTime: '09:00',
-    endTime: '23:59'
-  });
-
-  promotions.push({
-    id: 'wooden-cutting-board',
-    title: 'Wooden Dining Cutting Board -OR- Free Slot Play Giveaway',
-    category: 'Invited',
-    description: 'Sunday, November 23rd, 2025',
-    details: [
-      '1pm – 7pm @ Level 2 Bally\'s Gift Redemption Area for the Gift option',
-      '1pm – 10pm @ Promotion Kiosk for the Free Slot Play option',
-      'Preference is selected on the day of the giveaway.',
-      'The amount of Free Slot Play awarded is based on their level of play.'
-    ],
-    startDate: '2025-11-23',
-    endDate: '2025-11-23',
+    startDate: '2025-12-20',
+    endDate: '2025-12-26',
+    daysOfWeek: [5, 6],
+    isRecurring: true,
     startTime: '13:00',
     endTime: '22:00'
   });
 
-  // Add Accelerate Your Dreams (recurring Saturday)
+  // Choice of Gift Card or Free Slot Play
   promotions.push({
-    id: 'accelerate-dreams-car',
-    title: 'Accelerate Your Dreams! Win a Car-Every-Saturday Spectacular!',
-    category: 'Open',
-    description: 'Saturdays, October 4-December 27, 2025',
+    id: 'choice-gift-card-slot-play',
+    title: 'Choice of Retail Gift Card OR Free Slot Play',
+    category: 'Promo',
+    description: 'Wednesday, December 10',
     details: [
-      '*Slot Only Promotional Program',
-      'Car Prize Schedule:',
-      'OCTOBER: 2025 ACURA MDX',
-      'NOVEMBER: 2025 FORD F-150 SUPERCREW 4X4',
-      'DECEMBER: 2026 BMW X3',
-      'Entry Earning Period: Friday, October 3 – Saturday, December 27',
-      'Accelerated Entries: All Rewards Members qualify for accelerated entry earnings where for every one (1) point earned on the VLTs during the earning period, Rewards Members will receive ten (10) additional entries.',
-      'Bonus Entry Criteria: Legend Members will be eligible to receive 50 bonus entries and Champion Members will be eligible to receive 100 bonus entries per drawing.',
-      'Cash Drawing Times: 6:00 pm – 8:00 pm',
-      'Prize Structure:',
-      '6:00 pm (5) = $500 in Cash',
-      '7:00 pm (5) = $500 in Cash',
-      '8:00 pm (5) = $1,000 in Cash',
-      'Total Cash: $10,000',
-      'Grand Prize Envelope Game Drawing: 9:00 pm',
-      'Grand Prize: Car or Cash Prize Option: $35,000'
+      '1p-7p',
+      'Gift Card @ Bally Rewards Center | Free Slot Play @ Promotion Kiosk'
     ],
-    meta: [
-      { label: 'WHEN', value: 'Cash Drawings: 6:00pm – 8:00pm, Grand Prize: 9:00pm' },
-      { label: 'WHERE', value: '1st Level Players Club' }
+    startDate: '2025-12-10',
+    endDate: '2025-12-10',
+    startTime: '13:00',
+    endTime: '19:00'
+  });
+
+  // Swipe for $20 Gift Card
+  promotions.push({
+    id: 'swipe-20-gift-card',
+    title: 'Swipe for a Chance to Win a $20 Gift Card',
+    category: 'Promo',
+    description: 'Wednesday, December 10',
+    details: [
+      '1p-7p @ Promotions Kiosk',
+      'Chance to win $20 retail brand gift card.'
     ],
-    highlight: true,
-    startDate: '2025-10-04',
-    endDate: '2025-12-27',
+    startDate: '2025-12-10',
+    endDate: '2025-12-10',
+    startTime: '13:00',
+    endTime: '19:00'
+  });
+
+  // Lucky Free Bet - Table Games (Daily)
+  promotions.push({
+    id: 'lucky-free-bet-daily',
+    title: 'Lucky Free Bet – Table Games',
+    category: 'Promo',
+    description: 'Daily',
+    details: [
+      '10a-10p @ Promotion Kiosk',
+      'Swipe to reveal Lucky Free Bets offer.',
+      'Redeem at Bally Rewards Center same day.'
+    ],
+    startDate: '2025-12-01',
+    endDate: '2025-12-31',
     isRecurring: true,
-    daysOfWeek: [6], // Saturday
-    startTime: '18:00',
-    endTime: '21:00'
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+    startTime: '10:00',
+    endTime: '22:00'
+  });
+
+  // Match Your New England Slot Offer
+  promotions.push({
+    id: 'match-slot-offer',
+    title: 'Match Your New England Slot Offer',
+    category: 'Promo',
+    description: 'Sunday – Saturday',
+    details: [
+      '10a-10p @ Bally Rewards Center',
+      'Once every Sunday–Saturday',
+      'New members or 13+ months inactive eligible.',
+      'Match base Free Slot Play offers up to $500.'
+    ],
+    startDate: '2025-12-01',
+    endDate: '2025-12-31',
+    isRecurring: true,
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+    startTime: '10:00',
+    endTime: '22:00'
+  });
+
+  // Entertainment - DJ
+  promotions.push({
+    id: 'entertainment-dj',
+    title: 'DJ',
+    category: 'Entertainment',
+    description: 'Fridays & Wednesday, Dec 31',
+    details: ['8:30p'],
+    startDate: '2025-12-01',
+    endDate: '2025-12-31',
+    isRecurring: true,
+    daysOfWeek: [5, 3], // Friday and Wednesday (specifically Dec 31, but recurring covers Fridays)
+    startTime: '20:30',
+    endTime: '23:59'
+  });
+
+  // Entertainment - Live Acts
+  promotions.push({
+    id: 'entertainment-matt-browne',
+    title: 'Live Act: Matt Browne',
+    category: 'Entertainment',
+    description: 'Saturday, December 6',
+    details: ['8:30p'],
+    startDate: '2025-12-06',
+    endDate: '2025-12-06',
+    startTime: '20:30',
+    endTime: '23:59'
+  });
+
+  promotions.push({
+    id: 'entertainment-blake-gorman',
+    title: 'Live Act: Blake Gorman',
+    category: 'Entertainment',
+    description: 'Saturday, December 13',
+    details: ['8:30p'],
+    startDate: '2025-12-13',
+    endDate: '2025-12-13',
+    startTime: '20:30',
+    endTime: '23:59'
+  });
+
+  promotions.push({
+    id: 'entertainment-gary-labossiere',
+    title: 'Live Act: Gary Labossiere',
+    category: 'Entertainment',
+    description: 'Saturday, December 20',
+    details: ['8:30p'],
+    startDate: '2025-12-20',
+    endDate: '2025-12-20',
+    startTime: '20:30',
+    endTime: '23:59'
+  });
+
+  promotions.push({
+    id: 'entertainment-kickin-it',
+    title: 'Live Act: Kickin’ It Acoustic',
+    category: 'Entertainment',
+    description: 'Saturday, December 27',
+    details: ['8:30p'],
+    startDate: '2025-12-27',
+    endDate: '2025-12-27',
+    startTime: '20:30',
+    endTime: '23:59'
   });
 
   return promotions;

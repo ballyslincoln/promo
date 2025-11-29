@@ -6,7 +6,7 @@ export interface EventDetail {
 export interface Event {
   id: string;
   title: string;
-  category: 'Invited' | 'Open' | 'Dining' | 'Promo' | 'Internal' | 'Schedule';
+  category: 'Invited' | 'Open' | 'Dining' | 'Promo' | 'Internal' | 'Schedule' | 'Entertainment';
   description?: string;
   details?: string[]; // Bullet points
   meta?: EventDetail[]; // Key-value pairs like WHEN, WHERE

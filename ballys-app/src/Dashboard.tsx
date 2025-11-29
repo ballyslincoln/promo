@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
@@ -105,7 +105,7 @@ export default function Dashboard() {
         today.setHours(12, 0, 0, 0);
         const todayStr = today.toISOString();
         const selectedStr = selectedDate.toISOString();
-        
+
         if (todayStr !== selectedStr) {
             setDirection(today > selectedDate ? 1 : -1);
             setSelectedDate(today);
@@ -208,15 +208,15 @@ export default function Dashboard() {
                                         <ChevronRight className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
                                     </button>
                                 </div>
-                                
+
                                 {/* Take me to today button - only show if not on today */}
                                 {(() => {
                                     const today = new Date();
                                     today.setHours(12, 0, 0, 0);
                                     const isToday = today.toISOString() === selectedDate.toISOString();
-                                    
+
                                     if (isToday) return null;
-                                    
+
                                     return (
                                         <button
                                             onClick={handleGoToToday}
@@ -331,6 +331,18 @@ export default function Dashboard() {
                                             <EmptyState message="No promotions scheduled." />
                                         )}
                                     </Section>
+
+                                    {/* Entertainment */}
+                                    <Section title="Entertainment" icon={<Music className="w-4 h-4 text-pink-400" />}>
+                                        <div className="space-y-4">
+                                            {events.filter(e => e.category === 'Entertainment').map((event, index) => (
+                                                <EventCard key={event.id} event={event} index={index} />
+                                            ))}
+                                        </div>
+                                        {events.filter(e => e.category === 'Entertainment').length === 0 && (
+                                            <EmptyState message="No entertainment scheduled." />
+                                        )}
+                                    </Section>
                                 </motion.div>
                             )}
 
@@ -345,24 +357,24 @@ export default function Dashboard() {
                                     {Object.entries(schedules)
                                         .filter(([category]) => category !== 'Important Numbers')
                                         .map(([category, items]) => (
-                                        <div 
-                                            key={category} 
-                                            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors duration-300 relative"
-                                        >
-                                            <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
-                                                <Clock className="w-4 h-4 text-white/40" />
-                                                <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">{category}</h3>
+                                            <div
+                                                key={category}
+                                                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors duration-300 relative"
+                                            >
+                                                <div className="bg-white/5 px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                                                    <Clock className="w-4 h-4 text-white/40" />
+                                                    <h3 className="text-xs font-bold text-white/90 uppercase tracking-[0.2em]">{category}</h3>
+                                                </div>
+                                                <div className="p-2">
+                                                    {items.map((item, idx) => (
+                                                        <div key={idx} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-colors group">
+                                                            <span className="font-medium text-sm text-white/80 group-hover:text-white transition-colors">{item.name}</span>
+                                                            <span className="text-xs font-mono text-white/50 bg-white/5 px-2 py-1 rounded-md border border-white/5">{item.time}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="p-2">
-                                                {items.map((item, idx) => (
-                                                    <div key={idx} className="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-colors group">
-                                                        <span className="font-medium text-sm text-white/80 group-hover:text-white transition-colors">{item.name}</span>
-                                                        <span className="text-xs font-mono text-white/50 bg-white/5 px-2 py-1 rounded-md border border-white/5">{item.time}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </motion.div>
                             )}
 

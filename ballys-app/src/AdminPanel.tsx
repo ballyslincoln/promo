@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, Plus, Trash2, Save, Upload, Download, Calendar, 
+import {
+  X, Plus, Trash2, Save, Upload, Download, Calendar,
   AlertCircle, FileText, Tag, Star, Settings, Check, Database
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
@@ -9,7 +9,7 @@ import { getDefaultPromotions } from './data';
 import { eventService } from './services/eventService';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const CATEGORIES = ['Invited', 'Open', 'Dining', 'Promo', 'Internal', 'Schedule'] as const;
+const CATEGORIES = ['Invited', 'Open', 'Dining', 'Promo', 'Internal', 'Schedule', 'Entertainment'] as const;
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [events, setEvents] = useState<AdminEvent[]>([]);
@@ -212,7 +212,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
   const getFilteredEvents = () => {
     return events.filter(e => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch = !searchTerm ||
         e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = filterCategory === 'all' || e.category === filterCategory;
@@ -247,21 +247,19 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <div className="flex gap-2 mr-4">
               <button
                 onClick={() => setActiveView('events')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeView === 'events'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'events'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  }`}
               >
                 Events
               </button>
               <button
                 onClick={() => setActiveView('schedules')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeView === 'schedules'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'schedules'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  }`}
               >
                 Schedules
               </button>
@@ -339,113 +337,112 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   </select>
                 </div>
 
-              {/* Bulk Actions */}
-              {selectedEvents.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between"
-                >
-                  <span className="text-sm">{selectedEvents.size} selected</span>
-                  <button
-                    onClick={handleBulkDelete}
-                    className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded text-sm flex items-center gap-2 transition-colors"
+                {/* Bulk Actions */}
+                {selectedEvents.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </button>
-                </motion.div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleAdd}
-                  className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Event
-                </button>
-                <button
-                  onClick={() => setShowBulkUpload(true)}
-                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-2 text-sm transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Event List */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-2 py-1">
-                  <span className="text-xs text-white/50 uppercase tracking-wider">
-                    Events ({filteredEvents.length})
-                  </span>
-                  {filteredEvents.length > 0 && (
+                    <span className="text-sm">{selectedEvents.size} selected</span>
                     <button
-                      onClick={toggleSelectAll}
-                      className="text-xs text-white/50 hover:text-white transition-colors"
+                      onClick={handleBulkDelete}
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded text-sm flex items-center gap-2 transition-colors"
                     >
-                      {selectedEvents.size === filteredEvents.length ? 'Deselect All' : 'Select All'}
+                      <Trash2 className="w-4 h-4" />
+                      Delete
                     </button>
-                  )}
+                  </motion.div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAdd}
+                    className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Event
+                  </button>
+                  <button
+                    onClick={() => setShowBulkUpload(true)}
+                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
                 </div>
-                {filteredEvents.length === 0 ? (
-                  <div className="text-center py-12 text-white/30 text-sm">
-                    No events found
+
+                {/* Event List */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-2 py-1">
+                    <span className="text-xs text-white/50 uppercase tracking-wider">
+                      Events ({filteredEvents.length})
+                    </span>
+                    {filteredEvents.length > 0 && (
+                      <button
+                        onClick={toggleSelectAll}
+                        className="text-xs text-white/50 hover:text-white transition-colors"
+                      >
+                        {selectedEvents.size === filteredEvents.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  filteredEvents.map(event => (
-                    <div
-                      key={event.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        editingId === event.id
+                  {filteredEvents.length === 0 ? (
+                    <div className="text-center py-12 text-white/30 text-sm">
+                      No events found
+                    </div>
+                  ) : (
+                    filteredEvents.map(event => (
+                      <div
+                        key={event.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${editingId === event.id
                           ? 'bg-red-500/20 border-red-500/50'
                           : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-                      }`}
-                      onClick={() => handleEdit(event.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedEvents.has(event.id)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            toggleSelect(event.id);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-sm truncate">{event.title || 'Untitled'}</h3>
-                            {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs px-2 py-0.5 bg-white/10 rounded text-white/60">
-                              {event.category}
-                            </span>
-                            {event.isRecurring && (
-                              <span className="text-xs px-2 py-0.5 bg-blue-500/20 rounded text-blue-400">
-                                Recurring
+                          }`}
+                        onClick={() => handleEdit(event.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedEvents.has(event.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleSelect(event.id);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-sm truncate">{event.title || 'Untitled'}</h3>
+                              {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs px-2 py-0.5 bg-white/10 rounded text-white/60">
+                                {event.category}
                               </span>
-                            )}
+                              {event.isRecurring && (
+                                <span className="text-xs px-2 py-0.5 bg-blue-500/20 rounded text-blue-400">
+                                  Recurring
+                                </span>
+                              )}
+                            </div>
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(event.id);
+                            }}
+                            className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4 text-white/40" />
+                          </button>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(event.id);
-                          }}
-                          className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4 text-white/40" />
-                        </button>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
             ) : (
               <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
@@ -466,11 +463,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     <div
                       key={category}
                       onClick={() => setEditingId(category)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        editingId === category
-                          ? 'bg-red-500/20 border-red-500/50'
-                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-                      }`}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${editingId === category
+                        ? 'bg-red-500/20 border-red-500/50'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-sm">{category}</h4>
@@ -551,8 +547,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <Check className="w-4 h-4" />
             </div>
             <span className="font-medium">{toastMessage}</span>
-            <button 
-              onClick={() => setToastMessage(null)} 
+            <button
+              onClick={() => setToastMessage(null)}
               className="ml-2 hover:bg-white/10 p-1 rounded-lg transition-colors"
             >
               <X className="w-4 h-4" />
@@ -587,19 +583,20 @@ function ScheduleForm({
     const updated = [...localItems];
     updated[index] = { ...updated[index], [field]: value };
     setLocalItems(updated);
-    onUpdate(updated);
   };
 
   const addItem = () => {
     const updated = [...localItems, { name: '', time: '' }];
     setLocalItems(updated);
-    onUpdate(updated);
   };
 
   const removeItem = (index: number) => {
     const updated = localItems.filter((_, i) => i !== index);
     setLocalItems(updated);
-    onUpdate(updated);
+  };
+
+  const handleSave = () => {
+    onUpdate(localItems);
   };
 
   return (
@@ -615,21 +612,27 @@ function ScheduleForm({
             <h2 className="text-2xl font-bold">{category}</h2>
             <p className="text-sm text-white/50 mt-1">Edit hours and locations</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={onDeleteCategory}
-              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-sm transition-colors"
-            >
-              Delete Category
-            </button>
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
-            >
-              Back
-            </button>
-          </div>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            Publish Changes
+          </button>
+          <button
+            onClick={onDeleteCategory}
+            className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-sm transition-colors"
+          >
+            Delete Category
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
+          >
+            Back
+          </button>
         </div>
+
 
         <div className="space-y-4">
           {localItems.map((item, index) => (
@@ -665,17 +668,17 @@ function ScheduleForm({
           </button>
         </div>
       </div>
-    </motion.div>
+    </motion.div >
   );
 }
 
-function EventForm({ 
-  event, 
-  onSave, 
-  onCancel 
-}: { 
-  event: AdminEvent; 
-  onSave: (event: AdminEvent) => void; 
+function EventForm({
+  event,
+  onSave,
+  onCancel
+}: {
+  event: AdminEvent;
+  onSave: (event: AdminEvent) => void;
   onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<AdminEvent>(event);
@@ -758,7 +761,7 @@ function EventForm({
               <FileText className="w-4 h-4" />
               Basic Information
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium mb-2">Title *</label>
               <input
@@ -838,11 +841,10 @@ function EventForm({
                       key={index}
                       type="button"
                       onClick={() => toggleDayOfWeek(index)}
-                      className={`px-4 py-2 rounded-lg border transition-colors ${
-                        formData.daysOfWeek?.includes(index)
-                          ? 'bg-red-500/20 border-red-500/50 text-white'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                      }`}
+                      className={`px-4 py-2 rounded-lg border transition-colors ${formData.daysOfWeek?.includes(index)
+                        ? 'bg-red-500/20 border-red-500/50 text-white'
+                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                        }`}
                     >
                       {day.slice(0, 3)}
                     </button>
@@ -898,15 +900,15 @@ function EventForm({
                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
                   />
                 </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">End Time</label>
-                    <input
-                      type="time"
-                      value={formData.endTime || '23:59'}
-                      onChange={(e) => updateField('endTime', e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">End Time</label>
+                  <input
+                    type="time"
+                    value={formData.endTime || '23:59'}
+                    onChange={(e) => updateField('endTime', e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                  />
+                </div>
               </div>
             )}
           </div>
