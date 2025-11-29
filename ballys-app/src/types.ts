@@ -3,6 +3,12 @@ export interface EventDetail {
   value: string;
 }
 
+export interface MediaItem {
+  type: 'image' | 'pdf';
+  url: string; // Base64 data URI
+  name?: string;
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -10,6 +16,7 @@ export interface Event {
   description?: string;
   details?: string[]; // Bullet points
   meta?: EventDetail[]; // Key-value pairs like WHEN, WHERE
+  media?: MediaItem[];
   highlight?: boolean;
 }
 

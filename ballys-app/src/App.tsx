@@ -31,14 +31,14 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <Login 
-        onLogin={() => setIsAuthenticated(true)} 
+      <Login
+        onLogin={() => setIsAuthenticated(true)}
         onAdminLogin={() => setShowAdmin(true)}
       />
     );
   }
 
-  return <Dashboard />;
+  return <Dashboard onAdminOpen={() => setShowAdmin(true)} />;
 }
 
 export default App;

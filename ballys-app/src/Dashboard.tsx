@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
@@ -65,7 +65,7 @@ const SnowEffect = () => {
     );
 };
 
-export default function Dashboard() {
+export default function Dashboard({ onAdminOpen }: { onAdminOpen?: () => void }) {
     // Default to today's date
     const [selectedDate, setSelectedDate] = useState(() => {
         const today = new Date();
@@ -207,6 +207,15 @@ export default function Dashboard() {
                             {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-white/70" /> : <List className="w-4 h-4 text-white/70" />}
                         </button>
                     </div>
+
+                    {/* Stealth Admin Button */}
+                    {onAdminOpen && (
+                        <button
+                            onClick={onAdminOpen}
+                            className="w-2 h-2 rounded-full bg-white/5 hover:bg-red-500/50 transition-colors absolute top-2 right-2"
+                            title="Admin Panel"
+                        />
+                    )}
 
                     {/* Date Navigator (Only in List Mode) */}
                     <AnimatePresence mode="wait">
@@ -455,30 +464,7 @@ export default function Dashboard() {
                                         {events.filter(e => e.category === 'Promo').map((event, index) => (
                                             <EventCard key={event.id} event={event} index={index} />
                                         ))}
-                                        {/* Hardcoded 45th Anniversary if not in events */}
-                                        <div className="bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-white/20 transition-all">
-                                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                <Info className="w-12 h-12" />
-                                            </div>
-                                            <h4 className="text-lg font-bold mb-4 text-white">Beach Chair Rentals</h4>
-                                            <div className="space-y-3 text-sm text-white/70">
-                                                <div className="flex justify-between border-b border-white/5 pb-2">
-                                                    <span>Chair Rental</span>
-                                                    <span className="font-mono text-white">$10</span>
-                                                </div>
-                                                <div className="flex justify-between border-b border-white/5 pb-2">
-                                                    <span>Umbrella</span>
-                                                    <span className="font-mono text-white">$15</span>
-                                                </div>
-                                                <div className="flex justify-between pt-1 items-center">
-                                                    <span className="text-white/90">Package (2 Chairs + 1 Umbrella)</span>
-                                                    <span className="font-mono text-green-400 bg-green-400/10 px-2 py-1 rounded">$35</span>
-                                                </div>
-                                                <p className="text-white/40 text-xs mt-4 flex items-center gap-1.5 bg-white/5 p-2 rounded-lg w-fit">
-                                                    <Clock className="w-3 h-3" /> Collected at 6PM
-                                                </p>
-                                            </div>
-                                        </div>
+
                                     </Section>
 
                                     {/* Phone Numbers */}
@@ -639,6 +625,29 @@ function EventCard({ event, index = 0 }: { event: Event, index?: number }) {
                 <p className="text-white/70 text-sm leading-relaxed mb-5 font-light">
                     {event.description}
                 </p>
+
+                {event.media && event.media.length > 0 && (
+                    <div className="mb-5 grid grid-cols-2 gap-2">
+                        {event.media.map((item, idx) => (
+                            <div key={idx} className="relative rounded-lg overflow-hidden border border-white/10 bg-black/40 group/media">
+                                {item.type === 'image' ? (
+                                    <div className="aspect-video relative cursor-pointer" onClick={() => window.open(item.url, '_blank')}>
+                                        <img src={item.url} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-110" />
+                                        <div className="absolute inset-0 bg-black/0 group-hover/media:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover/media:opacity-100">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-white bg-black/50 px-2 py-1 rounded backdrop-blur-md">View</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-white/5 transition-colors aspect-video text-center">
+                                        <FileText className="w-8 h-8 text-white/50 group-hover/media:text-white/80 transition-colors" />
+                                        <span className="text-xs text-white/60 group-hover/media:text-white/90 truncate w-full px-2">{item.name}</span>
+                                        <span className="text-[9px] uppercase tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded">PDF</span>
+                                    </a>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {event.details && (
                     <ul className="space-y-2.5 mb-5">

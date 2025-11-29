@@ -94,6 +94,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       description: '',
       details: [],
       meta: [],
+      media: [],
       highlight: false,
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date().toISOString().split('T')[0],
@@ -678,6 +679,149 @@ function ScheduleForm({
   );
 }
 
+function MediaUpload({
+  media,
+  onChange
+}: {
+  media: AdminEvent['media'];
+  onChange: (media: AdminEvent['media']) => void;
+}) {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newMedia = [...(media || [])];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (file.type.startsWith('image/')) {
+        // Compress image
+        const compressed = await compressImage(file);
+        newMedia.push({
+          type: 'image',
+          url: compressed,
+          name: file.name
+        });
+      } else if (file.type === 'application/pdf') {
+        // Convert PDF to base64
+        const base64 = await fileToBase64(file);
+        newMedia.push({
+          type: 'pdf',
+          url: base64,
+          name: file.name
+        });
+      }
+    }
+
+    onChange(newMedia);
+  };
+
+  const removeMedia = (index: number) => {
+    const newMedia = [...(media || [])];
+    newMedia.splice(index, 1);
+    onChange(newMedia);
+  };
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+      };
+    });
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
+          <Upload className="w-4 h-4" />
+          Media (Images & PDFs)
+        </h3>
+        <label className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm flex items-center gap-2 transition-colors cursor-pointer">
+          <Plus className="w-4 h-4" />
+          Add Media
+          <input
+            type="file"
+            multiple
+            accept="image/*,application/pdf"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {media?.map((item, index) => (
+          <div key={index} className="relative group bg-black/40 rounded-lg overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
+            {item.type === 'image' ? (
+              <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-white/70">
+                <FileText className="w-8 h-8" />
+                <span className="text-xs truncate max-w-[90%] px-2">{item.name || 'PDF Document'}</span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <button
+                onClick={() => removeMedia(index)}
+                className="p-2 bg-red-500/80 hover:bg-red-500 rounded-full text-white transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded text-[10px] uppercase font-bold text-white/80">
+              {item.type}
+            </div>
+          </div>
+        ))}
+        {(!media || media.length === 0) && (
+          <div className="col-span-full py-8 text-center border border-dashed border-white/10 rounded-lg text-white/30 text-sm">
+            No media uploaded. Add images or PDFs.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EventForm({
   event,
   onSave,
@@ -708,7 +852,9 @@ function EventForm({
   };
 
   const removeDetail = (index: number) => {
-    updateField('details', formData.details?.filter((_, i) => i !== index) || []);
+    const details = [...(formData.details || [])];
+    details.splice(index, 1);
+    updateField('details', details);
   };
 
   const addMeta = () => {
@@ -722,7 +868,9 @@ function EventForm({
   };
 
   const removeMeta = (index: number) => {
-    updateField('meta', formData.meta?.filter((_, i) => i !== index) || []);
+    const meta = [...(formData.meta || [])];
+    meta.splice(index, 1);
+    updateField('meta', meta);
   };
 
   const toggleDayOfWeek = (day: number) => {
@@ -735,15 +883,18 @@ function EventForm({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="max-w-3xl mx-auto"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className="max-w-3xl mx-auto pb-20"
     >
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Edit Event</h2>
-          <div className="flex gap-2">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 space-y-8">
+        <div className="flex items-center justify-between border-b border-white/10 pb-6">
+          <div>
+            <h2 className="text-2xl font-bold">{event.id.startsWith('event-') ? 'New Event' : 'Edit Event'}</h2>
+            <p className="text-sm text-white/50 mt-1">Fill in the details below</p>
+          </div>
+          <div className="flex gap-3">
             <button
               onClick={onCancel}
               className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm transition-colors"
@@ -767,40 +918,39 @@ function EventForm({
               <FileText className="w-4 h-4" />
               Basic Information
             </h3>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Title *</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-                placeholder="Event title"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Category</label>
-              <select
-                value={formData.category}
-                onChange={(e) => updateField('category', e.target.value as any)}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
-              >
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
-              <textarea
-                value={formData.description || ''}
-                onChange={(e) => updateField('description', e.target.value)}
-                rows={4}
-                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 resize-none"
-                placeholder="Event description"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-full">
+                <label className="block text-sm font-medium mb-2">Title</label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => updateField('title', e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 text-lg font-semibold"
+                  placeholder="Event Title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => updateField('category', e.target.value as any)}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50"
+                >
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-full">
+                <label className="block text-sm font-medium mb-2">Description</label>
+                <textarea
+                  value={formData.description || ''}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-red-500/50 resize-none"
+                  placeholder="Brief description..."
+                />
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -817,6 +967,12 @@ function EventForm({
               </label>
             </div>
           </div>
+
+          {/* Media Upload */}
+          <MediaUpload
+            media={formData.media}
+            onChange={(media) => updateField('media', media)}
+          />
 
           {/* Date & Time */}
           <div className="space-y-4">
