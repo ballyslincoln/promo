@@ -489,6 +489,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 onClick={() => {
                     if (confirm('Are you sure you want to log out?')) {
                         localStorage.removeItem('ballys_auth');
+                        localStorage.removeItem('ballys_auth_time');
                         window.location.reload();
                     }
                 }}
@@ -647,17 +648,21 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[10px] font-mono text-text-muted bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
-                                    {event.startDate}
+                                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                                    event.isRecurring 
+                                    ? 'bg-blue-50 text-blue-700 border-blue-100' 
+                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                }`}>
+                                    {event.isRecurring 
+                                        ? (event.daysOfWeek && event.daysOfWeek.length > 0 
+                                            ? event.daysOfWeek.map(d => DAYS_OF_WEEK[d].slice(0, 3)).join(', ') 
+                                            : 'Weekly')
+                                        : (event.startDate ? new Date(event.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Date')
+                                    }
                                 </span>
                                 <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-text-muted border border-gray-200">
                                   {event.category}
                                 </span>
-                                {event.isRecurring && (
-                                  <span className="text-xs px-2 py-0.5 bg-blue-50 rounded text-blue-600 border border-blue-100">
-                                    Recurring
-                                  </span>
-                                )}
                                 {status !== 'synced' && (
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
                                     status === 'new' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Info, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
@@ -96,10 +96,11 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
 
     // UI State
-    const [activeTab, setActiveTab] = useState<'events' | 'schedules' | 'internal'>('events');
+    const [activeTab, setActiveTab] = useState<'events' | 'schedules'>('events');
     const [direction, setDirection] = useState(0);
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
     const [selectedProperty, setSelectedProperty] = useState<'All' | 'Lincoln' | 'Tiverton'>('All');
+    const [showShortcuts, setShowShortcuts] = useState(false);
 
     // Load initial data
     const loadData = async () => {
@@ -145,9 +146,6 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 case '2':
                     if (viewMode === 'list') setActiveTab('schedules');
                     break;
-                case '3':
-                    if (viewMode === 'list') setActiveTab('internal');
-                    break;
                 case 'c':
                     setViewMode(v => v === 'list' ? 'calendar' : 'list');
                     break;
@@ -157,6 +155,9 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         if (p === 'Lincoln') return 'Tiverton';
                         return 'All';
                     });
+                    break;
+                case '?':
+                    setShowShortcuts(s => !s);
                     break;
             }
         };
@@ -277,8 +278,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         <button
                             onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
                             className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
+                            title={viewMode === 'list' ? 'Switch to Calendar View (C)' : 'Switch to List View (C)'}
                         >
                             {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
+                        </button>
+                        <button
+                            onClick={() => setShowShortcuts(true)}
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)] ml-2"
+                            title="Keyboard Shortcuts (?)"
+                        >
+                            <Keyboard className="w-4 h-4 text-text-muted" />
                         </button>
                     </div>
 
@@ -309,16 +318,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         ))}
                     </div>
 
-                    {/* Admin Button */}
-                    {onAdminOpen && (
+                    {/* Admin Button - MOVED TO FOOTER */}
+                    {/* {onAdminOpen && (
                         <button
                             onClick={onAdminOpen}
-                            className="absolute top-2 right-2 px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs font-bold text-text-muted uppercase tracking-wider shadow-sm transition-colors flex items-center gap-2"
+                            className="absolute top-2 left-2 px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs font-bold text-text-muted uppercase tracking-wider shadow-sm transition-colors flex items-center gap-2 z-50"
                         >
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             Admin Panel
                         </button>
-                    )}
+                    )} */}
 
                     {/* Date Navigator (Only in List Mode) */}
                     <AnimatePresence mode="wait" initial={false}>
@@ -418,7 +427,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm overflow-hidden"
                             >
-                                {['events', 'schedules', 'internal'].map((tab) => (
+                                {['events', 'schedules'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
@@ -560,6 +569,22 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                             <EmptyState message="No entertainment scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined} />
                                         )}
                                     </Section>
+
+                                    {/* Important Numbers (Internal) */}
+                                    <div className="glass-card rounded-2xl overflow-hidden mt-8">
+                                        <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                                            <Phone className="w-4 h-4 text-text-light" />
+                                            <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">Important Numbers</h3>
+                                        </div>
+                                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {phoneNumbers.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center bg-white hover:bg-gray-50 p-3.5 rounded-xl border border-gray-100 transition-all group cursor-pointer hover:border-gray-200 shadow-sm">
+                                                    <span className="text-sm font-medium text-text-main">{item.name}</span>
+                                                    <span className="text-xs font-mono text-ballys-red/80 group-hover:text-ballys-red bg-ballys-red/5 px-2 py-1 rounded">{item.time}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -591,37 +616,6 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         ))}
                                 </div>
                             )}
-
-                            {activeTab === 'internal' && (
-                                <div
-                                    key="internal"
-                                    className="space-y-8"
-                                >
-                                    {/* Promo Info */}
-                                    <Section title="Promotions (Internal)" icon={<Info className="w-4 h-4 text-purple-500" />}>
-                                        {events.filter(e => e.category === 'Promo').map((event) => (
-                                            <EventCard key={event.id} event={event} />
-                                        ))}
-
-                                    </Section>
-
-                                    {/* Phone Numbers */}
-                                    <div className="glass-card rounded-2xl overflow-hidden">
-                                        <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-text-light" />
-                                            <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">Important Numbers</h3>
-                                        </div>
-                                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            {phoneNumbers.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center bg-white hover:bg-gray-50 p-3.5 rounded-xl border border-gray-100 transition-all group cursor-pointer hover:border-gray-200 shadow-sm">
-                                                    <span className="text-sm font-medium text-text-main">{item.name}</span>
-                                                    <span className="text-xs font-mono text-ballys-red/80 group-hover:text-ballys-red bg-ballys-red/5 px-2 py-1 rounded">{item.time}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -641,8 +635,87 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         <span className="w-1 h-1 rounded-full bg-gray-300" />
                         <span>Created in Lincoln, RI</span>
                     </div>
+                    {onAdminOpen && (
+                        <button
+                            onClick={onAdminOpen}
+                            className="mt-4 px-3 py-1 bg-gray-100/50 hover:bg-gray-100 border border-gray-200/50 rounded-full text-[9px] font-bold text-text-light hover:text-text-muted uppercase tracking-wider transition-colors inline-flex items-center gap-2"
+                        >
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
+                            Admin Access
+                        </button>
+                    )}
                 </div>
             </footer>
+
+            {/* Keyboard Shortcuts Modal */}
+            <AnimatePresence>
+                {showShortcuts && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                            onClick={() => setShowShortcuts(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden border border-white/50"
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
+                                            <Keyboard className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-900">Keyboard Shortcuts</h3>
+                                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Power User Controls</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowShortcuts(false)}
+                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    >
+                                        <X className="w-5 h-5 text-gray-400" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {[
+                                        { keys: ['←', '→'], label: 'Navigate Days', description: 'Previous / Next Day' },
+                                        { keys: ['T'], label: 'Today', description: 'Jump to Current Date' },
+                                        { keys: ['1'], label: 'Events Tab', description: 'View Daily Events' },
+                                        { keys: ['2'], label: 'Schedules Tab', description: 'View Hours of Operation' },
+                                        { keys: ['C'], label: 'Change View', description: 'Toggle List / Calendar' },
+                                        { keys: ['P'], label: 'Property', description: 'Toggle Lincoln / Tiverton' },
+                                        { keys: ['?'], label: 'Help', description: 'Show this menu' },
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100/50 hover:border-gray-200 transition-colors group">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-gray-700">{item.label}</span>
+                                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{item.description}</span>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                {item.keys.map((key, kIdx) => (
+                                                    <kbd key={kIdx} className="min-w-[24px] h-6 px-1.5 flex items-center justify-center bg-white rounded-md border border-gray-200 text-xs font-mono font-bold text-gray-600 shadow-sm group-hover:border-gray-300 group-hover:shadow transition-all">
+                                                        {key}
+                                                    </kbd>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 text-center">
+                                <p className="text-[10px] text-gray-400 font-medium">Press <kbd className="font-mono bg-white border border-gray-200 rounded px-1 mx-0.5">Esc</kbd> to close</p>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
