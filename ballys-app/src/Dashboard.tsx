@@ -132,12 +132,15 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
             switch (e.key) {
                 case 'ArrowLeft':
+                    e.preventDefault(); // Prevent scrolling
                     handlePrevDay();
                     break;
                 case 'ArrowRight':
+                    e.preventDefault(); // Prevent scrolling
                     handleNextDay();
                     break;
                 case 't': // Today
+                case 'T':
                     handleGoToToday();
                     break;
                 case '1':
@@ -147,9 +150,11 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     if (viewMode === 'list') setActiveTab('schedules');
                     break;
                 case 'c':
+                case 'C':
                     setViewMode(v => v === 'list' ? 'calendar' : 'list');
                     break;
                 case 'p':
+                case 'P':
                     setSelectedProperty(p => {
                         if (p === 'All') return 'Lincoln';
                         if (p === 'Lincoln') return 'Tiverton';
@@ -157,6 +162,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     });
                     break;
                 case '?':
+                case '/': // Allow slash as well for easier access
                     setShowShortcuts(s => !s);
                     break;
             }
@@ -265,9 +271,9 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
                     {/* Top Bar */}
-                    <div className="flex items-center justify-between w-full">
-                        <div className="w-10" /> {/* Spacer */}
-                        <div className="flex flex-col items-center gap-1">
+                    <div className="w-full relative flex items-center justify-center min-h-[40px]">
+                        {/* Centered Logo & Title */}
+                        <div className="flex flex-col items-center gap-1 z-10">
                             <div className="flex items-center gap-3">
                                 <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-sm" />
                                 <div className="h-4 w-[1px] bg-gray-300" />
@@ -275,20 +281,24 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             </div>
                             <ClockHeader />
                         </div>
-                        <button
-                            onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
-                            title={viewMode === 'list' ? 'Switch to Calendar View (C)' : 'Switch to List View (C)'}
-                        >
-                            {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
-                        </button>
-                        <button
-                            onClick={() => setShowShortcuts(true)}
-                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)] ml-2"
-                            title="Keyboard Shortcuts (?)"
-                        >
-                            <Keyboard className="w-4 h-4 text-text-muted" />
-                        </button>
+
+                        {/* Right Aligned Controls */}
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+                            <button
+                                onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
+                                title={viewMode === 'list' ? 'Switch to Calendar View (C)' : 'Switch to List View (C)'}
+                            >
+                                {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
+                            </button>
+                            <button
+                                onClick={() => setShowShortcuts(true)}
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
+                                title="Keyboard Shortcuts (?)"
+                            >
+                                <Keyboard className="w-4 h-4 text-text-muted" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Property Toggle */}
