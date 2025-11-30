@@ -12,12 +12,14 @@
   --color-secondary: #0057B8;
   --color-accent: #FFD700;
   
-  --color-background: #F8F9FA;
-  --color-surface: #FFFFFF;
+  /* Using CSS variables for dynamic theme colors */
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
   
-  --color-text-main: #111827;
-  --color-text-muted: #4B5563; /* Darkened for readability */
-  --color-text-light: #9CA3AF;
+  --color-text-main: var(--color-text-main);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-light: var(--color-text-light);
+  --color-border: var(--color-border);
 
   --font-sans: Inter, system-ui, sans-serif;
   
@@ -32,34 +34,60 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #F8F9FA;
+    --surface: #FFFFFF;
+    --text-main: #111827;
+    --text-muted: #4B5563;
+    --text-light: #9CA3AF;
+    --border: #E5E7EB;
+    
+    --color-background: var(--background);
+    --color-surface: var(--surface);
+    --color-text-main: var(--text-main);
+    --color-text-muted: var(--text-muted);
+    --color-text-light: var(--text-light);
+    --color-border: var(--border);
+  }
+
+  :root.dark {
+    --background: #0F172A;
+    --surface: #1E293B;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --text-light: #64748B;
+    --border: #334155;
   }
 
   body {
-    @apply bg-background text-text-main antialiased min-h-screen overflow-x-hidden;
+    @apply bg-background text-text-main antialiased min-h-screen overflow-x-hidden transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image: 
       radial-gradient(at 0% 0%, rgba(230, 0, 0, 0.03) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(0, 87, 184, 0.03) 0px, transparent 50%);
     background-attachment: fixed;
   }
+
+  .dark body {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(230, 0, 0, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(0, 87, 184, 0.1) 0px, transparent 50%);
+  }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-slate-700/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
   }
 
   .glass-card {
-    @apply bg-white/90 backdrop-blur-sm border border-white/50 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-1px_rgba(0,0,0,0.1)] hover:bg-white/95 transition-all duration-300 hover:-translate-y-1;
+    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-white/50 dark:border-slate-700/50 shadow-[0_4px_24px_-1px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_-1px_rgba(0,0,0,0.1)] hover:bg-white/95 dark:hover:bg-slate-800/95 transition-all duration-300 hover:-translate-y-1;
     transform: translateZ(0);
     will-change: transform;
     backface-visibility: hidden;
   }
   
   .glass-button {
-     @apply bg-white/50 hover:bg-white/80 backdrop-blur-md border border-white/30 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95;
+     @apply bg-white/50 dark:bg-slate-800/50 hover:bg-white/80 dark:hover:bg-slate-700/80 backdrop-blur-md border border-white/30 dark:border-slate-600/30 shadow-sm hover:shadow-md transition-all duration-200 active:scale-95;
   }
 
   .text-glow {

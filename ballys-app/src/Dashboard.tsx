@@ -5,6 +5,7 @@ import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
 import BigCalendar from './components/Calendar/BigCalendar';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // Helper to format date
 const formatDate = (date: Date) => {
@@ -243,7 +244,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     };
 
     return (
-        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
+        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col transition-colors duration-300">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[100px]" />
@@ -251,11 +252,11 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             </div>
 
             {/* Bottom Fade for smooth edge */}
-            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none z-40" />
+            <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-surface to-transparent pointer-events-none z-40" />
 
             {/* Header */}
             <header className="sticky top-0 z-50 pt-6 pb-4 px-4 transition-all duration-300">
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm" />
+                <div className="absolute inset-0 bg-surface/80 backdrop-blur-xl border-b border-border shadow-sm" />
 
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
                     {/* Top Bar */}
@@ -264,7 +265,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         <div className="flex flex-col items-center gap-1 z-10">
                             <div className="flex items-center gap-3">
                                 <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-sm" />
-                                <div className="h-4 w-[1px] bg-gray-300" />
+                                <div className="h-4 w-[1px] bg-border" />
                                 <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-text-muted">Day At A Glance</span>
                             </div>
                             <ClockHeader />
@@ -272,16 +273,17 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
                         {/* Right Aligned Controls */}
                         <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
+                            <ThemeToggle />
                             <button
                                 onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)]"
                                 title={viewMode === 'list' ? 'Switch to Calendar View (C)' : 'Switch to List View (C)'}
                             >
                                 {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
                             </button>
                             <button
                                 onClick={() => setShowShortcuts(true)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-colors [transform:translateZ(0)]"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)]"
                                 title="Keyboard Shortcuts (?)"
                             >
                                 <Keyboard className="w-4 h-4 text-text-muted" />
@@ -290,7 +292,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     </div>
 
                     {/* Property Toggle */}
-                    <div className="flex bg-white/40 backdrop-blur-md rounded-full border border-white/50 p-1.5 relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
+                    <div className="flex bg-surface/40 backdrop-blur-md rounded-full border border-border p-1.5 relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
                         {['All', 'Lincoln', 'Tiverton'].map((prop) => (
                             <button
                                 key={prop}
@@ -298,7 +300,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 className={`relative z-10 px-5 py-2 text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
                                     selectedProperty === prop 
                                     ? 'text-white' 
-                                    : 'text-gray-500 hover:text-gray-800'
+                                    : 'text-text-muted hover:text-text-main'
                                 }`}
                             >
                                 {selectedProperty === prop && (
@@ -316,17 +318,6 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         ))}
                     </div>
 
-                    {/* Admin Button - MOVED TO FOOTER */}
-                    {/* {onAdminOpen && (
-                        <button
-                            onClick={onAdminOpen}
-                            className="absolute top-2 left-2 px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs font-bold text-text-muted uppercase tracking-wider shadow-sm transition-colors flex items-center gap-2 z-50"
-                        >
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            Admin Panel
-                        </button>
-                    )} */}
-
                     {/* Date Navigator (Only in List Mode) */}
                     <AnimatePresence mode="wait" initial={false}>
                         {viewMode === 'list' && (
@@ -337,10 +328,10 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="flex flex-col gap-3 w-full max-w-md"
                             >
-                                <div className="flex items-center justify-between bg-white rounded-full p-1.5 border border-gray-200 shadow-sm backdrop-blur-md">
+                                <div className="flex items-center justify-between bg-surface rounded-full p-1.5 border border-border shadow-sm backdrop-blur-md">
                                     <button
                                         onClick={handlePrevDay}
-                                        className="p-2.5 hover:bg-gray-100 rounded-full transition-all active:scale-95 group"
+                                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 group"
                                     >
                                         <ChevronLeft className="w-5 h-5 text-text-muted group-hover:text-text-main transition-colors" />
                                     </button>
@@ -366,7 +357,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
                                     <button
                                         onClick={handleNextDay}
-                                        className="p-2.5 hover:bg-gray-100 rounded-full transition-all active:scale-95 group"
+                                        className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 group"
                                     >
                                         <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-text-main transition-colors" />
                                     </button>
@@ -403,7 +394,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 className="w-full max-w-md mb-4 text-center"
                             >
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-full shadow-sm">
                                     <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
                                     <span className="text-sm font-bold uppercase tracking-wider text-ballys-red">{holiday.name}</span>
                                     <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
@@ -423,7 +414,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
                                 transition={{ duration: 0.2, ease: "easeOut" }}
-                                className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 w-full max-w-md relative shadow-sm overflow-hidden"
+                                className="flex p-1.5 bg-surface/40 backdrop-blur-md rounded-2xl border border-surface/50 w-full max-w-md relative shadow-sm overflow-hidden"
                             >
                                 {['events', 'schedules'].map((tab) => (
                                     <button
@@ -432,13 +423,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.2em] relative z-10 transition-colors duration-300 ${
                                             activeTab === tab 
                                             ? 'text-ballys-red' 
-                                            : 'text-gray-500 hover:text-gray-800'
+                                            : 'text-text-muted hover:text-text-main'
                                         }`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
                                                 layoutId="activeTab"
-                                                className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
+                                                className="absolute inset-0 bg-surface rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100 dark:border-gray-700"
                                                 transition={{ type: "spring", bounce: 0.15, duration: 0.3 }}
                                                 style={{ willChange: 'transform' }}
                                             />
@@ -575,13 +566,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
                                     {/* Important Numbers (Internal) */}
                                     <div className="glass-card rounded-2xl overflow-hidden mt-8">
-                                        <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                                        <div className="bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 border-b border-border flex items-center gap-3">
                                             <Phone className="w-4 h-4 text-text-light" />
                                             <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">Important Numbers</h3>
                                         </div>
                                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {phoneNumbers.map((item, idx) => (
-                                                <div key={idx} className="flex justify-between items-center bg-white hover:bg-gray-50 p-3.5 rounded-xl border border-gray-100 transition-all group cursor-pointer hover:border-gray-200 shadow-sm">
+                                                <div key={idx} className="flex justify-between items-center bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 p-3.5 rounded-xl border border-border transition-all group cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 shadow-sm">
                                                     <span className="text-sm font-medium text-text-main">{item.name}</span>
                                                     <span className="text-xs font-mono text-ballys-red/80 group-hover:text-ballys-red bg-ballys-red/5 px-2 py-1 rounded">{item.time}</span>
                                                 </div>
@@ -603,15 +594,15 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                                 key={category}
                                                 className="glass-card rounded-2xl overflow-hidden"
                                             >
-                                                <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                                                <div className="bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 border-b border-border flex items-center gap-3">
                                                     <Clock className="w-4 h-4 text-text-light" />
                                                     <h3 className="text-xs font-bold text-text-main uppercase tracking-[0.2em]">{category}</h3>
                                                 </div>
                                                 <div className="p-2">
                                                     {items.map((item, idx) => (
-                                                        <div key={idx} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors group">
+                                                        <div key={idx} className="flex justify-between items-center p-3 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-colors group">
                                                             <span className="font-medium text-sm text-text-main">{item.name}</span>
-                                                            <span className="text-xs font-mono text-text-muted bg-gray-100 px-2 py-1 rounded-md border border-gray-200">{item.time}</span>
+                                                            <span className="text-xs font-mono text-text-muted bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md border border-border">{item.time}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -625,7 +616,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             </main>
 
             {/* Footer */}
-            <footer className="relative z-50 py-8 px-4 border-t border-gray-200/50 mt-auto bg-white/50 backdrop-blur-sm">
+            <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm">
                 <div className="max-w-3xl mx-auto text-center space-y-3">
                     <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
                         Created by Regional Advertising Manager Jackson Kelly
@@ -635,13 +626,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     </p>
                     <div className="pt-2 flex items-center justify-center gap-3 text-[9px] text-text-light/70 font-mono uppercase tracking-wider">
                         <span>v8.1</span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
                         <span>Created in Lincoln, RI</span>
                     </div>
                     {onAdminOpen && (
                         <button
                             onClick={onAdminOpen}
-                            className="mt-4 px-3 py-1 bg-gray-100/50 hover:bg-gray-100 border border-gray-200/50 rounded-full text-[9px] font-bold text-text-light hover:text-text-muted uppercase tracking-wider transition-colors inline-flex items-center gap-2"
+                            className="mt-4 px-3 py-1 bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border border-border rounded-full text-[9px] font-bold text-text-light hover:text-text-muted uppercase tracking-wider transition-colors inline-flex items-center gap-2"
                         >
                             <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
                             Admin Access
@@ -665,24 +656,24 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-white rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden border border-white/50"
+                            className="bg-surface rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden border border-border"
                         >
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100">
-                                            <Keyboard className="w-5 h-5 text-gray-500" />
+                                        <div className="w-10 h-10 rounded-full bg-gray-50 dark:bg-slate-800 flex items-center justify-center border border-border">
+                                            <Keyboard className="w-5 h-5 text-text-muted" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-900">Keyboard Shortcuts</h3>
-                                            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Power User Controls</p>
+                                            <h3 className="text-lg font-bold text-text-main">Keyboard Shortcuts</h3>
+                                            <p className="text-xs text-text-muted font-medium uppercase tracking-wider">Power User Controls</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => setShowShortcuts(false)}
-                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                                     >
-                                        <X className="w-5 h-5 text-gray-400" />
+                                        <X className="w-5 h-5 text-text-muted" />
                                     </button>
                                 </div>
 
@@ -696,14 +687,14 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         { keys: ['P'], label: 'Property', description: 'Toggle Lincoln / Tiverton' },
                                         { keys: ['?'], label: 'Help', description: 'Show this menu' },
                                     ].map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100/50 hover:border-gray-200 transition-colors group">
+                                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-slate-800 border border-border hover:border-gray-300 dark:hover:border-gray-600 transition-colors group">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-semibold text-gray-700">{item.label}</span>
-                                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{item.description}</span>
+                                                <span className="text-sm font-semibold text-text-main">{item.label}</span>
+                                                <span className="text-[10px] text-text-muted uppercase tracking-wider font-medium">{item.description}</span>
                                             </div>
                                             <div className="flex gap-1">
                                                 {item.keys.map((key, kIdx) => (
-                                                    <kbd key={kIdx} className="min-w-[24px] h-6 px-1.5 flex items-center justify-center bg-white rounded-md border border-gray-200 text-xs font-mono font-bold text-gray-600 shadow-sm group-hover:border-gray-300 group-hover:shadow transition-all">
+                                                    <kbd key={kIdx} className="min-w-[24px] h-6 px-1.5 flex items-center justify-center bg-surface rounded-md border border-border text-xs font-mono font-bold text-text-main shadow-sm group-hover:border-gray-300 dark:group-hover:border-gray-500 transition-all">
                                                         {key}
                                                     </kbd>
                                                 ))}
@@ -712,8 +703,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     ))}
                                 </div>
                             </div>
-                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 text-center">
-                                <p className="text-[10px] text-gray-400 font-medium">Press <kbd className="font-mono bg-white border border-gray-200 rounded px-1 mx-0.5">Esc</kbd> to close</p>
+                            <div className="bg-gray-50 dark:bg-slate-800 px-6 py-4 border-t border-border text-center">
+                                <p className="text-[10px] text-text-muted font-medium">Press <kbd className="font-mono bg-surface border border-border rounded px-1 mx-0.5">Esc</kbd> to close</p>
                             </div>
                         </motion.div>
                     </div>
@@ -753,9 +744,9 @@ function Section({ title, icon, children, onAddEvent }: { title: string, icon: R
 
 function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () => void }) {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-gray-300/50 rounded-2xl bg-white/30 backdrop-blur-sm group hover:bg-white/50 transition-colors cursor-pointer" onClick={onAddEvent}>
-            <CalendarIcon className="w-8 h-8 text-gray-400 mb-3 group-hover:text-gray-600 transition-colors" />
-            <p className="text-gray-500 text-sm italic mb-2">{message}</p>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-border rounded-2xl bg-surface/30 backdrop-blur-sm group hover:bg-surface/50 transition-colors cursor-pointer" onClick={onAddEvent}>
+            <CalendarIcon className="w-8 h-8 text-text-muted mb-3 group-hover:text-text-main transition-colors" />
+            <p className="text-text-muted text-sm italic mb-2">{message}</p>
             {onAddEvent && (
                 <span className="text-xs text-ballys-red/70 font-bold uppercase tracking-wider group-hover:text-ballys-red transition-colors">
                     Click to add event
@@ -769,8 +760,8 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
     return (
         <div
             className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] [will-change:transform] ${event.highlight
-                ? 'bg-gradient-to-br from-ballys-gold/10 to-white/80 border-ballys-gold/30 shadow-lg'
-                : 'hover:bg-white/80 hover:border-ballys-red/20'
+                ? 'bg-gradient-to-br from-ballys-gold/10 to-surface/80 border-ballys-gold/30 shadow-lg'
+                : 'hover:bg-surface/80 hover:border-ballys-red/20'
                 }`}
         >
             {onEdit && (
@@ -779,7 +770,7 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                         e.stopPropagation();
                         onEdit(event);
                     }}
-                    className="absolute top-3 right-3 z-20 p-2 bg-white hover:bg-ballys-red text-gray-400 hover:text-white rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100 border border-gray-100"
+                    className="absolute top-3 right-3 z-20 p-2 bg-surface hover:bg-ballys-red text-text-light hover:text-white rounded-full shadow-sm transition-all opacity-0 group-hover:opacity-100 border border-border"
                     title="Edit Event"
                 >
                     <Edit2 className="w-3 h-3" />
@@ -792,7 +783,7 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
             )}
 
             {/* Shine Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 dark:via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
             <div className="p-6 relative z-10">
                 <div className="flex justify-between items-start gap-4 mb-3">
@@ -804,20 +795,20 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                                 {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
                             </span>
                         )}
-                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-700' : 'text-gray-900'}`}>
+                        <h4 className={`text-lg font-bold leading-tight ${event.highlight ? 'text-yellow-700 dark:text-yellow-500' : 'text-text-main'}`}>
                             {event.title}
                         </h4>
                     </div>
                 </div>
 
-                <p className="text-gray-600 text-sm leading-relaxed mb-5 font-normal">
+                <p className="text-text-muted text-sm leading-relaxed mb-5 font-normal">
                     {event.description}
                 </p>
 
                 {event.media && event.media.length > 0 && (
                     <div className="mb-5 grid grid-cols-2 gap-2">
                         {event.media.map((item, idx) => (
-                            <div key={idx} className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 group/media">
+                            <div key={idx} className="relative rounded-lg overflow-hidden border border-border bg-gray-50 dark:bg-slate-800 group/media">
                                 {item.type === 'image' ? (
                                     <div className="aspect-video relative cursor-pointer" onClick={() => window.open(item.url, '_blank')}>
                                         <img src={item.url} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-110" />
@@ -826,10 +817,10 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                                         </div>
                                     </div>
                                 ) : (
-                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 transition-colors aspect-video text-center">
-                                        <FileText className="w-8 h-8 text-gray-400 group-hover/media:text-gray-600 transition-colors" />
-                                        <span className="text-xs text-gray-500 group-hover/media:text-gray-700 truncate w-full px-2">{item.name}</span>
-                                        <span className="text-[9px] uppercase tracking-wider text-gray-400 bg-white border border-gray-100 px-2 py-0.5 rounded">PDF</span>
+                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors aspect-video text-center">
+                                        <FileText className="w-8 h-8 text-text-light group-hover/media:text-text-main transition-colors" />
+                                        <span className="text-xs text-text-muted group-hover/media:text-text-main truncate w-full px-2">{item.name}</span>
+                                        <span className="text-[9px] uppercase tracking-wider text-text-light bg-surface border border-border px-2 py-0.5 rounded">PDF</span>
                                     </a>
                                 )}
                             </div>
@@ -840,7 +831,7 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                 {event.details && (
                     <ul className="space-y-2.5 mb-5">
                         {event.details.map((detail, idx) => (
-                            <li key={idx} className="flex items-start gap-3 text-xs text-gray-600">
+                            <li key={idx} className="flex items-start gap-3 text-xs text-text-muted">
                                 <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${event.highlight ? 'bg-ballys-gold' : 'bg-ballys-red'}`} />
                                 <span className="leading-relaxed">{detail}</span>
                             </li>
@@ -849,11 +840,11 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                 )}
 
                 {event.meta && (
-                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-100/50">
+                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-border">
                         {event.meta.map((meta, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-lg border border-gray-200/50 group-hover:border-gray-300/50 transition-colors">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{meta.label}</span>
-                                <span className="text-xs text-gray-700 font-medium">{meta.value}</span>
+                            <div key={idx} className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border group-hover:border-gray-300 dark:group-hover:border-gray-600 transition-colors">
+                                <span className="text-[9px] font-bold text-text-light uppercase tracking-wider">{meta.label}</span>
+                                <span className="text-xs text-text-main font-medium">{meta.value}</span>
                             </div>
                         ))}
                     </div>

@@ -61,7 +61,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                 className="z-10 w-full max-w-md relative px-4"
             >
                 {/* Glass Card */}
-                <div className="relative bg-white/60 backdrop-blur-2xl border border-white/40 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden group transform-gpu">
+                <div className="relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border border-white/40 dark:border-slate-700/40 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden group transform-gpu">
                     {/* Shine Effect */}
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
@@ -80,7 +80,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
 
                         {/* Mode Toggle */}
                         <div className="w-full mb-6">
-                            <div className="flex p-1.5 bg-white/40 backdrop-blur-md rounded-2xl border border-white/50 relative shadow-sm">
+                            <div className="flex p-1.5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md rounded-2xl border border-white/50 dark:border-slate-700/50 relative shadow-sm">
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -89,13 +89,13 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setError(false);
                                     }}
                                     className={`flex-1 py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        !isAdminMode ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-800'
+                                        !isAdminMode ? 'text-ballys-red' : 'text-text-muted hover:text-text-main'
                                     }`}
                                 >
                                     {!isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
+                                            className="absolute inset-0 bg-surface rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-border"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}
@@ -110,13 +110,13 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         setError(false);
                                     }}
                                     className={`flex-1 py-3 px-4 text-[11px] font-bold uppercase tracking-[0.15em] relative z-10 transition-colors duration-300 flex items-center justify-center gap-2 ${
-                                        isAdminMode ? 'text-ballys-red' : 'text-gray-500 hover:text-gray-800'
+                                        isAdminMode ? 'text-ballys-red' : 'text-text-muted hover:text-text-main'
                                     }`}
                                 >
                                     {isAdminMode && (
                                         <motion.div
                                             layoutId="activeMode"
-                                            className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-gray-100"
+                                            className="absolute inset-0 bg-surface rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] border border-border"
                                             transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                                         />
                                     )}
@@ -134,7 +134,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                                         key={i}
                                         initial={false}
                                         animate={{
-                                            borderColor: error ? 'rgba(239, 68, 68, 0.5)' : isFocused && i === code.length ? 'rgba(230, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                                            borderColor: error ? 'rgba(239, 68, 68, 0.5)' : isFocused && i === code.length ? 'rgba(230, 0, 0, 0.5)' : 'rgba(128, 128, 128, 0.2)',
                                             scale: isFocused && i === code.length ? 1.1 : 1,
                                             backgroundColor: code[i] ? 'rgba(230, 0, 0, 0.05)' : 'transparent',
                                             boxShadow: isFocused && i === code.length ? '0 0 20px rgba(230,0,0,0.1)' : 'none',

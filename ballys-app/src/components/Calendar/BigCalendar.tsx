@@ -48,29 +48,29 @@ const CustomToolbar = (toolbar: any) => {
   };
 
   return (
-    <div className="flex items-center justify-between mb-4 p-4 bg-white rounded-t-2xl border-b border-gray-100">
+    <div className="flex items-center justify-between mb-4 p-4 bg-surface border-b border-border rounded-t-2xl">
       <div className="flex items-center gap-4">
-        <div className="flex bg-gray-100 p-1 rounded-lg">
+        <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
            <button
             onClick={() => toolbar.onView('month')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'month' ? 'bg-white text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'month' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Month
           </button>
           <button
             onClick={() => toolbar.onView('week')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'week' ? 'bg-white text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'week' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Week
           </button>
           <button
             onClick={() => toolbar.onView('day')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'day' ? 'bg-white text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'day' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Day
           </button>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 capitalize">
+        <h2 className="text-xl font-bold text-text-main capitalize">
           {label()}
         </h2>
       </div>
@@ -78,19 +78,19 @@ const CustomToolbar = (toolbar: any) => {
       <div className="flex items-center gap-2">
         <button
           onClick={goToBack}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors text-text-light hover:text-text-main"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <button
           onClick={goToCurrent}
-          className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors uppercase tracking-wider"
+          className="px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors uppercase tracking-wider"
         >
           Today
         </button>
         <button
           onClick={goToNext}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors text-text-light hover:text-text-main"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -104,7 +104,7 @@ const CustomEvent = ({ event }: { event: any }) => {
   const adminEvent = event.resource as AdminEvent;
   
   return (
-    <div className="h-full w-full overflow-hidden">
+    <div className="h-full w-full overflow-hidden text-white">
       <div className="flex items-center gap-1 mb-0.5">
         {adminEvent.startTime && (
            <span className="text-[10px] font-mono opacity-80">{adminEvent.startTime}</span>
@@ -236,7 +236,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
   };
 
   return (
-    <div className="h-[700px] bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="h-[700px] bg-surface rounded-2xl shadow-sm border border-border overflow-hidden text-text-main">
       <Calendar
         localizer={localizer}
         events={calendarEvents}
@@ -259,4 +259,3 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
     </div>
   );
 }
-

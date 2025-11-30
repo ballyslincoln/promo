@@ -14,6 +14,11 @@
     border-bottom: 1px solid #e2e8f0 !important;
 }
 
+.dark .rbc-header {
+    color: #94a3b8; /* text-slate-400 */
+    border-bottom: 1px solid #334155 !important; /* slate-700 */
+}
+
 .rbc-month-view {
     border: none;
 }
@@ -23,8 +28,16 @@
     min-height: 120px; /* Taller cells for month view */
 }
 
+.dark .rbc-month-row {
+    border-top: 1px solid #334155;
+}
+
 .rbc-day-bg {
     border-left: 1px solid #e2e8f0;
+}
+
+.dark .rbc-day-bg {
+    border-left: 1px solid #334155;
 }
 
 .rbc-day-bg:first-child {
@@ -35,11 +48,19 @@
     background-color: #f8fafc; /* slate-50 */
 }
 
+.dark .rbc-off-range-bg {
+    background-color: #0f172a; /* slate-900 */
+}
+
 .rbc-date-cell {
     padding: 8px;
     font-weight: 500;
     font-size: 0.875rem;
     color: #334155;
+}
+
+.dark .rbc-date-cell {
+    color: #f1f5f9; /* slate-100 */
 }
 
 .rbc-now {
@@ -65,12 +86,20 @@
     border-bottom: 1px solid #e2e8f0;
 }
 
+.dark .rbc-time-header {
+    border-bottom: 1px solid #334155;
+}
+
 .rbc-time-content {
     border-top: none;
 }
 
 .rbc-timeslot-group {
     border-bottom: 1px solid #f1f5f9;
+}
+
+.dark .rbc-timeslot-group {
+    border-bottom: 1px solid #1e293b; /* slate-800 */
 }
 
 .rbc-time-slot {
@@ -90,4 +119,3 @@
 .rbc-toolbar {
     display: none; /* We are using custom toolbar */
 }
-

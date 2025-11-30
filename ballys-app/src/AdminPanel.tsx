@@ -360,7 +360,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           {/* Preview Edit Modal */}
           {previewEditId && (
             <div className="fixed inset-0 z-[220] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+                <div className="bg-surface w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
                     <div className="flex-1 overflow-y-auto">
                         {(() => {
                             const eventToEdit = events.find(e => e.id === previewEditId);
@@ -388,7 +388,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
       <div className="relative z-10 h-full flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-6 py-4 shadow-sm">
+        <header className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-border px-6 py-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Settings className="w-6 h-6 text-ballys-red" />
@@ -402,7 +402,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             <div className="flex-1 flex justify-center gap-3">
               <button
                 onClick={() => setShowPreview(true)}
-                className="px-6 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-sm font-bold flex items-center gap-2 transition-colors shadow-sm text-text-main"
+                className="px-6 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-full text-sm font-bold flex items-center gap-2 transition-colors shadow-sm text-text-main"
                 title="Preview changes as they would appear on the live site"
               >
                 <Eye className="w-4 h-4 text-text-muted" />
@@ -414,7 +414,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all shadow-lg ${
                   hasUnsavedChanges()
                     ? 'bg-green-600 hover:bg-green-700 text-white hover:scale-105 shadow-green-500/20'
-                    : 'bg-gray-100 text-text-muted cursor-default border border-gray-200'
+                    : 'bg-gray-100 dark:bg-slate-800 text-text-muted cursor-default border border-border'
                 }`}
               >
                 <Globe className="w-4 h-4" />
@@ -424,17 +424,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
             {/* View Toggle */}
             <div className="flex gap-2 mr-4">
-               <div className="bg-gray-100 p-1 rounded-lg flex mr-4">
+               <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-lg flex mr-4 border border-border">
                   <button
                     onClick={() => setEventsViewMode('list')}
-                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'list' ? 'bg-white shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
+                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'list' ? 'bg-surface shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
                     title="List View"
                   >
                     <List className="w-4 h-4" />
                   </button>
                    <button
                     onClick={() => setEventsViewMode('calendar')}
-                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'calendar' ? 'bg-white shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
+                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'calendar' ? 'bg-surface shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
                      title="Calendar View"
                   >
                     <CalendarIcon className="w-4 h-4" />
@@ -445,7 +445,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 onClick={() => setActiveView('events')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'events'
                   ? 'bg-ballys-red text-white shadow-md'
-                  : 'bg-white border border-gray-200 text-text-muted hover:bg-gray-50'
+                  : 'bg-surface border border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800'
                   }`}
               >
                 Events
@@ -454,7 +454,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 onClick={() => setActiveView('schedules')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'schedules'
                   ? 'bg-ballys-red text-white shadow-md'
-                  : 'bg-white border border-gray-200 text-text-muted hover:bg-gray-50'
+                  : 'bg-surface border border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800'
                   }`}
               >
                 Schedules
@@ -472,7 +472,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     }
                   }
                 }}
-                className="px-4 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 rounded-lg flex items-center gap-2 text-sm transition-colors"
                 title="Create database tables if missing"
               >
                 <Database className="w-4 h-4" />
@@ -484,7 +484,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     initializeWithDefaults();
                   }
                 }}
-                className="px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 rounded-lg flex items-center gap-2 text-sm transition-colors"
                 title="Load default promotions"
               >
                 <Settings className="w-4 h-4" />
@@ -492,7 +492,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               </button>
               <button
                 onClick={handleExport}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-text-main rounded-lg flex items-center gap-2 text-sm transition-colors"
+                className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border text-text-main rounded-lg flex items-center gap-2 text-sm transition-colors"
               >
                 <Download className="w-4 h-4" />
                 Export
@@ -512,7 +512,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         window.location.reload();
                     }
                 }}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-text-muted rounded-lg text-xs font-medium transition-colors"
+                className="px-3 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-text-muted rounded-lg text-xs font-medium transition-colors"
                 title="Log Out"
               >
                 Log Out
@@ -523,7 +523,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1 overflow-hidden flex">
           {/* Sidebar */}
-          <div className="w-96 border-r border-gray-200 bg-white/60 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain">
+          <div className="w-96 border-r border-border bg-surface/60 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain">
             {activeView === 'events' ? (
               <div className="p-4 space-y-4">
                 {/* Search & Filters */}
@@ -535,7 +535,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       placeholder="Search title, details, tags..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2.5 pl-9 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-sm text-text-main placeholder:text-text-light"
+                      className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-sm text-text-main placeholder:text-text-light"
                     />
                     {searchTerm && (
                         <button
@@ -550,7 +550,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     <select
                       value={filterCategory}
                       onChange={(e) => setFilterCategory(e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
+                      className="flex-1 px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
                     >
                       <option value="all">All Categories</option>
                       {CATEGORIES.map(cat => (
@@ -561,7 +561,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       <select
                         value={sortOption}
                         onChange={(e) => setSortOption(e.target.value as any)}
-                        className="w-full px-4 py-2.5 pl-9 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-sm appearance-none cursor-pointer text-text-main"
+                        className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm appearance-none cursor-pointer text-text-main"
                       >
                         <option value="date-desc">Newest Date</option>
                         <option value="date-asc">Oldest Date</option>
@@ -578,12 +578,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-red-50 border border-red-100 rounded-lg flex items-center justify-between"
+                    className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg flex items-center justify-between"
                   >
-                    <span className="text-sm text-red-800">{selectedEvents.size} selected</span>
+                    <span className="text-sm text-red-800 dark:text-red-400">{selectedEvents.size} selected</span>
                     <button
                       onClick={handleBulkDelete}
-                      className="px-3 py-1.5 bg-white hover:bg-red-50 border border-red-200 text-red-600 rounded text-sm flex items-center gap-2 transition-colors"
+                      className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded text-sm flex items-center gap-2 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
@@ -606,7 +606,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       setShowAddForm(false);
                       setEditingId(null);
                     }}
-                    className="px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                    className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
                   >
                     <Upload className="w-4 h-4" />
                   </button>
@@ -628,7 +628,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     )}
                   </div>
                   {filteredEvents.length === 0 ? (
-                    <div className="text-center py-12 text-text-light text-sm border border-dashed border-gray-200 rounded-lg bg-gray-50">
+                    <div className="text-center py-12 text-text-light text-sm border border-dashed border-border rounded-lg bg-gray-50 dark:bg-slate-800">
                       No events found
                     </div>
                   ) : (
@@ -638,8 +638,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         <div
                           key={event.id}
                           className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === event.id
-                            ? 'bg-red-50 border-red-200 shadow-sm'
-                            : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                            ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
+                            : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                           onClick={() => handleEdit(event.id)}
                         >
@@ -659,18 +659,18 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 toggleSelect(event.id);
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              className="mt-1 w-4 h-4 rounded border-gray-300 text-ballys-red focus:ring-ballys-red"
+                              className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-ballys-red focus:ring-ballys-red"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className={`font-semibold text-sm truncate ${editingId === event.id ? 'text-red-900' : 'text-text-main'}`}>{event.title || 'Untitled'}</h3>
+                                <h3 className={`font-semibold text-sm truncate ${editingId === event.id ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{event.title || 'Untitled'}</h3>
                                 {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
                                     event.isRecurring 
-                                    ? 'bg-blue-50 text-blue-700 border-blue-100' 
-                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' 
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
                                 }`}>
                                     {event.isRecurring 
                                         ? (event.daysOfWeek && event.daysOfWeek.length > 0 
@@ -679,12 +679,12 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                         : (event.startDate ? new Date(event.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Date')
                                     }
                                 </span>
-                                <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-text-muted border border-gray-200">
+                                <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-text-muted border border-border">
                                   {event.category}
                                 </span>
                                 {status !== 'synced' && (
                                   <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                    status === 'new' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'
+                                    status === 'new' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30' : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-900/30'
                                   }`}>
                                     {status === 'new' ? 'New' : 'Edited'}
                                   </span>
@@ -696,7 +696,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 e.stopPropagation();
                                 handleDelete(event.id);
                               }}
-                              className="p-1.5 hover:bg-red-100 rounded text-text-light hover:text-red-600 transition-colors"
+                              className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-text-light hover:text-red-600 dark:hover:text-red-400 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -730,8 +730,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         key={category}
                         onClick={() => setEditingId(category)}
                         className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === category
-                          ? 'bg-red-50 border-red-200 shadow-sm'
-                          : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                          ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
+                          : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-600'
                           }`}
                       >
                         {/* Status Indicator Strip */}
@@ -742,10 +742,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                         )}
                         <div className="flex items-center justify-between pl-2">
                           <div className="flex items-center gap-2">
-                             <h4 className={`font-semibold text-sm ${editingId === category ? 'text-red-900' : 'text-text-main'}`}>{category}</h4>
+                             <h4 className={`font-semibold text-sm ${editingId === category ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{category}</h4>
                              {status !== 'synced' && (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                  status === 'new' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'
+                                  status === 'new' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30' : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-900/30'
                                 }`}>
                                   {status === 'new' ? 'New' : 'Edited'}
                                 </span>
@@ -762,7 +762,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Main Content - Edit Form */}
-          <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain bg-gray-50/50 dark:bg-slate-950/50">
             {eventsViewMode === 'calendar' && activeView === 'events' ? (
                 <div className="h-full flex flex-col">
                     <div className="flex items-center justify-between mb-6">
@@ -827,8 +827,8 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="bg-white border border-gray-200 rounded-2xl p-12 max-w-md shadow-sm">
-                    <Settings className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <div className="bg-surface border border-border rounded-2xl p-12 max-w-md shadow-sm">
+                    <Settings className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                     <h3 className="text-xl font-bold mb-2 text-text-main">No Category Selected</h3>
                     <p className="text-text-muted text-sm">
                       Select a schedule category from the sidebar to edit, or create a new one.
@@ -950,7 +950,7 @@ function ScheduleForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
+      <div className="bg-surface border border-border rounded-2xl p-6 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-text-main">{category}</h2>
@@ -959,14 +959,14 @@ function ScheduleForm({
           <div className="flex gap-2">
             <button
               onClick={handleExport}
-              className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
+              className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
               title="Export JSON"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={handleImport}
-              className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
+              className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
               title="Import JSON"
             >
               <Upload className="w-4 h-4" />
@@ -983,13 +983,13 @@ function ScheduleForm({
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={onDeleteCategory}
-            className="px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-lg text-sm transition-colors"
+            className="px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm transition-colors"
           >
             Delete Category
           </button>
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm transition-colors text-text-main"
+            className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm transition-colors text-text-main"
           >
             Back
           </button>
@@ -998,24 +998,24 @@ function ScheduleForm({
 
         <div className="space-y-4">
           {localItems.map((item, index) => (
-            <div key={index} className="flex gap-2 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div key={index} className="flex gap-2 items-center bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-border">
               <input
                 type="text"
                 value={item.name}
                 onChange={(e) => updateItem(index, 'name', e.target.value)}
                 placeholder="Location name"
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
               />
               <input
                 type="text"
                 value={item.time}
                 onChange={(e) => updateItem(index, 'time', e.target.value)}
                 placeholder="Hours (e.g., 10am – 10pm)"
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
               />
               <button
                 onClick={() => removeItem(index)}
-                className="p-2 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-lg transition-colors text-text-light hover:text-red-600"
+                className="p-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 border border-border hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-colors text-text-light hover:text-red-600 dark:hover:text-red-400"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -1023,7 +1023,7 @@ function ScheduleForm({
           ))}
           <button
             onClick={addItem}
-            className="w-full px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 border-dashed rounded-lg flex items-center justify-center gap-2 text-sm transition-colors text-text-muted hover:text-text-main"
+            className="w-full px-4 py-3 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border border-dashed rounded-lg flex items-center justify-center gap-2 text-sm transition-colors text-text-muted hover:text-text-main"
           >
             <Plus className="w-4 h-4" />
             Add Item
@@ -1138,7 +1138,7 @@ function MediaUpload({
           <Upload className="w-4 h-4" />
           Media (Images & PDFs)
         </h3>
-        <label className="px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm flex items-center gap-2 transition-colors cursor-pointer text-text-main shadow-sm">
+        <label className="px-3 py-1.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm flex items-center gap-2 transition-colors cursor-pointer text-text-main shadow-sm">
           <Plus className="w-4 h-4" />
           Add Media
           <input
@@ -1153,7 +1153,7 @@ function MediaUpload({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {media?.map((item, index) => (
-          <div key={index} className="relative group bg-gray-100 rounded-lg overflow-hidden border border-gray-200 aspect-video flex items-center justify-center">
+          <div key={index} className="relative group bg-gray-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-border aspect-video flex items-center justify-center">
             {item.type === 'image' ? (
               <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
             ) : (
@@ -1165,18 +1165,18 @@ function MediaUpload({
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-sm">
               <button
                 onClick={() => removeMedia(index)}
-                className="p-2 bg-white text-red-600 hover:bg-red-50 rounded-full transition-colors shadow-sm"
+                className="p-2 bg-surface text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shadow-sm"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="absolute top-2 left-2 px-2 py-1 bg-white/90 rounded text-[10px] uppercase font-bold text-text-main shadow-sm">
+            <div className="absolute top-2 left-2 px-2 py-1 bg-surface/90 rounded text-[10px] uppercase font-bold text-text-main shadow-sm">
               {item.type}
             </div>
           </div>
         ))}
         {(!media || media.length === 0) && (
-          <div className="col-span-full py-8 text-center border border-dashed border-gray-300 rounded-lg text-text-light text-sm bg-gray-50">
+          <div className="col-span-full py-8 text-center border border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-text-light text-sm bg-gray-50 dark:bg-slate-800">
             No media uploaded. Add images or PDFs.
           </div>
         )}
@@ -1264,13 +1264,13 @@ function EventForm({
       exit={{ opacity: 0, x: 20 }}
       className="max-w-4xl mx-auto pb-20"
     >
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-surface border border-border rounded-2xl shadow-lg overflow-hidden">
         {/* Form Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+        <div className="px-6 py-4 border-b border-border bg-gray-50 dark:bg-slate-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
           <div className="flex items-center gap-4">
              <button
               onClick={onCancel}
-              className="p-2 hover:bg-gray-200 rounded-full transition-colors text-text-muted"
+              className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors text-text-muted"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -1287,7 +1287,7 @@ function EventForm({
           <div className="flex gap-2">
             <button
               onClick={() => onSave(formData, false)}
-              className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
+              className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-700 border border-border rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
             >
               Save Draft
             </button>
@@ -1310,7 +1310,7 @@ function EventForm({
                   type="text"
                   value={formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-xl font-bold placeholder:text-text-light/50 transition-all text-text-main"
+                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-xl font-bold placeholder:text-text-light/50 transition-all text-text-main"
                   placeholder="Enter event name..."
                   autoFocus
                 />
@@ -1323,7 +1323,7 @@ function EventForm({
                         <select
                         value={formData.category}
                         onChange={(e) => updateField('category', e.target.value as any)}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 transition-colors text-text-main"
+                        className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-text-main"
                         >
                         {CATEGORIES.map(cat => (
                             <option key={cat} value={cat}>{cat}</option>
@@ -1340,7 +1340,7 @@ function EventForm({
                         <select
                         value={formData.property || 'Both'}
                         onChange={(e) => updateField('property', e.target.value as any)}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 transition-colors text-text-main"
+                        className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red appearance-none cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-text-main"
                         >
                         <option value="Both">Both Properties</option>
                         <option value="Lincoln">Bally's Lincoln</option>
@@ -1353,7 +1353,7 @@ function EventForm({
                 </div>
                 <div className="flex items-end pb-1">
                      <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.highlight ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}>
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.highlight ? 'bg-yellow-500 border-yellow-500' : 'border-gray-300 dark:border-gray-600 bg-surface group-hover:border-gray-400'}`}>
                              {formData.highlight && <Check className="w-3 h-3 text-white" />}
                         </div>
                         <input
@@ -1375,24 +1375,24 @@ function EventForm({
                   value={formData.description || ''}
                   onChange={(e) => updateField('description', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-ballys-red resize-none text-text-main leading-relaxed placeholder:text-text-light/50"
+                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-ballys-red resize-none text-text-main leading-relaxed placeholder:text-text-light/50"
                   placeholder="Write a brief description..."
                 />
              </div>
           </div>
 
           {/* Tabs for other sections */}
-          <div className="border-t border-gray-200 pt-6">
-             <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg inline-flex">
+          <div className="border-t border-border pt-6">
+             <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg inline-flex border border-border">
                 <button 
                     onClick={() => setActiveTab('details')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-white text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Details & Media
                 </button>
                  <button 
                     onClick={() => setActiveTab('time')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-white text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Date & Time
                 </button>
@@ -1408,7 +1408,7 @@ function EventForm({
                         className="space-y-8"
                     >
                         {/* Media */}
-                         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+                         <div className="bg-gray-50 dark:bg-slate-800 border border-border rounded-xl p-5">
                             <MediaUpload
                                 media={formData.media}
                                 onChange={(media) => updateField('media', media)}
@@ -1426,24 +1426,24 @@ function EventForm({
                              <div className="space-y-2">
                                 {formData.details?.map((detail, index) => (
                                 <div key={index} className="flex gap-2 group">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-4 shrink-0 group-hover:bg-ballys-red transition-colors" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600 mt-4 shrink-0 group-hover:bg-ballys-red transition-colors" />
                                     <input
                                     type="text"
                                     value={detail}
                                     onChange={(e) => updateDetail(index, e.target.value)}
-                                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     placeholder="Detail point"
                                     />
                                     <button
                                     onClick={() => removeDetail(index)}
-                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                     >
                                     <X className="w-4 h-4" />
                                     </button>
                                 </div>
                                 ))}
                                 {(!formData.details || formData.details.length === 0) && (
-                                    <div onClick={addDetail} className="px-4 py-8 border border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <div onClick={addDetail} className="px-4 py-8 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                                         <p className="text-sm text-text-light">No details added. Click to add bullet points.</p>
                                     </div>
                                 )}
@@ -1460,10 +1460,10 @@ function EventForm({
                                             type="text" 
                                             value={newTag}
                                             onChange={(e) => setNewTag(e.target.value)}
-                                            className="px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs focus:outline-none focus:border-ballys-red"
+                                            className="px-2 py-1 bg-gray-50 dark:bg-slate-800 border border-border rounded text-xs focus:outline-none focus:border-ballys-red text-text-main"
                                             placeholder="New Tag Name"
                                         />
-                                        <button onClick={handleAddNewTag} disabled={!newTag.trim()} className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-text-main disabled:opacity-50">
+                                        <button onClick={handleAddNewTag} disabled={!newTag.trim()} className="text-xs bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 px-2 py-1 rounded text-text-main disabled:opacity-50">
                                             Save Tag
                                         </button>
                                     </div>
@@ -1480,7 +1480,7 @@ function EventForm({
                                             type="text"
                                             value={meta.label}
                                             onChange={(e) => updateMeta(index, 'label', e.target.value)}
-                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-xs font-bold uppercase tracking-wider text-text-muted"
+                                            className="w-full px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-xs font-bold uppercase tracking-wider text-text-muted"
                                             placeholder="LABEL"
                                             list="available-tags"
                                         />
@@ -1494,12 +1494,12 @@ function EventForm({
                                     type="text"
                                     value={meta.value}
                                     onChange={(e) => updateMeta(index, 'value', e.target.value)}
-                                    className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="flex-1 px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     placeholder="Value"
                                     />
                                     <button
                                     onClick={() => removeMeta(index)}
-                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    className="p-2 text-text-light hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                     >
                                     <X className="w-4 h-4" />
                                     </button>
@@ -1515,16 +1515,16 @@ function EventForm({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="bg-white border border-gray-200 rounded-xl p-6"
+                        className="bg-surface border border-border rounded-xl p-6"
                     >
                          <div className="space-y-6">
-                            <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-border">
                             <input
                                 type="checkbox"
                                 id="recurring"
                                 checked={formData.isRecurring || false}
                                 onChange={(e) => updateField('isRecurring', e.target.checked)}
-                                className="w-5 h-5 rounded border-gray-300 text-black focus:ring-black"
+                                className="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-black focus:ring-black bg-white dark:bg-slate-700"
                             />
                             <label htmlFor="recurring" className="text-sm font-medium cursor-pointer flex-1">
                                 <span className="block text-text-main">Recurring Event</span>
@@ -1543,7 +1543,7 @@ function EventForm({
                                     onClick={() => toggleDayOfWeek(index)}
                                     className={`h-10 px-4 rounded-lg border text-sm font-medium transition-all ${formData.daysOfWeek?.includes(index)
                                         ? 'bg-ballys-red border-ballys-red text-white shadow-md'
-                                        : 'bg-white border-gray-200 text-text-muted hover:bg-gray-50 hover:text-text-main'
+                                        : 'bg-surface border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-text-main'
                                         }`}
                                     >
                                     {day}
@@ -1559,7 +1559,7 @@ function EventForm({
                                     type="date"
                                     value={formData.startDate || ''}
                                     onChange={(e) => updateField('startDate', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                 />
                                 </div>
                                 <div>
@@ -1568,20 +1568,20 @@ function EventForm({
                                     type="date"
                                     value={formData.endDate || ''}
                                     onChange={(e) => updateField('endDate', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                 />
                                 </div>
                             </div>
                             )}
                             
-                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+                            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100 dark:border-gray-800">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">Start Time</label>
                                     <input
                                     type="time"
                                     value={formData.startTime || '00:00'}
                                     onChange={(e) => updateField('startTime', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     />
                                 </div>
                                 <div>
@@ -1590,7 +1590,7 @@ function EventForm({
                                     type="time"
                                     value={formData.endTime || '23:59'}
                                     onChange={(e) => updateField('endTime', e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
+                                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-text-main"
                                     />
                                 </div>
                             </div>
@@ -1624,7 +1624,7 @@ function BulkUploadForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 shadow-sm">
+      <div className="bg-surface border border-border rounded-2xl p-6 space-y-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-text-main">Bulk Upload Events</h2>
@@ -1632,7 +1632,7 @@ function BulkUploadForm({
           </div>
           <button
             onClick={onCancel}
-            className="p-2 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors text-text-muted"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg border border-border transition-colors text-text-muted"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1645,16 +1645,16 @@ function BulkUploadForm({
               value={json}
               onChange={(e) => onChange(e.target.value)}
               rows={15}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-ballys-red resize-none font-mono text-sm text-text-main"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-border rounded-lg focus:outline-none focus:border-ballys-red resize-none font-mono text-sm text-text-main"
               placeholder='[{"id": "event-1", "title": "Event Title", "category": "Open", ...}]'
             />
           </div>
 
-          <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
-            <div className="text-sm text-blue-800">
+            <div className="text-sm text-blue-800 dark:text-blue-400">
               <p className="font-medium mb-1">Format Requirements:</p>
-              <ul className="list-disc list-inside space-y-1 text-blue-600">
+              <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-300">
                 <li>Must be a valid JSON array</li>
                 <li>Each event must have an "id" and "title"</li>
                 <li>Events with existing IDs will be updated</li>
@@ -1666,7 +1666,7 @@ function BulkUploadForm({
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg text-sm transition-colors text-text-main"
+              className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm transition-colors text-text-main"
             >
               Cancel
             </button>
@@ -1691,8 +1691,8 @@ function EmptyState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center h-full text-center"
     >
-      <div className="bg-white border border-gray-200 rounded-2xl p-12 max-w-md shadow-sm">
-        <Settings className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+      <div className="bg-surface border border-border rounded-2xl p-12 max-w-md shadow-sm">
+        <Settings className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
         <h3 className="text-xl font-bold mb-2 text-text-main">No Event Selected</h3>
         <p className="text-text-muted text-sm">
           Select an event from the sidebar to edit, or create a new event to get started.
