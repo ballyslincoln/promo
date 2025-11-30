@@ -32,6 +32,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [activeView, setActiveView] = useState<'events' | 'schedules'>('events');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewEditId, setPreviewEditId] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'last-edited' | 'property'>('date-desc');
 
   useEffect(() => {
@@ -345,8 +346,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                previewSchedules={schedules} 
                onAdminOpen={() => setShowPreview(false)}
                onEditEvent={(event) => {
-                 setShowPreview(false);
-                 handleEdit(event.id);
+                 setPreviewEditId(event.id);
                }}
                onAddEvent={(date, category) => {
                  setShowPreview(false);
@@ -354,6 +354,33 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                }}
              />
           </div>
+
+          {/* Preview Edit Modal */}
+          {previewEditId && (
+            <div className="fixed inset-0 z-[220] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+                    <div className="flex-1 overflow-y-auto">
+                        {(() => {
+                            const eventToEdit = events.find(e => e.id === previewEditId);
+                            if (!eventToEdit) return null;
+                            
+                            return (
+                                <EventForm
+                                    event={eventToEdit}
+                                    availableTags={availableTags}
+                                    onRefreshTags={refreshTags}
+                                    onSave={(data, publish) => {
+                                        handleSaveEvent(data, publish);
+                                        setPreviewEditId(null);
+                                    }}
+                                    onCancel={() => setPreviewEditId(null)}
+                                />
+                            );
+                        })()}
+                    </div>
+                </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -457,6 +484,18 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               >
                 <X className="w-4 h-4" />
                 Back to Site
+              </button>
+              <button
+                onClick={() => {
+                    if (confirm('Are you sure you want to log out?')) {
+                        localStorage.removeItem('ballys_auth');
+                        window.location.reload();
+                    }
+                }}
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-text-muted rounded-lg text-xs font-medium transition-colors"
+                title="Log Out"
+              >
+                Log Out
               </button>
             </div>
           </div>
@@ -608,6 +647,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[10px] font-mono text-text-muted bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                    {event.startDate}
+                                </span>
                                 <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-text-muted border border-gray-200">
                                   {event.category}
                                 </span>

@@ -309,13 +309,15 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         ))}
                     </div>
 
-                    {/* Stealth Admin Button */}
+                    {/* Admin Button */}
                     {onAdminOpen && (
                         <button
                             onClick={onAdminOpen}
-                            className="w-2 h-2 rounded-full bg-gray-200 hover:bg-ballys-red/50 transition-colors absolute top-2 right-2"
-                            title="Admin Panel"
-                        />
+                            className="absolute top-2 right-2 px-3 py-1 bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-xs font-bold text-text-muted uppercase tracking-wider shadow-sm transition-colors flex items-center gap-2"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            Admin Panel
+                        </button>
                     )}
 
                     {/* Date Navigator (Only in List Mode) */}

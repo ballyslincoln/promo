@@ -4,8 +4,18 @@ import Dashboard from './Dashboard';
 import AdminPanel from './AdminPanel';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('ballys_auth') === 'true';
+  });
   const [showAdmin, setShowAdmin] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+        localStorage.setItem('ballys_auth', 'true');
+    } else {
+        localStorage.removeItem('ballys_auth');
+    }
+  }, [isAuthenticated]);
 
   // Hidden admin access: Press Ctrl+Shift+A (only when authenticated)
   useEffect(() => {
