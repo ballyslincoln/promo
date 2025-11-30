@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download,
-  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search
+  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Calendar as CalendarIcon, List
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
 import { eventService } from './services/eventService';
 import Dashboard from './Dashboard';
+import BigCalendar from './components/Calendar/BigCalendar';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const CATEGORIES = ['Invited', 'Open', 'Dining', 'Promo', 'Internal', 'Schedule', 'Entertainment'] as const;
@@ -34,10 +35,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [showPreview, setShowPreview] = useState(false);
   const [previewEditId, setPreviewEditId] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'last-edited' | 'property'>('date-desc');
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -57,6 +55,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
     setAvailableTags(loadedTags);
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const refreshTags = async () => {
       const tags = await eventService.getTags();
@@ -422,6 +424,23 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
             {/* View Toggle */}
             <div className="flex gap-2 mr-4">
+               <div className="bg-gray-100 p-1 rounded-lg flex mr-4">
+                  <button
+                    onClick={() => setEventsViewMode('list')}
+                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'list' ? 'bg-white shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
+                    title="List View"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                   <button
+                    onClick={() => setEventsViewMode('calendar')}
+                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'calendar' ? 'bg-white shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
+                     title="Calendar View"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                  </button>
+               </div>
+
               <button
                 onClick={() => setActiveView('events')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'events'
@@ -744,6 +763,28 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
 
           {/* Main Content - Edit Form */}
           <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain bg-gray-50/50">
+            {eventsViewMode === 'calendar' && activeView === 'events' ? (
+                <div className="h-full flex flex-col">
+                    <div className="flex items-center justify-between mb-6">
+                         <div>
+                            <h2 className="text-2xl font-bold text-text-main">Calendar Management</h2>
+                            <p className="text-sm text-text-muted">Drag to select days, click to edit events.</p>
+                        </div>
+                        <button
+                            onClick={() => handleAdd()}
+                            className="px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                        >
+                            <Plus className="w-4 h-4" />
+                            New Event
+                        </button>
+                    </div>
+                    <BigCalendar
+                        events={events}
+                        onSelectEvent={(event) => handleEdit(event.id)}
+                        onSelectSlot={({ start }) => handleAdd(start)}
+                    />
+                </div>
+            ) : (
             <AnimatePresence mode="wait">
               {activeView === 'events' ? (
                 showAddForm && currentEvent ? (
@@ -796,6 +837,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 </div>
               )}
             </AnimatePresence>
+            )}
           </div>
         </div>
       </div>

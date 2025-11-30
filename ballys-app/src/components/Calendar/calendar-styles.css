@@ -1,0 +1,93 @@
+/* Overrides for react-big-calendar to look like Apple/Outlook */
+
+.rbc-calendar {
+    font-family: inherit;
+}
+
+.rbc-header {
+    padding: 12px 4px;
+    font-weight: 600;
+    color: #64748b; /* text-slate-500 */
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.rbc-month-view {
+    border: none;
+}
+
+.rbc-month-row {
+    border-top: 1px solid #e2e8f0;
+    min-height: 120px; /* Taller cells for month view */
+}
+
+.rbc-day-bg {
+    border-left: 1px solid #e2e8f0;
+}
+
+.rbc-day-bg:first-child {
+    border-left: none;
+}
+
+.rbc-off-range-bg {
+    background-color: #f8fafc; /* slate-50 */
+}
+
+.rbc-date-cell {
+    padding: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+.rbc-now {
+    font-weight: bold;
+    color: #ef4444; /* ballys-red */
+}
+
+.rbc-event {
+    background-color: transparent;
+    padding: 0;
+}
+
+.rbc-event:focus {
+    outline: none;
+}
+
+/* Time Grid (Week/Day view) */
+.rbc-time-view {
+    border: none;
+}
+
+.rbc-time-header {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.rbc-time-content {
+    border-top: none;
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.rbc-time-slot {
+    font-size: 0.75rem;
+}
+
+.rbc-current-time-indicator {
+    background-color: #ef4444;
+}
+
+/* Remove default ugly borders */
+.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+    border: none;
+}
+
+/* Toolbar overrides handled in component, but cleanup defaults just in case */
+.rbc-toolbar {
+    display: none; /* We are using custom toolbar */
+}
+

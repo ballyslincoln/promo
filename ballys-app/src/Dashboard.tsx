@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as Cal
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
+import BigCalendar from './components/Calendar/BigCalendar';
 
 // Helper to format date
 const formatDate = (date: Date) => {
@@ -14,14 +15,6 @@ const addDays = (date: Date, days: number) => {
     const result = new Date(date);
     result.setDate(result.getDate() + days);
     return result;
-};
-
-const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
-};
-
-const getFirstDayOfMonth = (year: number, month: number) => {
-    return new Date(year, month, 1).getDay();
 };
 
 const getHoliday = (date: Date) => {
@@ -212,11 +205,6 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     }, [schedules]);
 
     const holiday = useMemo(() => getHoliday(selectedDate), [selectedDate]);
-
-    // Helper for calendar view - MEMOIZED
-    const getEventsForDateSync = useMemo(() => (date: Date) => {
-        return allEventRules.filter(e => shouldShowEvent(e, date));
-    }, [allEventRules]);
 
     const handlePrevDay = () => {
         setDirection(-1);
@@ -476,11 +464,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             className="w-full"
                             style={{ willChange: 'opacity' }}
                         >
-                            <CalendarView
-                                selectedDate={selectedDate}
-                                getEvents={getEventsForDateSync}
-                                onSelectDate={(date) => {
+                            <BigCalendar
+                                events={allEventRules}
+                                onSelectEvent={(event) => {
+                                    // Navigate to list view for that day
+                                    const date = event.startDate ? new Date(event.startDate + 'T12:00:00') : new Date();
                                     setSelectedDate(date);
+                                    setViewMode('list');
+                                }}
+                                onSelectSlot={({ start }) => {
+                                    setSelectedDate(start);
                                     setViewMode('list');
                                 }}
                             />
@@ -730,89 +723,9 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     );
 }
 
-function CalendarView({ selectedDate, onSelectDate, getEvents }: { selectedDate: Date, onSelectDate: (date: Date) => void, getEvents: (date: Date) => any[] }) {
-    const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
+// Old calendar view removed in favor of BigCalendar
+// function CalendarView... was here
 
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const daysInMonth = getDaysInMonth(year, month);
-    const firstDay = getFirstDayOfMonth(year, month);
-
-    const days = [];
-    for (let i = 0; i < firstDay; i++) {
-        days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-        days.push(new Date(year, month, i));
-    }
-
-    const prevMonth = () => {
-        setCurrentMonth(new Date(year, month - 1, 1));
-    };
-
-    const nextMonth = () => {
-        setCurrentMonth(new Date(year, month + 1, 1));
-    };
-
-    return (
-        <div className="glass-card rounded-3xl p-6">
-            <div className="flex items-center justify-between mb-8">
-                <button onClick={prevMonth} className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                    <ChevronLeft className="w-5 h-5 text-gray-500" />
-                </button>
-                <h2 className="text-lg font-bold text-gray-800 tracking-widest uppercase">
-                    {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                </h2>
-                <button onClick={nextMonth} className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                    <ChevronRight className="w-5 h-5 text-gray-500" />
-                </button>
-            </div>
-
-            <div className="grid grid-cols-7 gap-2 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="text-center text-xs font-bold text-gray-400 uppercase tracking-wider py-2">
-                        {day}
-                    </div>
-                ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-2">
-                {days.map((date, idx) => {
-                    if (!date) return <div key={idx} />;
-                    const isSelected = date.toDateString() === selectedDate.toDateString();
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    const dayEvents = getEvents(date);
-                    const hasTiverton = dayEvents.some(e => !e.property || e.property === 'Tiverton' || e.property === 'Both');
-                    const hasLincoln = dayEvents.some(e => !e.property || e.property === 'Lincoln' || e.property === 'Both');
-
-                    return (
-                        <button
-                            key={idx}
-                            onClick={() => onSelectDate(date)}
-                            className={`
-                                relative h-14 rounded-xl flex flex-col items-center justify-start pt-2 transition-all duration-200
-                                ${isSelected 
-                                    ? 'bg-gradient-to-br from-ballys-red to-ballys-darkRed text-white shadow-lg scale-105' 
-                                    : 'bg-white/40 hover:bg-white/80 text-gray-500 hover:text-gray-900'}
-                                ${isToday && !isSelected ? 'border border-ballys-red/50 ring-1 ring-ballys-red/20' : ''}
-                            `}
-                        >
-                            <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{date.getDate()}</span>
-                            <div className="flex gap-1 mt-1.5">
-                                {hasLincoln && (
-                                    <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${isSelected ? 'bg-white' : 'bg-ballys-red'}`} title="Lincoln Event" />
-                                )}
-                                {hasTiverton && (
-                                    <div className={`w-1.5 h-1.5 rounded-full shadow-sm ${isSelected ? 'bg-white/80' : 'bg-green-500'}`} title="Tiverton Event" />
-                                )}
-                            </div>
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
 
 function Section({ title, icon, children, onAddEvent }: { title: string, icon: React.ReactNode, children: React.ReactNode, onAddEvent?: () => void }) {
     return (
