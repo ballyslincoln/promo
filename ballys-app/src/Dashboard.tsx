@@ -255,7 +255,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     };
 
     return (
-        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col [contain:layout_style_paint]">
+        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[100px]" />
