@@ -25,14 +25,25 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
 
+  const fetchAnnouncement = async () => {
+    const active = await getActiveAnnouncement();
+    setAnnouncement(active);
+  };
+
   useEffect(() => {
-    const checkAnnouncement = async () => {
+    const initAndFetch = async () => {
         await initAnnouncementTable();
-        const active = await getActiveAnnouncement();
-        setAnnouncement(active);
+        await fetchAnnouncement();
     };
-    checkAnnouncement();
+    initAndFetch();
   }, []);
+
+  // Refetch announcement when admin panel is closed to update any changes
+  useEffect(() => {
+    if (!showAdmin) {
+        fetchAnnouncement();
+    }
+  }, [showAdmin]);
 
   useEffect(() => {
     if (isAuthenticated) {
