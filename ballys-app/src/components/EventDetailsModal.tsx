@@ -36,7 +36,9 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
           if (data.currentUser) {
             setCurrentUser(data.currentUser);
           } else {
-            setCurrentUser(userService.getCurrentUser());
+            // Force refresh user if not in response (fallback)
+            const user = await userService.getOrCreateUser();
+            setCurrentUser(user);
           }
         } catch (error) {
           console.error("Failed to load interactions", error);
