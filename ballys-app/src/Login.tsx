@@ -225,7 +225,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
 
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shrink-0 border border-border">
-                                    <img src="/vite.svg" className="w-8 h-8" alt="App Icon" />
+                                    <img src="/ballyb.png" className="w-8 h-8 object-contain" alt="App Icon" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-text-main text-sm mb-1">Install App</h3>
