@@ -160,7 +160,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
          const expandStart = new Date();
          expandStart.setMonth(expandStart.getMonth() - 1);
          const expandEnd = new Date();
-         expandEnd.setFullYear(expandEnd.getFullYear() + 1);
+         expandEnd.setMonth(expandEnd.getMonth() + 3);
          
          let current = new Date(expandStart);
          while (current <= expandEnd) {

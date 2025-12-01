@@ -258,10 +258,10 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
     return (
         <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col transition-colors duration-300">
-            {/* Ambient Background */}
+            {/* Ambient Background - Optimized for performance */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-[100px]" />
+                <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-3xl opacity-50 transform-gpu will-change-transform" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-ballys-blue/5 rounded-full blur-3xl opacity-50 transform-gpu will-change-transform" />
             </div>
 
             {/* Bottom Fade for smooth edge */}
@@ -269,7 +269,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
             {/* Header */}
             <header className="sticky top-0 z-50 pt-safe-top transition-all duration-300">
-                <div className="absolute inset-0 bg-surface/80 backdrop-blur-xl border-b border-border shadow-sm" />
+                <div className="absolute inset-0 bg-surface/90 backdrop-blur-md border-b border-border shadow-sm" />
 
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-4 px-4 py-4">
                     {/* Top Bar */}
