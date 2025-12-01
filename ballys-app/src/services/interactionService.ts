@@ -207,9 +207,6 @@ export const interactionService = {
         const user = await userService.getOrCreateUser();
         if (!user) return false;
 
-        // In direct DB mode, we can only delete our own. 
-        // Admin check is tricky without auth token, but we'll assume the UI protects it mostly.
-        // Backend API handles the real check.
         await sql`
             DELETE FROM interactions 
             WHERE id = ${id} AND (user_id = ${user.id}) 
@@ -228,7 +225,7 @@ export const interactionService = {
       const res = await fetch('/api/interactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: commentId, type: 'like' }) // We treat commentId as eventId for 'like' type
+        body: JSON.stringify({ eventId: commentId, type: 'like' })
       });
       if (res.ok) {
         const data = await res.json();
@@ -246,21 +243,19 @@ export const interactionService = {
         const existing = interactions.find(i => i.event_id === commentId && i.user_id === user.id && i.type === 'like');
 
         if (existing) {
-          // Unlike
           const newInteractions = interactions.filter(i => i.id !== existing.id);
           updateLocalInteractions(newInteractions);
-          return false; // Liked -> Unliked
+          return false;
         } else {
-          // Like
           const interaction: Interaction = {
             id: generateId(),
-            event_id: commentId, // Linking to comment
+            event_id: commentId,
             user_id: user.id,
             type: 'like',
             created_at: new Date().toISOString()
           };
           saveLocalInteraction(interaction);
-          return true; // Unliked -> Liked
+          return true;
         }
       }
 
@@ -288,10 +283,12 @@ export const interactionService = {
     }
   },
 
-  // Get Stats for Events (Aura + Comment Counts)
+  // Get Stats for Events
   async getStatsForEvents(eventIds: string[]): Promise<Record<string, { aura: number, comments: number }>> {
     if (eventIds.length === 0) return {};
 
+    // We should also merge local stats here if we want the dashboard to be accurate
+    // But for now, let's just try API first
     try {
       const res = await fetch(`/api/interactions?action=stats&ids=${eventIds.join(',')}`);
       if (res.ok) {
@@ -299,164 +296,85 @@ export const interactionService = {
       }
       throw new Error('API failed');
     } catch (e) {
-      if (!sql) {
-        const interactions = getLocalInteractions();
-        const stats: Record<string, { aura: number, comments: number }> = {};
+      // Fallback to local storage
+      const interactions = getLocalInteractions();
+      const stats: Record<string, { aura: number, comments: number }> = {};
 
-        eventIds.forEach(id => {
-          stats[id] = {
-            aura: interactions.filter(i => i.event_id === id && i.type === 'aura').length,
-            comments: interactions.filter(i => i.event_id === id && i.type === 'comment').length
-          };
-        });
-        return stats;
-      }
-
-      try {
-        const stats: Record<string, { aura: number, comments: number }> = {};
-        // Fetch all interactions for these events
-        // Note: This might be heavy if lots of events, but for a dashboard page it's okay
-        const rows = await sql`
-                SELECT event_id, type, COUNT(*) as count 
-                FROM interactions 
-                WHERE event_id = ANY(${eventIds})
-                GROUP BY event_id, type
-             `;
-
-        eventIds.forEach(id => {
-          const auraRow = rows.find((r: any) => r.event_id === id && r.type === 'aura');
-          const commentRow = rows.find((r: any) => r.event_id === id && r.type === 'comment');
-          stats[id] = {
-            aura: auraRow ? parseInt(auraRow.count) : 0,
-            comments: commentRow ? parseInt(commentRow.count) : 0
-          };
-        });
-        return stats;
-      } catch (e) {
-        return {};
-      }
+      eventIds.forEach(id => {
+        stats[id] = {
+          aura: interactions.filter(i => i.event_id === id && i.type === 'aura').length,
+          comments: interactions.filter(i => i.event_id === id && i.type === 'comment').length
+        };
+      });
+      return stats;
     }
   },
 
-  // Get Interactions for Event
-  async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean; currentUser?: User }> {
+  // Get Interactions for Event (Merged)
+  async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean; currentUser?: User; isOffline: boolean }> {
+    let serverData = {
+      auraCount: 0,
+      comments: [] as Interaction[],
+      hasUserAura: false,
+      currentUser: undefined as User | undefined
+    };
+    let isOffline = false;
+
     try {
       const res = await fetch(`/api/interactions?eventId=${eventId}`);
       if (res.ok) {
-        const data = await res.json();
-
-        // Update local user cache if returned
-        if (data.currentUser) {
-          localStorage.setItem('ballys_user', JSON.stringify(data.currentUser));
+        serverData = await res.json();
+        if (serverData.currentUser) {
+          localStorage.setItem('ballys_user', JSON.stringify(serverData.currentUser));
         }
-
-        return {
-          auraCount: data.auraCount || 0,
-          comments: data.comments || [],
-          hasUserAura: data.hasUserAura || false,
-          currentUser: data.currentUser
-        };
+      } else {
+        throw new Error('API failed');
       }
-      throw new Error('API failed');
     } catch (e) {
-      console.warn('API unavailable, falling back to direct DB', e);
-
-      const user = await userService.getOrCreateUser();
-      if (!user) return { auraCount: 0, comments: [], hasUserAura: false };
-
-      if (!sql) {
-        // LocalStorage Fallback
-        const interactions = getLocalInteractions();
-
-        const auraCount = interactions.filter(i => i.event_id === eventId && i.type === 'aura').length;
-        const hasUserAura = interactions.some(i => i.event_id === eventId && i.user_id === user.id && i.type === 'aura');
-
-        // Get comments and enrich with likes
-        const rawComments = interactions
-          .filter(i => i.event_id === eventId && i.type === 'comment')
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-        const comments = rawComments.map(c => {
-          const likes = interactions.filter(i => i.event_id === c.id && i.type === 'like').length;
-          const hasLiked = interactions.some(i => i.event_id === c.id && i.user_id === user.id && i.type === 'like');
-          return { ...c, likes, hasLiked };
-        });
-
-        return {
-          auraCount,
-          comments,
-          hasUserAura,
-          currentUser: user
-        };
-      }
-
-      try {
-        const auraResult = await sql`
-            SELECT COUNT(*) as count FROM interactions 
-            WHERE event_id = ${eventId} AND type = 'aura'
-        `;
-        const auraCount = parseInt(auraResult[0].count);
-
-        const userAura = await sql`
-            SELECT id FROM interactions 
-            WHERE event_id = ${eventId} AND user_id = ${user.id} AND type = 'aura'
-        `;
-        const hasUserAura = userAura.length > 0;
-
-        const commentsResult = await sql`
-            SELECT i.*, u.username 
-            FROM interactions i
-            JOIN users u ON i.user_id = u.id
-            WHERE i.event_id = ${eventId} AND i.type = 'comment'
-            ORDER BY i.created_at DESC
-        `;
-
-        // Fetch likes for these comments
-        // We can do this efficiently or lazily. Let's do a subquery or join if possible, 
-        // but for now separate query is safer for compatibility.
-        const commentIds = commentsResult.map((c: any) => c.id);
-        let likesMap: Record<string, number> = {};
-        let userLikesMap: Record<string, boolean> = {};
-
-        if (commentIds.length > 0) {
-          const likesResult = await sql`
-                SELECT event_id, COUNT(*) as count 
-                FROM interactions 
-                WHERE type = 'like' AND event_id = ANY(${commentIds})
-                GROUP BY event_id
-            `;
-          likesResult.forEach((r: any) => likesMap[r.event_id] = parseInt(r.count));
-
-          const userLikesResult = await sql`
-                SELECT event_id FROM interactions 
-                WHERE type = 'like' AND user_id = ${user.id} AND event_id = ANY(${commentIds})
-            `;
-          userLikesResult.forEach((r: any) => userLikesMap[r.event_id] = true);
-        }
-
-        const comments = commentsResult.map(r => ({
-          id: r.id,
-          event_id: r.event_id,
-          user_id: r.user_id,
-          type: r.type,
-          content: r.content,
-          created_at: r.created_at,
-          username: r.username,
-          likes: likesMap[r.id] || 0,
-          hasLiked: !!userLikesMap[r.id]
-        }));
-
-        return {
-          auraCount,
-          comments,
-          hasUserAura,
-          currentUser: user
-        };
-
-      } catch (dbError) {
-        console.error('DB fallback failed', dbError);
-        return { auraCount: 0, comments: [], hasUserAura: false };
-      }
+      console.warn('API unavailable, using local data', e);
+      isOffline = true;
     }
+
+    // Merge with local data
+    const localInteractions = getLocalInteractions();
+    const user = userService.getCurrentUser();
+
+    // 1. Merge Comments
+    const localComments = localInteractions.filter(i => i.event_id === eventId && i.type === 'comment');
+    const serverCommentIds = new Set(serverData.comments.map(c => c.id));
+    const uniqueLocalComments = localComments.filter(c => !serverCommentIds.has(c.id));
+
+    const allComments = [...serverData.comments, ...uniqueLocalComments]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const enrichedComments = allComments.map(c => {
+      const localLikes = localInteractions.filter(i => i.event_id === c.id && i.type === 'like').length;
+      const hasLocalLike = localInteractions.some(i => i.event_id === c.id && i.user_id === user?.id && i.type === 'like');
+
+      const isLiked = c.hasLiked || hasLocalLike;
+      // If server comment, it has server likes. If local, it has 0. Add local likes.
+      // Note: This might double count if sync happens, but for now it's safe.
+      const likeCount = (c.likes || 0) + (serverCommentIds.has(c.id) ? 0 : localLikes);
+
+      return { ...c, hasLiked: isLiked, likes: likeCount };
+    });
+
+    // 2. Merge Aura
+    const localAura = localInteractions.find(i => i.event_id === eventId && i.user_id === user?.id && i.type === 'aura');
+    let hasUserAura = serverData.hasUserAura;
+    let auraCount = serverData.auraCount;
+
+    if (localAura && !hasUserAura) {
+      hasUserAura = true;
+      auraCount += 1;
+    }
+
+    return {
+      auraCount,
+      comments: enrichedComments,
+      hasUserAura,
+      currentUser: serverData.currentUser || user || undefined,
+      isOffline
+    };
   }
 };

@@ -22,22 +22,21 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   const [comments, setComments] = useState<Interaction[]>([]);
   const [commentText, setCommentText] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  // const [loading, setLoading] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     if (isOpen && event) {
       const loadInteractions = async () => {
-        // setLoading(true);
         const data = await interactionService.getEventInteractions(event.id);
         setAuraCount(data.auraCount);
         setHasAura(data.hasUserAura);
         setComments(data.comments);
+        setIsOffline(data.isOffline);
         if (data.currentUser) {
           setCurrentUser(data.currentUser);
         } else {
           setCurrentUser(userService.getCurrentUser());
         }
-        // setLoading(false);
       };
       loadInteractions();
     } else {
@@ -46,6 +45,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
       setHasAura(false);
       setComments([]);
       setCommentText('');
+      setIsOffline(false);
     }
   }, [isOpen, event]);
 
@@ -130,9 +130,6 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
 
     const success = await interactionService.toggleLike(commentId);
     if (!success) {
-      // Revert (actually toggleLike returns boolean success, but complex logic might be needed if it failed to toggle specifically)
-      // For now assuming success means it worked as intended. If it returns false, it might mean network error.
-      // Let's just revert state if false.
       setComments(prev => prev.map(c => c.id === commentId ? { ...c, hasLiked: !newHasLiked, likes: comment.likes } : c));
     }
   };
@@ -162,6 +159,12 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
               <div className="absolute top-4 right-4 flex gap-2 z-10">
+                {isOffline && (
+                  <div className="px-3 py-2 bg-yellow-500/90 text-white rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    Offline Mode
+                  </div>
+                )}
                 {onEdit && (
                   <button
                     onClick={() => {
