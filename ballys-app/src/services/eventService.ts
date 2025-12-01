@@ -8,6 +8,9 @@ const TAGS_KEY = 'ballys_tags';
 
 // Helper to check if an event should be shown on a given date
 export const shouldShowEvent = (event: AdminEvent, date: Date): boolean => {
+  // Don't show archived events or templates in normal views
+  if (event.isArchived || event.isTemplate) return false;
+
   const dateStr = date.toISOString().split('T')[0];
   const dayOfWeek = date.getDay();
 
@@ -74,7 +77,7 @@ export const eventService = {
 
     return allEvents
       .filter(e => shouldShowEvent(e, date))
-      .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
+      .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, isArchived, isTemplate, ...event }) => event);
   },
 
   // Save all events (replace)
@@ -94,12 +97,14 @@ export const eventService = {
           await sql`
                 INSERT INTO events (
                     id, title, category, description, details, meta, media, highlight, 
-                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring", property, "lastUpdated"
+                    "startDate", "endDate", "startTime", "endTime", "daysOfWeek", "isRecurring", property, "lastUpdated",
+                    "isArchived", "isTemplate"
                 ) VALUES (
                     ${event.id}, ${event.title}, ${event.category}, ${event.description || null}, 
                     ${JSON.stringify(event.details || [])}, ${JSON.stringify(event.meta || [])}, ${JSON.stringify(event.media || [])}, ${event.highlight || false},
                     ${event.startDate || null}, ${event.endDate || null}, ${event.startTime || null}, ${event.endTime || null},
-                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}, ${event.property || 'Both'}, ${event.lastUpdated || new Date().toISOString()}
+                    ${JSON.stringify(event.daysOfWeek || [])}, ${event.isRecurring || false}, ${event.property || 'Both'}, ${event.lastUpdated || new Date().toISOString()},
+                    ${event.isArchived || false}, ${event.isTemplate || false}
                 )
                 ON CONFLICT (id) DO UPDATE SET
                     title = EXCLUDED.title,
@@ -116,7 +121,9 @@ export const eventService = {
                     "daysOfWeek" = EXCLUDED."daysOfWeek",
                     "isRecurring" = EXCLUDED."isRecurring",
                     property = EXCLUDED.property,
-                    "lastUpdated" = EXCLUDED."lastUpdated"
+                    "lastUpdated" = EXCLUDED."lastUpdated",
+                    "isArchived" = EXCLUDED."isArchived",
+                    "isTemplate" = EXCLUDED."isTemplate"
             `;
         }
 
@@ -251,30 +258,36 @@ export const eventService = {
           "daysOfWeek" JSONB,
           "isRecurring" BOOLEAN DEFAULT FALSE,
           property TEXT DEFAULT 'Both',
-          "lastUpdated" TEXT
+          "lastUpdated" TEXT,
+          "isArchived" BOOLEAN DEFAULT FALSE,
+          "isTemplate" BOOLEAN DEFAULT FALSE
         );
       `;
 
       // Attempt to add media column if it doesn't exist (migration)
       try {
         await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS media JSONB;`;
-      } catch (e) {
-        // Ignore error if column exists
-      }
+      } catch (e) {}
 
       // Attempt to add property column if it doesn't exist (migration)
       try {
         await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS property TEXT DEFAULT 'Both';`;
-      } catch (e) {
-        console.log('Migration note: property column check', e);
-      }
+      } catch (e) {}
 
       // Attempt to add lastUpdated column if it doesn't exist (migration)
       try {
         await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS "lastUpdated" TEXT;`;
-      } catch (e) {
-        console.log('Migration note: lastUpdated column check', e);
-      }
+      } catch (e) {}
+
+      // Attempt to add isArchived column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS "isArchived" BOOLEAN DEFAULT FALSE;`;
+      } catch (e) {}
+
+      // Attempt to add isTemplate column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS "isTemplate" BOOLEAN DEFAULT FALSE;`;
+      } catch (e) {}
 
       await sql`
         CREATE TABLE IF NOT EXISTS schedules (

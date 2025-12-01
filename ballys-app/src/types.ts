@@ -29,6 +29,8 @@ export interface AdminEvent extends Event {
   daysOfWeek?: number[];
   isRecurring?: boolean;
   lastUpdated?: string; // ISO string for sort by last edited
+  isArchived?: boolean;
+  isTemplate?: boolean;
 }
 
 export interface ScheduleItem {

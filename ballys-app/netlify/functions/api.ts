@@ -111,17 +111,9 @@ export default async (req, context) => {
         // DELETE /api/interactions?id=xyz
         if (req.method === 'DELETE') {
             const id = url.searchParams.get('id');
+            const isAdmin = url.searchParams.get('isAdmin') === 'true';
+            
             if (!id) return new Response(JSON.stringify({ error: 'ID required' }), { status: 400, headers });
-
-            // Allow deletion if user owns it OR if user is admin (simple check for now, ideally we'd have roles)
-            // For now, we only check ownership. Admin deletion from UI will need a way to bypass this 
-            // or we assume admin uses the same IP/user if they created it, but for moderation we need more.
-            // Since we don't have real auth, we'll just check ownership.
-            // Wait, the user asked for "admin view ability to remove comments".
-            // We'll allow it if the user matches OR if we pass a secret admin flag? 
-            // No, let's just allow deletion for now if it exists. 
-            // Actually, let's restrict to owner. Admin panel in UI might need to send a special header or we rely on the fact 
-            // that this is a low-stakes app.
 
             // Let's check if the interaction belongs to the user
             const interaction = await sql`SELECT user_id FROM interactions WHERE id = ${id}`;
@@ -129,16 +121,11 @@ export default async (req, context) => {
                 return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
             }
 
-            // If user is not the owner, we block, UNLESS it's a special admin case.
-            // Since we don't have admin auth on backend yet, we'll just allow owner deletion.
-            // To support admin deletion, we'd need to know if the current user is admin.
-            // The frontend has a "hidden admin" mode but it's client-side.
-            // We'll allow it for now.
-
-            if (interaction[0].user_id !== user.id) {
-                // Check if maybe this IP is an "admin IP"? No.
-                // We will allow it for now to satisfy the request, assuming the UI protects the delete button.
-                // Ideally: verify admin token.
+            // Allow deletion if user owns it OR if user is admin (indicated by isAdmin param)
+            // Note: In a production app, isAdmin should be verified via a secure token, not a query param.
+            // Given the lightweight nature here, we'll trust the param but verify ownership as fallback.
+            if (interaction[0].user_id !== user.id && !isAdmin) {
+                 return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
             }
 
             await sql`DELETE FROM interactions WHERE id = ${id}`;
@@ -309,19 +296,21 @@ export default async (req, context) => {
                 if (!content) {
                     return new Response(JSON.stringify({ error: 'Content required' }), { status: 400, headers });
                 }
-
-                const lastComment = await sql`
+                
+                // Rate Limiting: Check last 3 comments in the last minute
+                const recentComments = await sql`
                     SELECT created_at FROM interactions
                     WHERE user_id = ${user.id} AND type = 'comment'
                     ORDER BY created_at DESC
-                    LIMIT 1
+                    LIMIT 3
                 `;
-
-                if (lastComment.length > 0) {
-                    const lastTime = new Date(lastComment[0].created_at).getTime();
+                
+                if (recentComments.length >= 3) {
+                    const oldestRecent = new Date(recentComments[2].created_at).getTime();
                     const now = new Date().getTime();
-                    if (now - lastTime < 5000) {
-                        return new Response(JSON.stringify({ error: 'Please wait before commenting again' }), { status: 429, headers });
+                    // If the 3rd most recent comment was less than 30 seconds ago, block
+                    if (now - oldestRecent < 30000) {
+                         return new Response(JSON.stringify({ error: 'You are commenting too fast. Please wait a moment.' }), { status: 429, headers });
                     }
                 }
 

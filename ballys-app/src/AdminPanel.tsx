@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download,
   AlertCircle, FileText, Star, Settings, Check, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Menu,
-  Megaphone
+  Megaphone, Archive, Copy, LayoutTemplate, RotateCcw
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem, Announcement } from './types';
 import { eventService } from './services/eventService';
@@ -33,7 +33,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [bulkJson, setBulkJson] = useState('');
-  const [activeView, setActiveView] = useState<'events' | 'schedules' | 'announcements'>('events');
+  const [activeView, setActiveView] = useState<'events' | 'schedules' | 'announcements' | 'archive' | 'templates'>('events');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewEditId, setPreviewEditId] = useState<string | null>(null);
@@ -157,13 +157,17 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       endTime: '23:59',
       daysOfWeek: [],
       isRecurring: false,
-      property: 'Both'
+      property: 'Both',
+      isArchived: false,
+      isTemplate: activeView === 'templates'
     };
     setEvents([...events, newEvent]);
     setEditingId(newEvent.id);
     setShowAddForm(true);
     setShowBulkUpload(false);
-    setActiveView('events');
+    // Stay in current view if templates, otherwise go to events
+    if (activeView !== 'templates') setActiveView('events');
+    
     // Reset category filter if new event is hidden by it
     if (filterCategory !== 'all' && filterCategory !== newEvent.category) {
       setFilterCategory('all');
@@ -174,13 +178,72 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setEditingId(id);
     setShowAddForm(true);
     setShowBulkUpload(false);
-    setActiveView('events');
+  };
+
+  const handleDuplicate = (event: AdminEvent) => {
+    const duplicatedEvent: AdminEvent = {
+        ...event,
+        id: `event-${Date.now()}`,
+        title: `${event.title} (Copy)`,
+        lastUpdated: new Date().toISOString()
+    };
+    setEvents([...events, duplicatedEvent]);
+    showToast('Event duplicated');
+    setEditingId(duplicatedEvent.id);
+    setShowAddForm(true);
+  };
+
+  const handleArchive = (event: AdminEvent) => {
+      const updatedEvents = events.map(e => 
+          e.id === event.id ? { ...e, isArchived: true, lastUpdated: new Date().toISOString() } : e
+      );
+      setEvents(updatedEvents);
+      showToast('Event archived');
+  };
+
+  const handleRestore = (event: AdminEvent) => {
+      const updatedEvents = events.map(e => 
+          e.id === event.id ? { ...e, isArchived: false, lastUpdated: new Date().toISOString() } : e
+      );
+      setEvents(updatedEvents);
+      showToast('Event restored');
+  };
+
+  const handleSaveAsTemplate = (event: AdminEvent) => {
+      const template: AdminEvent = {
+          ...event,
+          id: `template-${Date.now()}`,
+          title: `${event.title} Template`,
+          isTemplate: true,
+          isArchived: false,
+          lastUpdated: new Date().toISOString()
+      };
+      setEvents([...events, template]);
+      showToast('Saved as template');
+  };
+
+  const handleUseTemplate = (template: AdminEvent) => {
+      const newEvent: AdminEvent = {
+          ...template,
+          id: `event-${Date.now()}`,
+          title: template.title.replace(' Template', ''),
+          isTemplate: false,
+          isArchived: false,
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+          lastUpdated: new Date().toISOString()
+      };
+      setEvents([...events, newEvent]);
+      setEditingId(newEvent.id);
+      setShowAddForm(true);
+      setActiveView('events');
+      showToast('Created new event from template');
   };
 
 
   const handleBulkDelete = () => {
     if (selectedEvents.size === 0) return;
-    if (confirm(`Are you sure you want to delete ${selectedEvents.size} event(s)?`)) {
+    if (confirm(`Are you sure you want to delete ${selectedEvents.size} items(s)?`)) {
       setEvents(events.filter(e => !selectedEvents.has(e.id)));
       setSelectedEvents(new Set());
     }
@@ -330,6 +393,11 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     const term = searchTerm.toLowerCase().trim();
     
     const filtered = events.filter(e => {
+      // Filter by view type
+      if (activeView === 'events' && (e.isArchived || e.isTemplate)) return false;
+      if (activeView === 'archive' && !e.isArchived) return false;
+      if (activeView === 'templates' && !e.isTemplate) return false;
+
       const matchesSearch = !term ||
         e.title.toLowerCase().includes(term) ||
         e.description?.toLowerCase().includes(term) ||
@@ -362,8 +430,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const currentEvent = editingId ? events.find(e => e.id === editingId) : null;
 
   // Should we show the list view or the detail view?
-  // On mobile: if editingId is set or showAddForm is true, show detail. Else show list.
-  // On desktop: show both side-by-side.
   const showList = !isMobile || (!editingId && !showAddForm && !showBulkUpload && !showPreview);
   const showDetail = editingId || showAddForm || showBulkUpload;
 
@@ -537,10 +603,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
         `}>
             {/* View Toggle Tabs */}
              <div className="p-4 pb-0">
-                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-border">
+                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-border overflow-x-auto no-scrollbar">
                   <button
                     onClick={() => setActiveView('events')}
-                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'events'
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'events'
                       ? 'bg-surface text-text-main shadow-sm'
                       : 'text-text-muted hover:text-text-main'
                       }`}
@@ -549,7 +615,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   </button>
                   <button
                     onClick={() => setActiveView('schedules')}
-                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'schedules'
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'schedules'
                       ? 'bg-surface text-text-main shadow-sm'
                       : 'text-text-muted hover:text-text-main'
                       }`}
@@ -558,17 +624,35 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   </button>
                   <button
                     onClick={() => setActiveView('announcements')}
-                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'announcements'
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'announcements'
                       ? 'bg-surface text-text-main shadow-sm'
                       : 'text-text-muted hover:text-text-main'
                       }`}
                   >
                     Alerts
                   </button>
+                  <button
+                    onClick={() => setActiveView('archive')}
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'archive'
+                      ? 'bg-surface text-text-main shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                      }`}
+                  >
+                    Archive
+                  </button>
+                  <button
+                    onClick={() => setActiveView('templates')}
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'templates'
+                      ? 'bg-surface text-text-main shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                      }`}
+                  >
+                    Templates
+                  </button>
                 </div>
              </div>
 
-          {activeView === 'events' ? (
+          {(activeView === 'events' || activeView === 'archive' || activeView === 'templates') ? (
             <div className="p-4 space-y-4">
               {/* Search & Filters */}
               <div className="space-y-3">
@@ -576,7 +660,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   <Search className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder={`Search ${activeView}...`}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
@@ -634,8 +718,42 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   className="flex-1 px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Event
+                  {activeView === 'templates' ? 'New Template' : 'Add Event'}
                 </button>
+                {activeView === 'events' && (
+                    <button
+                        onClick={() => {
+                            // Find duplicates (same title AND same start date)
+                            const seen = new Set();
+                            const duplicates: AdminEvent[] = [];
+                            
+                            events.forEach(e => {
+                                if (e.isArchived || e.isTemplate) return;
+                                const key = `${e.title?.toLowerCase().trim()}|${e.startDate}`;
+                                if (seen.has(key)) {
+                                    duplicates.push(e);
+                                } else {
+                                    seen.add(key);
+                                }
+                            });
+                            
+                            if (duplicates.length === 0) {
+                                alert('No duplicate events found (checked by Title + Date).');
+                                return;
+                            }
+
+                            if (confirm(`Found ${duplicates.length} duplicate events (same title & date). Select them for deletion?`)) {
+                                const dupIds = new Set(duplicates.map(d => d.id));
+                                setSelectedEvents(dupIds);
+                                showToast(`Selected ${duplicates.length} duplicates. Review and click Delete.`);
+                            }
+                        }}
+                        className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                        title="Find Duplicates"
+                    >
+                        <span className="font-mono font-bold text-xs">DUP</span>
+                    </button>
+                )}
                 <button
                   onClick={() => {
                     setShowBulkUpload(true);
@@ -652,7 +770,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               <div className="space-y-2 pb-20">
                 <div className="flex items-center justify-between px-2 py-1">
                   <span className="text-xs text-text-light uppercase tracking-wider">
-                    Events ({filteredEvents.length})
+                    {activeView === 'events' ? 'Live Events' : activeView === 'archive' ? 'Archived' : 'Templates'} ({filteredEvents.length})
                   </span>
                   {filteredEvents.length > 0 && (
                     <button
@@ -665,7 +783,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 </div>
                 {filteredEvents.length === 0 ? (
                   <div className="text-center py-12 text-text-light text-sm border border-dashed border-border rounded-lg bg-gray-50 dark:bg-slate-800">
-                    No events found
+                    No items found
                   </div>
                 ) : (
                   filteredEvents.map(event => {
@@ -673,7 +791,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     return (
                       <div
                         key={event.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden active:scale-[0.99] ${editingId === event.id
+                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden active:scale-[0.99] group ${editingId === event.id
                           ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
                           : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800'
                           }`}
@@ -712,6 +830,33 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                               <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-text-muted border border-border">
                                 {event.category}
                               </span>
+                            </div>
+                            
+                            {/* Action Bar on Hover */}
+                            <div className="flex items-center gap-3 mt-2 opacity-0 group-hover:opacity-100 transition-opacity border-t border-border pt-2">
+                                {activeView === 'events' && (
+                                    <>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDuplicate(event); }} className="text-xs text-text-muted hover:text-ballys-blue flex items-center gap-1">
+                                            <Copy className="w-3 h-3" /> Dup
+                                        </button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleSaveAsTemplate(event); }} className="text-xs text-text-muted hover:text-ballys-blue flex items-center gap-1">
+                                            <LayoutTemplate className="w-3 h-3" /> Save Tmpl
+                                        </button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleArchive(event); }} className="text-xs text-text-muted hover:text-red-500 flex items-center gap-1">
+                                            <Archive className="w-3 h-3" /> Archive
+                                        </button>
+                                    </>
+                                )}
+                                {activeView === 'archive' && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleRestore(event); }} className="text-xs text-text-muted hover:text-green-500 flex items-center gap-1">
+                                        <RotateCcw className="w-3 h-3" /> Restore
+                                    </button>
+                                )}
+                                {activeView === 'templates' && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleUseTemplate(event); }} className="text-xs text-text-muted hover:text-ballys-blue flex items-center gap-1">
+                                        <Plus className="w-3 h-3" /> Use Template
+                                    </button>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -859,7 +1004,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               </div>
           ) : (
           <AnimatePresence mode="wait">
-            {activeView === 'events' ? (
+            {(activeView === 'events' || activeView === 'archive' || activeView === 'templates') ? (
               showAddForm && currentEvent ? (
                 <EventForm
                   key={editingId}
@@ -1512,6 +1657,29 @@ function EventForm({
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Quick Tags */}
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {['VIP', 'PROMO', 'DINING', 'MUSIC', 'LOCATION', 'TIME', 'PRICE', 'AGES'].map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => {
+                                            // Add tag if not already present as a label? Or just add a new row with this label
+                                            updateField('meta', [...(formData.meta || []), { label: tag, value: '' }]);
+                                        }}
+                                        className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${
+                                            tag === 'VIP' ? 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800' :
+                                            tag === 'PROMO' ? 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' :
+                                            tag === 'DINING' ? 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800' :
+                                            tag === 'MUSIC' ? 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
+                                            'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-400 dark:border-slate-700'
+                                        }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
+
                              <div className="space-y-2">
                                 {formData.meta?.map((meta, index) => (
                                 <div key={index} className="flex gap-2 items-center">

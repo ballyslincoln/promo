@@ -22,20 +22,26 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   const [comments, setComments] = useState<Interaction[]>([]);
   const [commentText, setCommentText] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isOffline, setIsOffline] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen && event) {
+      setIsLoading(true);
       const loadInteractions = async () => {
-        const data = await interactionService.getEventInteractions(event.id);
-        setAuraCount(data.auraCount);
-        setHasAura(data.hasUserAura);
-        setComments(data.comments);
-        setIsOffline(data.isOffline);
-        if (data.currentUser) {
-          setCurrentUser(data.currentUser);
-        } else {
-          setCurrentUser(userService.getCurrentUser());
+        try {
+          const data = await interactionService.getEventInteractions(event.id);
+          setAuraCount(data.auraCount);
+          setHasAura(data.hasUserAura);
+          setComments(data.comments);
+          if (data.currentUser) {
+            setCurrentUser(data.currentUser);
+          } else {
+            setCurrentUser(userService.getCurrentUser());
+          }
+        } catch (error) {
+          console.error("Failed to load interactions", error);
+        } finally {
+          setIsLoading(false);
         }
       };
       loadInteractions();
@@ -45,7 +51,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
       setHasAura(false);
       setComments([]);
       setCommentText('');
-      setIsOffline(false);
+      setIsLoading(false);
     }
   }, [isOpen, event]);
 
@@ -159,12 +165,6 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
               <div className="absolute top-4 right-4 flex gap-2 z-10">
-                {isOffline && (
-                  <div className="px-3 py-2 bg-yellow-500/90 text-white rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    Offline Mode
-                  </div>
-                )}
                 {onEdit && (
                   <button
                     onClick={() => {
@@ -202,17 +202,27 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                   </div>
 
                   {/* Aura Button */}
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleAddAura}
                     disabled={hasAura}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${hasAura
-                      ? 'bg-ballys-gold/20 text-yellow-600 dark:text-yellow-400 cursor-default'
-                      : 'bg-white/50 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 text-slate-500 dark:text-slate-400 hover:scale-105 active:scale-95'
+                    className={`relative flex flex-col items-center gap-1 p-3 rounded-2xl transition-all overflow-hidden ${hasAura
+                      ? 'bg-gradient-to-br from-yellow-400/20 to-orange-500/20 text-yellow-600 dark:text-yellow-400 cursor-default ring-1 ring-yellow-500/50 shadow-[0_0_15px_rgba(250,204,21,0.3)]'
+                      : 'bg-white/60 dark:bg-black/40 hover:bg-white dark:hover:bg-black/60 text-slate-500 dark:text-slate-400 shadow-sm backdrop-blur-md border border-white/20'
                       }`}
                   >
-                    <Zap className={`w-6 h-6 ${hasAura ? 'fill-current' : ''}`} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{auraCount > 0 ? auraCount : 'Aura'}</span>
-                  </button>
+                    {hasAura && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1.5, opacity: [0.5, 0] }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="absolute inset-0 bg-yellow-400/30 rounded-full"
+                      />
+                    )}
+                    <Zap className={`w-7 h-7 relative z-10 ${hasAura ? 'fill-yellow-500 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]' : 'text-slate-400 dark:text-slate-500'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-wider relative z-10">{auraCount > 0 ? auraCount : 'Aura'}</span>
+                  </motion.button>
                 </div>
               </div>
             </div>
@@ -371,80 +381,116 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
 
                   {/* Comment Input */}
                   <form onSubmit={handleAddComment} className="mb-8 relative">
-                    <div className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ballys-red to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold border-2 border-white dark:border-slate-900 shadow-sm">
+                    <div className="flex items-end gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ballys-red to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold border-2 border-white dark:border-slate-900 shadow-md z-10">
                         {currentUser?.username.charAt(0).toUpperCase() || 'G'}
                       </div>
-                      <div className="flex-1">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
-                            placeholder={`Comment as ${currentUser?.username || 'Guest'}...`}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-ballys-red/20 focus:border-ballys-red transition-all"
-                          />
-                          <button
-                            type="submit"
-                            disabled={!commentText.trim()}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-ballys-red text-white disabled:opacity-50 disabled:bg-slate-200 dark:disabled:bg-slate-700 transition-all hover:scale-105 active:scale-95"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <p className="text-[10px] text-slate-400 mt-2 ml-1">
-                          Playing as <span className="font-bold text-slate-600 dark:text-slate-300">{currentUser?.username}</span>
-                        </p>
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder={`Comment as ${currentUser?.username || 'Guest'}...`}
+                          className="w-full bg-slate-100 dark:bg-slate-800/80 border-0 rounded-2xl px-5 py-3.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-ballys-red/20 transition-all shadow-inner"
+                        />
+                        <AnimatePresence>
+                          {commentText.trim() && (
+                            <motion.button
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0, opacity: 0 }}
+                              type="submit"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ballys-red text-white shadow-lg hover:bg-ballys-darkRed transition-colors"
+                            >
+                              <Send className="w-4 h-4 ml-0.5" />
+                            </motion.button>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </div>
                   </form>
 
                   {/* Comments List */}
-                  <div className="space-y-6">
+                  <div className="space-y-4">
+                    <AnimatePresence mode='popLayout' initial={false}>
                     {comments.length === 0 ? (
-                      <p className="text-center text-sm text-slate-400 italic py-4">Be the first to share your thoughts!</p>
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-center text-sm text-slate-400 italic py-8"
+                      >
+                        No vibes yet. Start the conversation!
+                      </motion.p>
                     ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3 group/comment">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700">
-                            {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-baseline justify-between mb-1">
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{comment.username || 'Anonymous'}</span>
-                                <span className="text-[10px] text-slate-400">
-                                  {new Date(comment.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                              {(currentUser && (currentUser.id === comment.user_id || currentUser.username === 'Admin')) && (
-                                <button
-                                  onClick={() => handleDeleteComment(comment.id)}
-                                  className="opacity-0 group-hover/comment:opacity-100 transition-opacity p-1 text-slate-400 hover:text-red-500"
-                                  title="Delete Comment"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              )}
+                      comments.map((comment) => {
+                        const isMe = currentUser && (currentUser.id === comment.user_id || currentUser.username === 'Admin');
+                        return (
+                        <motion.div 
+                          layout
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                          key={comment.id} 
+                          className={`flex gap-3 group/comment ${isMe ? 'flex-row-reverse' : ''}`}
+                        >
+                          {!isMe && (
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700 mt-auto">
+                              {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg rounded-tl-none mb-1">
+                          )}
+                          
+                          <div className={`flex flex-col max-w-[85%] ${isMe ? 'items-end' : 'items-start'}`}>
+                            <div className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+                              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{comment.username || 'Anonymous'}</span>
+                            </div>
+                            
+                            <div className={`relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                              isMe 
+                                ? 'bg-ballys-red text-white rounded-br-none' 
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-bl-none'
+                            }`}>
                               {comment.content}
-                            </p>
+                            </div>
 
-                            {/* Like Button */}
-                            <div className="flex items-center gap-2 ml-1">
+                            {/* Actions Row */}
+                            <div className={`flex items-center gap-3 mt-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
                               <button
                                 onClick={() => handleToggleLike(comment.id)}
-                                className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${comment.hasLiked ? 'text-blue-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                                  comment.hasLiked 
+                                    ? 'text-blue-500 scale-105' 
+                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                }`}
                               >
                                 <ThumbsUp className={`w-3 h-3 ${comment.hasLiked ? 'fill-current' : ''}`} />
                                 <span>{comment.likes || 0}</span>
                               </button>
+                              
+                              <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
+                              
+                              <span className="text-[10px] text-slate-400">
+                                {new Date(comment.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                              </span>
+
+                              {(isMe || (currentUser && currentUser.username === 'Admin')) && (
+                                <>
+                                  <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
+                                  <button
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="text-slate-400 hover:text-red-500 transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      ))
+                        </motion.div>
+                      )})
                     )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
