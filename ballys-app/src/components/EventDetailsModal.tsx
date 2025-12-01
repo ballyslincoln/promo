@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download } from 'lucide-react';
 import type { AdminEvent } from '../types';
@@ -11,6 +12,8 @@ interface EventDetailsModalProps {
 }
 
 export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: EventDetailsModalProps) {
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!event) return null;
 
   return (
@@ -135,27 +138,14 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                         ].filter(Boolean).join('\n');
                         
                         navigator.clipboard.writeText(text);
-                        // Simple visual feedback
-                        const btn = document.activeElement as HTMLButtonElement;
-                        if (btn) {
-                            const icon = btn.querySelector('svg');
-                            
-                            // Let's just change text for simplicity
-                            const originalText = btn.textContent;
-                            btn.textContent = "Copied!";
-                            setTimeout(() => {
-                                btn.textContent = originalText;
-                                // Restore icon if it was lost (textContent replaces all children)
-                                if (icon) {
-                                     btn.prepend(icon);
-                                }
-                            }, 2000);
-                        }
+                        
+                        setIsCopied(true);
+                        setTimeout(() => setIsCopied(false), 2000);
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
                 >
-                    <FileText className="w-4 h-4 text-purple-500" />
-                    <span>Copy Details</span>
+                    <FileText className={`w-4 h-4 ${isCopied ? 'text-green-500' : 'text-purple-500'} transition-colors`} />
+                    <span>{isCopied ? 'Copied!' : 'Copy Details'}</span>
                 </button>
                 <a
                   href={generateGoogleCalendarUrl(event)}
