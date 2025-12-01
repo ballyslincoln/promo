@@ -25,7 +25,7 @@
 
 .rbc-month-row {
     border-top: 1px solid #e2e8f0;
-    min-height: 120px; /* Taller cells for month view */
+    min-height: 140px; /* Increased for better visibility */
 }
 
 .dark .rbc-month-row {
@@ -35,7 +35,7 @@
 /* Day Background Cells */
 .rbc-day-bg {
     border-left: 1px solid #e2e8f0;
-    cursor: pointer; /* improved interactivity */
+    cursor: default; 
     transition: background-color 0.2s ease;
 }
 
@@ -83,8 +83,18 @@
 
 .rbc-event {
     background-color: transparent;
-    padding: 1px 2px;
+    padding: 2px 4px !important;
     outline: none;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: transform 0.1s, opacity 0.1s;
+}
+
+.rbc-event:hover {
+    transform: translateY(-1px);
+    opacity: 1 !important;
+    z-index: 10;
 }
 
 .rbc-event:focus {
@@ -146,4 +156,71 @@
 .rbc-time-content::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.5);
     border-radius: 3px;
+}
+
+/* Popup (Show More) Styling */
+.rbc-overlay {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    z-index: 1000; /* High z-index for robustness */
+    animation: fadeIn 0.1s ease-out;
+    pointer-events: auto;
+}
+
+.dark .rbc-overlay {
+    background-color: #1e293b; /* slate-800 */
+    border: 1px solid #334155;
+    color: white;
+}
+
+.rbc-overlay-header {
+    border-bottom: 1px solid #e2e8f0;
+    margin: -8px -8px 8px -8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.dark .rbc-overlay-header {
+    background-color: #0f172a;
+    border-bottom: 1px solid #334155;
+    color: #94a3b8;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.rbc-show-more {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.rbc-show-more:hover {
+    background-color: #f1f5f9;
+    color: #334155;
+    text-decoration: none;
+}
+
+.dark .rbc-show-more {
+    color: #94a3b8;
+}
+
+.dark .rbc-show-more:hover {
+    background-color: #334155;
+    color: #f1f5f9;
 }

@@ -191,8 +191,11 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       lastUpdated: new Date().toISOString()
     };
 
-    const updated = editingId
-      ? events.map(e => e.id === editingId ? eventToSave : e)
+    // Check if event exists (handling both sidebar edit and preview modal edit)
+    const exists = events.some(e => e.id === eventToSave.id);
+
+    const updated = exists
+      ? events.map(e => e.id === eventToSave.id ? eventToSave : e)
       : [...events, eventToSave];
 
     setEvents(updated);
@@ -218,11 +221,35 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setShowAddForm(false);
   };
 
-  const handleBulkUpload = () => {
+  const handleBulkUpload = async () => {
     try {
       const parsed = JSON.parse(bulkJson);
+      
+      // Check if it's a full backup object
+      if (!Array.isArray(parsed) && parsed.events && Array.isArray(parsed.events)) {
+        if (confirm(`Found full backup (v${parsed.version || '1.0'}) from ${new Date(parsed.timestamp).toLocaleDateString() || 'unknown date'}. \n\nThis will REPLACE your current working changes with the backup data. Continue?`)) {
+          setEvents(parsed.events);
+          if (parsed.schedules) setSchedules(parsed.schedules);
+          
+          if (parsed.tags && Array.isArray(parsed.tags)) {
+             setAvailableTags(parsed.tags);
+             // Persist tags
+             for (const tag of parsed.tags) {
+                 await eventService.saveTag(tag);
+             }
+          }
+          
+          alert('Backup data loaded into editor. Click "Publish All" to save changes to the live site.');
+          setBulkJson('');
+          setShowBulkUpload(false);
+          return;
+        } else {
+          return;
+        }
+      }
+
       if (!Array.isArray(parsed)) {
-        alert('JSON must be an array of events');
+        alert('JSON must be an array of events or a valid backup object');
         return;
       }
 
@@ -249,17 +276,26 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       setShowBulkUpload(false);
       alert(`Successfully processed ${validEvents.length} event(s). Click Publish to save.`);
     } catch (e) {
+      console.error(e);
       alert('Invalid JSON format');
     }
   };
 
   const handleExport = () => {
-    const dataStr = JSON.stringify(events, null, 2);
+    const backupData = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      events,
+      schedules,
+      tags: availableTags
+    };
+    
+    const dataStr = JSON.stringify(backupData, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ballys-events-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `ballys-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setShowMobileMenu(false);
@@ -400,6 +436,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+               <button
+                onClick={handleExport}
+                className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
+                title="Export Backup"
+              >
+                <Download className="w-4 h-4" /> 
+                <span className="hidden lg:inline">Export</span>
+              </button>
+
               <button
                 onClick={() => setShowPreview(true)}
                 className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
@@ -1529,19 +1574,17 @@ function BulkUploadForm({
               onChange={(e) => onChange(e.target.value)}
               rows={15}
               className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-border rounded-lg focus:outline-none focus:border-ballys-red resize-none font-mono text-sm text-text-main"
-              placeholder='[{"id": "event-1", "title": "Event Title", "category": "Open", ...}]'
+              placeholder='Paste "Full Backup" JSON object OR list of events: [{"id": "...", ...}]'
             />
           </div>
 
           <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-400">
-              <p className="font-medium mb-1">Format Requirements:</p>
+              <p className="font-medium mb-1">Supported Formats:</p>
               <ul className="list-disc list-inside space-y-1 text-blue-600 dark:text-blue-300">
-                <li>Must be a valid JSON array</li>
-                <li>Each event must have an "id" and "title"</li>
-                <li>Events with existing IDs will be updated</li>
-                <li>New events will be added</li>
+                <li><strong>Full Backup:</strong> Restore events, schedules, and tags (replaces current data)</li>
+                <li><strong>Event List:</strong> Import/Update specific events (merges with current data)</li>
               </ul>
             </div>
           </div>

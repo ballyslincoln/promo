@@ -124,12 +124,10 @@ const CustomEvent = ({ event }: { event: any }) => {
   const adminEvent = event.resource as AdminEvent;
   
   return (
-    <div className="h-full w-full overflow-hidden text-white p-0.5">
-      <div className="flex items-center gap-1 mb-0.5">
-        {adminEvent.startTime && (
-           <span className="text-[9px] font-mono opacity-90">{adminEvent.startTime}</span>
-        )}
-      </div>
+    <div className="h-full w-full overflow-hidden text-white px-1 py-0.5 flex items-center gap-1">
+      {adminEvent.startTime && (
+         <span className="text-[9px] font-mono opacity-90 whitespace-nowrap">{adminEvent.startTime}</span>
+      )}
       <div className="font-bold text-[10px] leading-tight truncate">
         {event.title}
       </div>
@@ -231,7 +229,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
   };
 
   return (
-    <div className="h-[500px] md:h-[700px] bg-surface rounded-2xl shadow-sm border border-border overflow-hidden text-text-main">
+    <div className="h-[600px] md:h-[800px] bg-surface rounded-2xl shadow-sm border border-border text-text-main relative">
       <Calendar
         localizer={localizer}
         events={calendarEvents}
@@ -258,6 +256,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
         }}
         eventPropGetter={eventStyleGetter}
         popup
+        popupOffset={10}
       />
     </div>
   );

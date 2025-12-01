@@ -5,6 +5,7 @@ import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
 import BigCalendar from './components/Calendar/BigCalendar';
+import EventDetailsModal from './components/EventDetailsModal';
 import { ThemeToggle } from './components/ThemeToggle';
 
 // Helper to format date
@@ -95,6 +96,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
     const [selectedProperty, setSelectedProperty] = useState<'All' | 'Lincoln' | 'Tiverton'>('All');
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<AdminEvent | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Load initial data
     const loadData = async () => {
@@ -471,10 +474,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             <BigCalendar
                                 events={calendarFilteredEvents}
                                 onSelectEvent={(event) => {
-                                    // Navigate to list view for that day
-                                    const date = event.startDate ? new Date(event.startDate + 'T12:00:00') : new Date();
-                                    setSelectedDate(date);
-                                    setViewMode('list');
+                                    setSelectedEvent(event);
+                                    setIsModalOpen(true);
                                 }}
                                 onSelectSlot={({ start }) => {
                                     setSelectedDate(start);
@@ -723,6 +724,13 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                     </div>
                 )}
             </AnimatePresence>
+
+            <EventDetailsModal
+                event={selectedEvent}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onEdit={onEditEvent}
+            />
         </div>
     );
 }
