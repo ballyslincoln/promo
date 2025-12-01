@@ -1,34 +1,21 @@
-import { sql } from '../db';
-import type { Interaction } from '../types';
+import type { Interaction, User } from '../types';
 import { userService } from './userService';
-
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-};
 
 export const interactionService = {
   // Add +1 Aura
   async addAura(eventId: string): Promise<boolean> {
-    const user = await userService.getOrCreateUser();
-    if (!user || !sql) return false;
-
     try {
-      // Check if already added aura
-      const existing = await sql`
-        SELECT id FROM interactions 
-        WHERE event_id = ${eventId} AND user_id = ${user.id} AND type = 'aura'
-      `;
-
-      if (existing && existing.length > 0) {
-        return false; // Already added
+      const res = await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, type: 'aura' })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        return data.success;
       }
-
-      const id = generateId();
-      await sql`
-        INSERT INTO interactions (id, event_id, user_id, type, created_at)
-        VALUES (${id}, ${eventId}, ${user.id}, 'aura', ${new Date().toISOString()})
-      `;
-      return true;
+      return false;
     } catch (e) {
       console.error('Failed to add aura', e);
       return false;
@@ -37,27 +24,20 @@ export const interactionService = {
 
   // Add Comment
   async addComment(eventId: string, content: string): Promise<Interaction | null> {
-    const user = await userService.getOrCreateUser();
-    if (!user || !sql) return null;
-
-    const id = generateId();
-    const timestamp = new Date().toISOString();
-
     try {
-      await sql`
-        INSERT INTO interactions (id, event_id, user_id, type, content, created_at)
-        VALUES (${id}, ${eventId}, ${user.id}, 'comment', ${content}, ${timestamp})
-      `;
+      const res = await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, type: 'comment', content })
+      });
 
-      return {
-        id,
-        event_id: eventId,
-        user_id: user.id,
-        type: 'comment',
-        content,
-        created_at: timestamp,
-        username: user.username
-      };
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.interaction) {
+            return data.interaction;
+        }
+      }
+      return null;
     } catch (e) {
       console.error('Failed to add comment', e);
       return null;
@@ -65,53 +45,27 @@ export const interactionService = {
   },
 
   // Get Interactions for Event
-  async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean }> {
-    if (!sql) return { auraCount: 0, comments: [], hasUserAura: false };
-
-    const user = await userService.getOrCreateUser();
-
+  async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean; currentUser?: User }> {
     try {
-      // Get Aura Count
-      const auraResult = await sql`
-        SELECT COUNT(*) as count FROM interactions 
-        WHERE event_id = ${eventId} AND type = 'aura'
-      `;
-      const auraCount = parseInt(auraResult[0].count);
+      const res = await fetch(`/api/interactions?eventId=${eventId}`);
+      if (res.ok) {
+        const data = await res.json();
 
-      // Check if user has aura
-      let hasUserAura = false;
-      if (user) {
-        const userAura = await sql`
-            SELECT id FROM interactions 
-            WHERE event_id = ${eventId} AND user_id = ${user.id} AND type = 'aura'
-        `;
-        hasUserAura = userAura.length > 0;
+        // Update local user cache if returned
+        if (data.currentUser) {
+            localStorage.setItem('ballys_user', JSON.stringify(data.currentUser));
+        }
+
+        return {
+            auraCount: data.auraCount || 0,
+            comments: data.comments || [],
+            hasUserAura: data.hasUserAura || false,
+            currentUser: data.currentUser
+        };
       }
-
-      // Get Comments with usernames
-      // Join with users table to get current username (in case it changed, though unlikely)
-      const commentsResult = await sql`
-        SELECT i.*, u.username 
-        FROM interactions i
-        JOIN users u ON i.user_id = u.id
-        WHERE i.event_id = ${eventId} AND i.type = 'comment'
-        ORDER BY i.created_at DESC
-      `;
-
-      const comments = commentsResult.map((r: any) => ({
-        id: r.id,
-        event_id: r.event_id,
-        user_id: r.user_id,
-        type: r.type,
-        content: r.content,
-        created_at: r.created_at,
-        username: r.username
-      })) as Interaction[];
-
-      return { auraCount, comments, hasUserAura };
     } catch (e) {
       console.error('Failed to get interactions', e);
-      return { auraCount: 0, comments: [], hasUserAura: false };
     }
+    return { auraCount: 0, comments: [], hasUserAura: false };
   }
 };

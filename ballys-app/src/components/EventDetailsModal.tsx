@@ -32,7 +32,11 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
             setAuraCount(data.auraCount);
             setHasAura(data.hasUserAura);
             setComments(data.comments);
-            setCurrentUser(userService.getCurrentUser());
+            if (data.currentUser) {
+                setCurrentUser(data.currentUser);
+            } else {
+                setCurrentUser(userService.getCurrentUser());
+            }
             // setLoading(false);
         };
         loadInteractions();
