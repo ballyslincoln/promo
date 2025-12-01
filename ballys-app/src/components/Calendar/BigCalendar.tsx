@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
 import type { View } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { format, parse, startOfWeek, getDay, isSameDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar-styles.css'; // We'll create this for custom styling
@@ -95,6 +95,26 @@ const CustomToolbar = (toolbar: any) => {
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
+    </div>
+  );
+};
+
+// Custom Date Header Component
+const CustomDateHeader = ({ label, date, onDrillDown }: any) => {
+  const isToday = isSameDay(new Date(), date);
+  
+  return (
+    <div className="rbc-date-cell px-2 pt-2">
+      <button
+        onClick={onDrillDown}
+        className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-all ${
+          isToday 
+            ? 'bg-ballys-red text-white shadow-md scale-110' 
+            : 'text-text-muted hover:bg-gray-100 dark:hover:bg-slate-700'
+        }`}
+      >
+        {label}
+      </button>
     </div>
   );
 };
@@ -226,7 +246,15 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
         onSelectSlot={(slotInfo) => onSelectSlot && onSelectSlot({ start: slotInfo.start as Date, end: slotInfo.end as Date })}
         components={{
           toolbar: CustomToolbar,
+          month: {
+            dateHeader: CustomDateHeader
+          },
           event: CustomEvent
+        }}
+        onDrillDown={(date) => {
+          if (onSelectSlot) {
+            onSelectSlot({ start: date, end: date });
+          }
         }}
         eventPropGetter={eventStyleGetter}
         popup

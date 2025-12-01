@@ -200,6 +200,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
     }, [allEventRules, selectedDate, selectedProperty]);
 
+    // Computed events for calendar view - filtered by property but NOT date
+    const calendarFilteredEvents = useMemo(() => {
+        return allEventRules.filter(e => {
+            // Property filter
+            if (selectedProperty === 'All') return true;
+            const prop = e.property || 'Both';
+            return prop === 'Both' || prop === selectedProperty;
+        });
+    }, [allEventRules, selectedProperty]);
+
     // Computed phone numbers (dynamic from schedules or fallback) - MEMOIZED
     const phoneNumbers = useMemo(() => {
         return schedules['Important Numbers'] || PHONE_NUMBERS.map(p => ({ name: p.name, time: p.number }));
@@ -459,7 +469,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             style={{ willChange: 'opacity' }}
                         >
                             <BigCalendar
-                                events={allEventRules}
+                                events={calendarFilteredEvents}
                                 onSelectEvent={(event) => {
                                     // Navigate to list view for that day
                                     const date = event.startDate ? new Date(event.startDate + 'T12:00:00') : new Date();

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Settings } from 'lucide-react';
+import { User, Settings, Share, PlusSquare, X } from 'lucide-react';
 
 export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; onAdminLogin: () => void }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isAdminMode, setIsAdminMode] = useState(false);
+    const [showInstallPrompt, setShowInstallPrompt] = useState(true);
 
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -28,6 +29,14 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
             handleSubmit();
         }
     }, [code, isAdminMode]);
+
+    // Check if running in standalone mode (installed as PWA)
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+        if (isStandalone) {
+            setShowInstallPrompt(false);
+        }
+    }, []);
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
@@ -195,6 +204,52 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                     </div>
                 </div>
             </motion.div>
+
+            {/* Install Prompt - Bottom Sheet Style */}
+            <AnimatePresence>
+                {showInstallPrompt && (
+                    <motion.div
+                        initial={{ y: '100%', opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: '100%', opacity: 0 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className="absolute bottom-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-center"
+                    >
+                        <div className="bg-surface/90 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-md w-full p-5 relative overflow-hidden">
+                            <button 
+                                onClick={() => setShowInstallPrompt(false)}
+                                className="absolute top-3 right-3 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4 text-text-muted" />
+                            </button>
+
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shrink-0 border border-border">
+                                    <img src="/vite.svg" className="w-8 h-8" alt="App Icon" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-text-main text-sm mb-1">Install App</h3>
+                                    <p className="text-xs text-text-muted mb-3 leading-relaxed">
+                                        Install this app on your home screen for quick and easy access.
+                                    </p>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 text-[10px] text-text-light uppercase tracking-wider font-medium">
+                                            <span>1. Tap</span>
+                                            <Share className="w-3 h-3" />
+                                            <span>Share</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[10px] text-text-light uppercase tracking-wider font-medium">
+                                            <span>2. Tap</span>
+                                            <PlusSquare className="w-3 h-3" />
+                                            <span>Add to Home Screen</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="absolute bottom-8 text-text-muted/30 text-[10px] tracking-[0.2em] font-light">
                 SECURE ACCESS SYSTEM v2.0

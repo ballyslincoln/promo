@@ -32,12 +32,23 @@
     border-top: 1px solid #334155;
 }
 
+/* Day Background Cells */
 .rbc-day-bg {
     border-left: 1px solid #e2e8f0;
+    cursor: pointer; /* improved interactivity */
+    transition: background-color 0.2s ease;
+}
+
+.rbc-day-bg:hover {
+    background-color: rgba(241, 245, 249, 0.8); /* slate-100 */
 }
 
 .dark .rbc-day-bg {
     border-left: 1px solid #334155;
+}
+
+.dark .rbc-day-bg:hover {
+    background-color: rgba(30, 41, 59, 0.8); /* slate-800 */
 }
 
 .rbc-day-bg:first-child {
@@ -57,20 +68,23 @@
     font-weight: 500;
     font-size: 0.875rem;
     color: #334155;
+    text-align: right; /* align dates to right like standard calendars */
 }
 
 .dark .rbc-date-cell {
     color: #f1f5f9; /* slate-100 */
 }
 
-.rbc-now {
-    font-weight: bold;
+/* Today Cell Highlighting handled via custom component, but fallback here */
+.rbc-now .rbc-button-link {
     color: #ef4444; /* ballys-red */
+    font-weight: bold;
 }
 
 .rbc-event {
     background-color: transparent;
-    padding: 0;
+    padding: 1px 2px;
+    outline: none;
 }
 
 .rbc-event:focus {
@@ -118,4 +132,18 @@
 /* Toolbar overrides handled in component, but cleanup defaults just in case */
 .rbc-toolbar {
     display: none; /* We are using custom toolbar */
+}
+
+/* Custom scrollbar for calendar */
+.rbc-time-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rbc-time-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
 }
