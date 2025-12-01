@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send, User as UserIcon } from 'lucide-react';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send } from 'lucide-react';
 import type { AdminEvent, Interaction, User } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 import { interactionService } from '../services/interactionService';
@@ -22,18 +22,18 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   const [comments, setComments] = useState<Interaction[]>([]);
   const [commentText, setCommentText] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && event) {
         const loadInteractions = async () => {
-            setLoading(true);
+            // setLoading(true);
             const data = await interactionService.getEventInteractions(event.id);
             setAuraCount(data.auraCount);
             setHasAura(data.hasUserAura);
             setComments(data.comments);
             setCurrentUser(userService.getCurrentUser());
-            setLoading(false);
+            // setLoading(false);
         };
         loadInteractions();
     } else {
