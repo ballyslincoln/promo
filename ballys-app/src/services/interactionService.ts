@@ -9,7 +9,7 @@ const generateId = () => {
 export const interactionService = {
   // Add +1 Aura
   async addAura(eventId: string): Promise<boolean> {
-    const user = userService.getCurrentUser();
+    const user = await userService.getOrCreateUser();
     if (!user || !sql) return false;
 
     try {
@@ -37,7 +37,7 @@ export const interactionService = {
 
   // Add Comment
   async addComment(eventId: string, content: string): Promise<Interaction | null> {
-    const user = userService.getCurrentUser();
+    const user = await userService.getOrCreateUser();
     if (!user || !sql) return null;
 
     const id = generateId();
@@ -68,7 +68,7 @@ export const interactionService = {
   async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean }> {
     if (!sql) return { auraCount: 0, comments: [], hasUserAura: false };
 
-    const user = userService.getCurrentUser();
+    const user = await userService.getOrCreateUser();
 
     try {
       // Get Aura Count
