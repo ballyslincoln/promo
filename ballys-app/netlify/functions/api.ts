@@ -49,12 +49,13 @@ const initDB = async (sql) => {
 
 export default async (req, context) => {
     // Use DATABASE_URL from environment
-    if (!process.env.DATABASE_URL) {
+    const dbUrl = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL || "postgresql://neondb_owner:npg_3IOi0CKjqomx@ep-dry-boat-aeb1v1gd-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
+    if (!dbUrl) {
         console.error('DATABASE_URL is missing in environment variables');
         return new Response(JSON.stringify({ error: 'Database configuration missing' }), { status: 500 });
     }
 
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(dbUrl);
 
     // Get IP from Netlify headers
     const ip = req.headers['x-nf-client-connection-ip'] || req.headers['client-ip'] || 'unknown';
