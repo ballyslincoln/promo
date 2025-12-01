@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 export function useUndo<T>(initialState: T) {
   const [state, setState] = useState<T>(initialState);

@@ -22,11 +22,11 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   const [comments, setComments] = useState<Interaction[]>([]);
   const [commentText, setCommentText] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen && event) {
-      setIsLoading(true);
+      // setIsLoading(true);
       const loadInteractions = async () => {
         try {
           const data = await interactionService.getEventInteractions(event.id);
@@ -41,7 +41,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
         } catch (error) {
           console.error("Failed to load interactions", error);
         } finally {
-          setIsLoading(false);
+          // setIsLoading(false);
         }
       };
       loadInteractions();
@@ -51,7 +51,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
       setHasAura(false);
       setComments([]);
       setCommentText('');
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   }, [isOpen, event]);
 
