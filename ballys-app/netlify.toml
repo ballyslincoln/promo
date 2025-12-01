@@ -1,5 +1,4 @@
 [build]
-  base = "ballys-app"
   publish = "dist"
   command = "npm run build"
 
