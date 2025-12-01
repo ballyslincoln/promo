@@ -414,25 +414,16 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
 
                   {/* Comments List */}
                   <div className="space-y-4">
-                    <AnimatePresence mode='popLayout' initial={false}>
+                    {/* Removed AnimatePresence to prevent layout thrashing during rapid updates, kept simpler transitions */}
                     {comments.length === 0 ? (
-                      <motion.p 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="text-center text-sm text-slate-400 italic py-8"
-                      >
+                      <p className="text-center text-sm text-slate-400 italic py-8">
                         No vibes yet. Start the conversation!
-                      </motion.p>
+                      </p>
                     ) : (
                       comments.map((comment) => {
                         const isMe = currentUser && (currentUser.id === comment.user_id || currentUser.username === 'Admin');
                         return (
-                        <motion.div 
-                          layout
-                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                        <div 
                           key={comment.id} 
                           className={`flex gap-3 group/comment ${isMe ? 'flex-row-reverse' : ''}`}
                         >
@@ -489,10 +480,9 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                               )}
                             </div>
                           </div>
-                        </motion.div>
+                        </div>
                       )})
                     )}
-                    </AnimatePresence>
                   </div>
                 </div>
 
