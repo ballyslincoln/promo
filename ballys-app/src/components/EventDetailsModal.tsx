@@ -139,9 +139,6 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                         const btn = document.activeElement as HTMLButtonElement;
                         if (btn) {
                             const icon = btn.querySelector('svg');
-                            const span = btn.querySelector('span') || btn;
-                            const originalContent = span.innerHTML; // Store original content
-                            // Check if we have a span (we probably should wrap text in span for this to be robust, but modifying innerText is easier)
                             
                             // Let's just change text for simplicity
                             const originalText = btn.textContent;
@@ -151,11 +148,6 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                                 // Restore icon if it was lost (textContent replaces all children)
                                 if (icon) {
                                      btn.prepend(icon);
-                                     // Re-set text content properly if we had an icon
-                                     // Actually, easier to just rebuild or use state. 
-                                     // Since this is a stateless modal part, let's use a safer approach:
-                                     // Just force update for now or assume textContent is fine.
-                                     // Wait, I destroyed the icon. Let's be more careful.
                                 }
                             }, 2000);
                         }
