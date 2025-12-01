@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download } from 'lucide-react';
 import type { AdminEvent } from '../types';
-import { generateGoogleCalendarUrl, downloadICS } from '../services/calendarService';
+import { generateGoogleCalendarUrl, generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 
 interface EventDetailsModalProps {
   event: AdminEvent | null;
@@ -148,13 +148,13 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                     <span>{isCopied ? 'Copied!' : 'Copy Details'}</span>
                 </button>
                 <a
-                  href={generateGoogleCalendarUrl(event)}
+                  href={generateOutlookCalendarUrl(event)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
                 >
-                  <CalendarPlus className="w-4 h-4 text-blue-500" />
-                  Add to Google Calendar
+                  <CalendarPlus className="w-4 h-4 text-blue-400" />
+                  Add to Outlook
                 </a>
                 <button
                   onClick={() => downloadICS(event)}

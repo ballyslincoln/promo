@@ -60,6 +60,53 @@ export const generateGoogleCalendarUrl = (event: AdminEvent): string => {
   return url.toString();
 };
 
+export const generateOutlookCalendarUrl = (event: AdminEvent): string => {
+  const startDate = event.startDate || new Date().toISOString().split('T')[0];
+  const endDate = event.endDate || startDate;
+  const startTime = event.startTime;
+  const endTime = event.endTime;
+  
+  let start = '';
+  let end = '';
+  let isAllDay = false;
+
+  if (!startTime) {
+    // All day event
+    isAllDay = true;
+    start = new Date(startDate).toISOString();
+    const endD = new Date(endDate);
+    endD.setDate(endD.getDate() + 1);
+    end = endD.toISOString();
+  } else {
+    // Time-based event
+    start = new Date(`${startDate}T${startTime}`).toISOString();
+    
+    if (!endTime) {
+        const d = new Date(`${startDate}T${startTime}`);
+        d.setHours(d.getHours() + 1);
+        end = d.toISOString();
+    } else {
+        end = new Date(`${endDate}T${endTime}`).toISOString();
+    }
+  }
+
+  const description = event.description || '';
+  const location = event.meta?.find(m => m.label === 'WHERE')?.value || '';
+  
+  const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
+  url.searchParams.append('subject', event.title);
+  url.searchParams.append('body', description);
+  url.searchParams.append('location', location);
+  url.searchParams.append('startdt', start);
+  url.searchParams.append('enddt', end);
+  
+  if (isAllDay) {
+      url.searchParams.append('allday', 'true');
+  }
+  
+  return url.toString();
+};
+
 export const downloadICS = (event: AdminEvent) => {
   const startDate = event.startDate || new Date().toISOString().split('T')[0];
   const endDate = event.endDate || startDate;
