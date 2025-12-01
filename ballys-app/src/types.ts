@@ -46,3 +46,20 @@ export interface Announcement {
   expirationDate?: string; // ISO string
   createdAt: string; // ISO string
 }
+
+export interface User {
+  id: string;
+  ip_address: string;
+  username: string;
+  created_at: string;
+}
+
+export interface Interaction {
+  id: string;
+  event_id: string;
+  user_id: string;
+  type: 'aura' | 'comment';
+  content?: string;
+  created_at: string;
+  username?: string; // Joined field
+}

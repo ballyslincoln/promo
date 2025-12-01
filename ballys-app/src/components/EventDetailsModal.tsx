@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download } from 'lucide-react';
-import type { AdminEvent } from '../types';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send, User as UserIcon } from 'lucide-react';
+import type { AdminEvent, Interaction, User } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
+import { interactionService } from '../services/interactionService';
+import { userService } from '../services/userService';
 
 interface EventDetailsModalProps {
   event: AdminEvent | null;
@@ -13,6 +15,65 @@ interface EventDetailsModalProps {
 
 export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: EventDetailsModalProps) {
   const [isCopied, setIsCopied] = useState(false);
+  
+  // Interaction State
+  const [auraCount, setAuraCount] = useState(0);
+  const [hasAura, setHasAura] = useState(false);
+  const [comments, setComments] = useState<Interaction[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && event) {
+        const loadInteractions = async () => {
+            setLoading(true);
+            const data = await interactionService.getEventInteractions(event.id);
+            setAuraCount(data.auraCount);
+            setHasAura(data.hasUserAura);
+            setComments(data.comments);
+            setCurrentUser(userService.getCurrentUser());
+            setLoading(false);
+        };
+        loadInteractions();
+    } else {
+        // Reset state
+        setAuraCount(0);
+        setHasAura(false);
+        setComments([]);
+        setCommentText('');
+    }
+  }, [isOpen, event]);
+
+  const handleAddAura = async () => {
+    if (!event || hasAura) return;
+    
+    // Optimistic UI update
+    setHasAura(true);
+    setAuraCount(prev => prev + 1);
+
+    const success = await interactionService.addAura(event.id);
+    if (!success) {
+        // Revert if failed
+        setHasAura(false);
+        setAuraCount(prev => prev - 1);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!event || !commentText.trim()) return;
+
+    const text = commentText.trim();
+    setCommentText(''); // Clear immediately
+
+    const newComment = await interactionService.addComment(event.id, text);
+    if (newComment) {
+        setComments(prev => [newComment, ...prev]);
+    } else {
+        setCommentText(text); // Restore if failed
+    }
+  };
 
   if (!event) return null;
 
@@ -35,7 +96,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
           >
             {/* Header */}
             <div className="relative h-32 md:h-40 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 shrink-0">
-               {/* Abstract Pattern or Image could go here */}
+               {/* Abstract Pattern */}
                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]"></div>
                
                <div className="absolute top-4 right-4 flex gap-2 z-10">
@@ -60,23 +121,41 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                </div>
 
               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white dark:from-slate-900 to-transparent pt-16">
-                {event.property && event.property !== 'Both' && (
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block shadow-sm ${
-                    event.property === 'Lincoln' 
-                      ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
-                      : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                  }`}>
-                    {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
-                  </span>
-                )}
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
-                  {event.title}
-                </h2>
+                <div className="flex items-end justify-between gap-4">
+                    <div className="flex-1">
+                        {event.property && event.property !== 'Both' && (
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block shadow-sm ${
+                            event.property === 'Lincoln' 
+                            ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                            : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                        }`}>
+                            {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
+                        </span>
+                        )}
+                        <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white leading-tight">
+                        {event.title}
+                        </h2>
+                    </div>
+
+                    {/* Aura Button */}
+                    <button
+                        onClick={handleAddAura}
+                        disabled={hasAura}
+                        className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                            hasAura 
+                            ? 'bg-ballys-gold/20 text-yellow-600 dark:text-yellow-400 cursor-default' 
+                            : 'bg-white/50 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 text-slate-500 dark:text-slate-400 hover:scale-105 active:scale-95'
+                        }`}
+                    >
+                        <Zap className={`w-6 h-6 ${hasAura ? 'fill-current' : ''}`} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">{auraCount > 0 ? auraCount : 'Aura'}</span>
+                    </button>
+                </div>
               </div>
             </div>
 
             {/* Content - Scrollable */}
-            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Date/Time */}
                 <div className="flex items-start gap-3 text-slate-600 dark:text-slate-300">
@@ -219,6 +298,71 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                         ))}
                     </div>
                 )}
+
+                {/* Comments Section */}
+                <div className="pt-8 mt-8 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 mb-6">
+                        <MessageSquare className="w-4 h-4 text-slate-400" />
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Discussion</h3>
+                    </div>
+                    
+                    {/* Comment Input */}
+                    <form onSubmit={handleAddComment} className="mb-8 relative">
+                        <div className="flex gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ballys-red to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold border-2 border-white dark:border-slate-900 shadow-sm">
+                                {currentUser?.username.charAt(0).toUpperCase() || 'G'}
+                            </div>
+                            <div className="flex-1">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        placeholder={`Comment as ${currentUser?.username || 'Guest'}...`}
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-ballys-red/20 focus:border-ballys-red transition-all"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={!commentText.trim()}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-ballys-red text-white disabled:opacity-50 disabled:bg-slate-200 dark:disabled:bg-slate-700 transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-2 ml-1">
+                                    Playing as <span className="font-bold text-slate-600 dark:text-slate-300">{currentUser?.username}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+
+                    {/* Comments List */}
+                    <div className="space-y-6">
+                        {comments.length === 0 ? (
+                            <p className="text-center text-sm text-slate-400 italic py-4">Be the first to share your thoughts!</p>
+                        ) : (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="flex gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700">
+                                        {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-baseline gap-2 mb-1">
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{comment.username || 'Anonymous'}</span>
+                                            <span className="text-[10px] text-slate-400">
+                                                {new Date(comment.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg rounded-tl-none">
+                                            {comment.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
               </div>
             </div>
           </motion.div>

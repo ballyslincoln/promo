@@ -4,6 +4,7 @@ import Dashboard from './Dashboard';
 import AdminPanel from './AdminPanel';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import { getActiveAnnouncement, initAnnouncementTable } from './services/announcementService';
+import { userService } from './services/userService';
 import type { Announcement } from './types';
 
 function App() {
@@ -34,6 +35,8 @@ function App() {
     const initAndFetch = async () => {
         await initAnnouncementTable();
         await fetchAnnouncement();
+        // Initialize user session (fetch IP, generate username if needed)
+        await userService.getOrCreateUser();
     };
     initAndFetch();
   }, []);

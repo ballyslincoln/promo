@@ -35,3 +35,19 @@ CREATE TABLE IF NOT EXISTS announcements (
   "expirationDate" TEXT,
   "createdAt" TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  ip_address TEXT NOT NULL UNIQUE,
+  username TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS interactions (
+  id TEXT PRIMARY KEY,
+  event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL, -- 'aura' or 'comment'
+  content TEXT,
+  created_at TEXT NOT NULL
+);

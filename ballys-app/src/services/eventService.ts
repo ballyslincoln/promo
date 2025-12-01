@@ -290,6 +290,26 @@ export const eventService = {
         );
       `;
 
+      await sql`
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          ip_address TEXT NOT NULL UNIQUE,
+          username TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS interactions (
+          id TEXT PRIMARY KEY,
+          event_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          content TEXT,
+          created_at TEXT NOT NULL
+        );
+      `;
+
       console.log('Database initialized successfully');
     } catch (e) {
       console.error('Failed to initialize database:', e);
