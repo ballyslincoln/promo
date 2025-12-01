@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download,
-  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Calendar as CalendarIcon, List, Menu
+  AlertCircle, FileText, Star, Settings, Check, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Menu
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
-import { getDefaultPromotions } from './data';
 import { eventService } from './services/eventService';
 import Dashboard from './Dashboard';
 import BigCalendar from './components/Calendar/BigCalendar';
@@ -35,7 +34,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [showPreview, setShowPreview] = useState(false);
   const [previewEditId, setPreviewEditId] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'last-edited' | 'property'>('date-desc');
-  const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
+  const [eventsViewMode] = useState<'list' | 'calendar'>('list');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Check for mobile view
@@ -74,12 +73,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       setAvailableTags(tags);
   };
 
-  const initializeWithDefaults = async () => {
-    const defaultPromotions = getDefaultPromotions();
-    setEvents(defaultPromotions);
-    showToast('Default promotions loaded. Click "Publish All" to save to live site.');
-    setShowMobileMenu(false);
-  };
 
   // Helper to check if an event has unsaved changes
   const getEventStatus = (event: AdminEvent) => {
@@ -178,15 +171,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setActiveView('events');
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this event?')) {
-      setEvents(events.filter(e => e.id !== id));
-      if (editingId === id) {
-        setEditingId(null);
-        setShowAddForm(false);
-      }
-    }
-  };
 
   const handleBulkDelete = () => {
     if (selectedEvents.size === 0) return;
@@ -391,7 +375,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                         handleSaveEvent(data, publish);
                                         setPreviewEditId(null);
                                     }}
-                                    onCancel={() => setPreviewEditId(null)}
                                 />
                             );
                         })()}
@@ -769,10 +752,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   availableTags={availableTags}
                   onRefreshTags={refreshTags}
                   onSave={handleSaveEvent}
-                  onCancel={() => {
-                    setEditingId(null);
-                    setShowAddForm(false);
-                  }}
                 />
               ) : showBulkUpload ? (
                 <BulkUploadForm
@@ -798,7 +777,6 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     setEditingId(null);
                   }
                 }}
-                onCancel={() => setEditingId(null)}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-center">
@@ -845,14 +823,12 @@ function ScheduleForm({
   category,
   items,
   onUpdate,
-  onDeleteCategory,
-  onCancel
+  onDeleteCategory
 }: {
   category: string;
   items: ScheduleItem[];
   onUpdate: (items: ScheduleItem[]) => void;
   onDeleteCategory: () => void;
-  onCancel: () => void;
 }) {
   const [localItems, setLocalItems] = useState<ScheduleItem[]>(items);
 
@@ -1105,14 +1081,12 @@ function EventForm({
   event,
   availableTags,
   onRefreshTags,
-  onSave,
-  onCancel
+  onSave
 }: {
   event: AdminEvent;
   availableTags: string[];
   onRefreshTags: () => void;
   onSave: (event: AdminEvent, publish?: boolean) => void;
-  onCancel: () => void;
 }) {
   const [formData, setFormData] = useState<AdminEvent>(event);
   const [activeTab, setActiveTab] = useState<'details' | 'media' | 'time'>('details');
