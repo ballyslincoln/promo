@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2 } from 'lucide-react';
 import type { AdminEvent } from '../types';
