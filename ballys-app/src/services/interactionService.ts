@@ -1,6 +1,4 @@
 import type { Interaction, User } from '../types';
-import { userService } from './userService';
-
 export const interactionService = {
   // Add +1 Aura
   async addAura(eventId: string): Promise<boolean> {
