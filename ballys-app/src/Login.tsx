@@ -213,35 +213,34 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: '100%', opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="absolute bottom-0 left-0 right-0 z-50 p-4 md:p-6 flex justify-center"
+                        className="absolute bottom-0 left-0 right-0 z-50 p-4 flex justify-center"
                     >
-                        <div className="bg-surface/90 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-md w-full p-5 relative overflow-hidden">
+                        <div className="bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-[340px] w-full p-4 relative overflow-hidden">
                             <button 
                                 onClick={() => setShowInstallPrompt(false)}
-                                className="absolute top-3 right-3 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                                className="absolute top-2 right-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                             >
-                                <X className="w-4 h-4 text-text-muted" />
+                                <X className="w-3.5 h-3.5 text-text-muted" />
                             </button>
 
-                            <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center shrink-0 border border-border">
-                                    <img src="/ballyb.png" className="w-8 h-8 object-contain" alt="App Icon" />
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0 border border-border mt-1">
+                                    <img src="/ballyb.png" className="w-6 h-6 object-contain" alt="App Icon" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-text-main text-sm mb-1">Install App</h3>
-                                    <p className="text-xs text-text-muted mb-3 leading-relaxed">
-                                        Install this app on your home screen for quick and easy access.
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-text-main text-xs mb-0.5">Install App</h3>
+                                    <p className="text-[10px] text-text-muted mb-2 leading-snug">
+                                        Add to home screen for quick access.
                                     </p>
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex items-center gap-2 text-[10px] text-text-light uppercase tracking-wider font-medium">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5 text-[9px] text-text-light uppercase tracking-wider font-bold">
                                             <span>1. Tap</span>
                                             <Share className="w-3 h-3" />
-                                            <span>Share</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-[10px] text-text-light uppercase tracking-wider font-medium">
-                                            <span>2. Tap</span>
+                                        <div className="w-px h-3 bg-border" />
+                                        <div className="flex items-center gap-1.5 text-[9px] text-text-light uppercase tracking-wider font-bold">
+                                            <span>2. Add to Home</span>
                                             <PlusSquare className="w-3 h-3" />
-                                            <span>Add to Home Screen</span>
                                         </div>
                                     </div>
                                 </div>
