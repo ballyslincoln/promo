@@ -27,6 +27,11 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
 
+  // Initialize user session immediately
+  useEffect(() => {
+    userService.getOrCreateUser();
+  }, []);
+
   const fetchAnnouncement = async () => {
     const active = await getActiveAnnouncement();
     setAnnouncement(active);
@@ -37,8 +42,6 @@ function App() {
       await initAnnouncementTable();
       await eventService.initDatabase();
       await fetchAnnouncement();
-      // Initialize user session (fetch IP, generate username if needed)
-      await userService.getOrCreateUser();
     };
     initAndFetch();
   }, []);

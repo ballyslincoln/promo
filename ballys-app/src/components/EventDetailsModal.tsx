@@ -383,14 +383,14 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                   <form onSubmit={handleAddComment} className="mb-8 relative">
                     <div className="flex items-end gap-3">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ballys-red to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold border-2 border-white dark:border-slate-900 shadow-md z-10">
-                        {currentUser?.username.charAt(0).toUpperCase() || 'G'}
+                        {currentUser?.username?.charAt(0).toUpperCase() || 'G'}
                       </div>
                       <div className="flex-1 relative">
                         <input
                           type="text"
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value)}
-                          placeholder={`Comment as ${currentUser?.username || 'Guest'}...`}
+                          placeholder={currentUser?.username ? `Comment as ${currentUser.username}...` : 'Loading user...'}
                           className="w-full bg-slate-100 dark:bg-slate-800/80 border-0 rounded-2xl px-5 py-3.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-ballys-red/20 transition-all shadow-inner"
                         />
                         <AnimatePresence>
