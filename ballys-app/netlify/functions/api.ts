@@ -186,7 +186,7 @@ export default async (req, context) => {
                 const commentsResult = await sql`
                     SELECT i.*, u.username 
                     FROM interactions i
-                    JOIN users u ON i.user_id = u.id
+                    LEFT JOIN users u ON i.user_id = u.id
                     WHERE i.event_id = ${eventId} AND i.type = 'comment'
                     ORDER BY i.created_at DESC
                 `;
