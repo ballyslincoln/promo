@@ -1,0 +1,21 @@
+{
+  "name": "Bally's Day At A Glance",
+  "short_name": "Bally's DAAG",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#cf0a2c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/ballyb.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/ballyb.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

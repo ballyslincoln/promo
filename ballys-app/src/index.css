@@ -106,6 +106,15 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-ballys-red to-ballys-darkRed;
   }
+
+  /* Safe Area Utilities for PWA */
+  .pt-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 @keyframes snow {

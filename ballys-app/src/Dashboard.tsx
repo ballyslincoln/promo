@@ -70,8 +70,8 @@ const ClockHeader = memo(() => {
     }, []);
 
     return (
-        <div className="text-[9px] text-text-light tracking-wider uppercase font-mono">
-            {currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        <div className="text-[9px] text-text-light tracking-wider uppercase font-mono whitespace-nowrap">
+            {currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} • {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
         </div>
     );
 });
@@ -255,35 +255,38 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-surface to-transparent pointer-events-none z-40" />
 
             {/* Header */}
-            <header className="sticky top-0 z-50 pt-6 pb-4 px-4 transition-all duration-300">
+            <header className="sticky top-0 z-50 pt-safe-top transition-all duration-300">
                 <div className="absolute inset-0 bg-surface/80 backdrop-blur-xl border-b border-border shadow-sm" />
 
-                <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-5">
+                <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-4 px-4 py-4">
                     {/* Top Bar */}
-                    <div className="w-full relative flex items-center justify-center min-h-[40px]">
-                        {/* Centered Logo & Title */}
-                        <div className="flex flex-col items-center gap-1 z-10">
-                            <div className="flex items-center gap-3">
-                                <img src="/logo.png" alt="Logo" className="h-8 object-contain drop-shadow-sm" />
-                                <div className="h-4 w-[1px] bg-border" />
-                                <span className="text-[10px] tracking-[0.4em] uppercase font-semibold text-text-muted">Day At A Glance</span>
+                    <div className="w-full relative flex items-center justify-between min-h-[40px]">
+                        
+                        {/* Logo & Title Area */}
+                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                            <img src="/logo.png" alt="Logo" className="h-5 md:h-8 object-contain drop-shadow-sm shrink-0" />
+                            <div className="h-3 md:h-4 w-[1px] bg-border shrink-0" />
+                            <div className="flex flex-col justify-center overflow-hidden">
+                                <span className="text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-semibold text-text-muted truncate">Day At A Glance</span>
+                                <ClockHeader />
                             </div>
-                            <ClockHeader />
                         </div>
 
                         {/* Right Aligned Controls */}
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 z-20">
-                            <ThemeToggle />
+                        <div className="flex items-center justify-end gap-1.5 md:gap-2 shrink-0 ml-2">
+                            <div className="scale-90 md:scale-100 origin-right">
+                                <ThemeToggle />
+                            </div>
                             <button
                                 onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)]"
+                                className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)] active:scale-95"
                                 title={viewMode === 'list' ? 'Switch to Calendar View (C)' : 'Switch to List View (C)'}
                             >
-                                {viewMode === 'list' ? <CalendarIcon className="w-4 h-4 text-text-muted" /> : <List className="w-4 h-4 text-text-muted" />}
+                                {viewMode === 'list' ? <CalendarIcon className="w-3.5 h-3.5 md:w-4 md:h-4 text-text-muted" /> : <List className="w-3.5 h-3.5 md:w-4 md:h-4 text-text-muted" />}
                             </button>
                             <button
                                 onClick={() => setShowShortcuts(true)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)]"
+                                className="hidden md:flex w-10 h-10 items-center justify-center rounded-full bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border shadow-sm transition-colors [transform:translateZ(0)]"
                                 title="Keyboard Shortcuts (?)"
                             >
                                 <Keyboard className="w-4 h-4 text-text-muted" />
@@ -291,31 +294,32 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         </div>
                     </div>
 
-                    {/* Property Toggle */}
-                    <div className="flex bg-surface/40 backdrop-blur-md rounded-full border border-border p-1.5 relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)]">
-                        {['All', 'Lincoln', 'Tiverton'].map((prop) => (
-                            <button
-                                key={prop}
-                                onClick={() => setSelectedProperty(prop as any)}
-                                className={`relative z-10 px-5 py-2 text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
-                                    selectedProperty === prop 
-                                    ? 'text-white' 
-                                    : 'text-text-muted hover:text-text-main'
-                                }`}
-                            >
-                                {selectedProperty === prop && (
-                                    <motion.div
-                                        layoutId="activeProperty"
-                                        className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/30"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                                        style={{ willChange: 'transform' }}
-                                    />
-                                )}
-                                <span className="relative z-20 drop-shadow-sm">
-                                    {prop === 'All' ? 'All Properties' : prop}
-                                </span>
-                            </button>
-                        ))}
+                    {/* Property Toggle - Scrollable container for small screens */}
+                    <div className="w-full overflow-x-auto no-scrollbar flex justify-center">
+                        <div className="flex bg-surface/40 backdrop-blur-md rounded-full border border-border p-1 relative shadow-[inset_0_1px_4px_rgba(0,0,0,0.05)] whitespace-nowrap">
+                            {['All', 'Lincoln', 'Tiverton'].map((prop) => (
+                                <button
+                                    key={prop}
+                                    onClick={() => setSelectedProperty(prop as any)}
+                                    className={`relative z-10 px-4 py-1.5 text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 rounded-full ${selectedProperty === prop
+                                            ? 'text-white'
+                                            : 'text-text-muted hover:text-text-main'
+                                        }`}
+                                >
+                                    {selectedProperty === prop && (
+                                        <motion.div
+                                            layoutId="activeProperty"
+                                            className="absolute inset-0 bg-gradient-to-r from-ballys-red to-ballys-darkRed rounded-full shadow-lg shadow-ballys-red/30"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                                            style={{ willChange: 'transform' }}
+                                        />
+                                    )}
+                                    <span className="relative z-20 drop-shadow-sm">
+                                        {prop === 'All' ? 'All Props' : prop}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Date Navigator (Only in List Mode) */}
@@ -328,7 +332,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="flex flex-col gap-3 w-full max-w-md"
                             >
-                                <div className="flex items-center justify-between bg-surface rounded-full p-1.5 border border-border shadow-sm backdrop-blur-md">
+                                <div className="flex items-center justify-between bg-surface rounded-full p-1 border border-border shadow-sm backdrop-blur-md">
                                     <button
                                         onClick={handlePrevDay}
                                         className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 group"
@@ -392,11 +396,11 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
-                                className="w-full max-w-md mb-4 text-center"
+                                className="w-full max-w-md mb-1 text-center"
                             >
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-full shadow-sm">
                                     <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
-                                    <span className="text-sm font-bold uppercase tracking-wider text-ballys-red">{holiday.name}</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-ballys-red">{holiday.name}</span>
                                     <span className="text-xl filter drop-shadow-sm">{holiday.emoji}</span>
                                 </div>
                             </motion.div>
@@ -414,17 +418,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                                 exit={{ opacity: 0, y: -10, height: 0 }}
                                 transition={{ duration: 0.2, ease: "easeOut" }}
-                                className="flex p-1.5 bg-surface/40 backdrop-blur-md rounded-2xl border border-surface/50 w-full max-w-md relative shadow-sm overflow-hidden"
+                                className="flex p-1 bg-surface/40 backdrop-blur-md rounded-2xl border border-surface/50 w-full max-w-md relative shadow-sm overflow-hidden"
                             >
                                 {['events', 'schedules'].map((tab) => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
-                                        className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-[0.2em] relative z-10 transition-colors duration-300 ${
-                                            activeTab === tab 
-                                            ? 'text-ballys-red' 
-                                            : 'text-text-muted hover:text-text-main'
-                                        }`}
+                                        className={`flex-1 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] relative z-10 transition-colors duration-300 ${activeTab === tab
+                                                ? 'text-ballys-red'
+                                                : 'text-text-muted hover:text-text-main'
+                                            }`}
                                     >
                                         {activeTab === tab && (
                                             <motion.div
@@ -443,7 +446,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto px-4 py-8 relative z-10 flex-1 w-full [contain:layout_style_paint]">
+            <main className="max-w-3xl mx-auto px-4 py-6 relative z-10 flex-1 w-full [contain:layout_style_paint]">
                 <AnimatePresence mode="wait" initial={false}>
                     {viewMode === 'calendar' ? (
                         <motion.div
@@ -470,7 +473,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             />
                         </motion.div>
                     ) : (
-                        <motion.div 
+                        <motion.div
                             key="list-view"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -482,11 +485,11 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                             {activeTab === 'events' && (
                                 <div
                                     key={`events-${selectedDate.toISOString()}`}
-                                    className="space-y-10"
+                                    className="space-y-8"
                                 >
                                     {/* Invited Guest Events */}
-                                    <Section 
-                                        title="Invited Guest Events" 
+                                    <Section
+                                        title="Invited Guest Events"
                                         icon={<Star className="w-4 h-4 text-ballys-gold" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined}
                                     >
@@ -501,8 +504,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </Section>
 
                                     {/* Open To All */}
-                                    <Section 
-                                        title="Open To All Guests" 
+                                    <Section
+                                        title="Open To All Guests"
                                         icon={<Gift className="w-4 h-4 text-ballys-red" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined}
                                     >
@@ -517,8 +520,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </Section>
 
                                     {/* Dining Offers */}
-                                    <Section 
-                                        title="Dining & Happy Hours" 
+                                    <Section
+                                        title="Dining & Happy Hours"
                                         icon={<Utensils className="w-4 h-4 text-ballys-blue" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined}
                                     >
@@ -533,8 +536,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </Section>
 
                                     {/* Promo Events */}
-                                    <Section 
-                                        title="Promotions" 
+                                    <Section
+                                        title="Promotions"
                                         icon={<Gift className="w-4 h-4 text-purple-500" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined}
                                     >
@@ -549,8 +552,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     </Section>
 
                                     {/* Entertainment */}
-                                    <Section 
-                                        title="Entertainment" 
+                                    <Section
+                                        title="Entertainment"
                                         icon={<Music className="w-4 h-4 text-pink-500" />}
                                         onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined}
                                     >
@@ -616,7 +619,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             </main>
 
             {/* Footer */}
-            <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm">
+            <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm pb-safe-bottom">
                 <div className="max-w-3xl mx-auto text-center space-y-3">
                     <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
                         Created by Regional Advertising Manager Jackson Kelly
@@ -625,7 +628,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         &copy; Bally's Corporation {new Date().getFullYear()} All Rights Reserved
                     </p>
                     <div className="pt-2 flex items-center justify-center gap-3 text-[9px] text-text-light/70 font-mono uppercase tracking-wider">
-                        <span>v8.1</span>
+                        <span>v8.2</span>
                         <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
                         <span>Created in Lincoln, RI</span>
                     </div>
@@ -720,14 +723,14 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
 
 function Section({ title, icon, children, onAddEvent }: { title: string, icon: React.ReactNode, children: React.ReactNode, onAddEvent?: () => void }) {
     return (
-        <div className="mb-10">
+        <div className="mb-8">
             <div className="flex items-center justify-between mb-5 px-2 opacity-70">
                 <div className="flex items-center gap-2">
                     {icon}
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-text-muted">{title}</h3>
                 </div>
                 {onAddEvent && (
-                    <button 
+                    <button
                         onClick={onAddEvent}
                         className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 text-ballys-red hover:text-ballys-darkRed transition-colors"
                     >
@@ -789,9 +792,8 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                 <div className="flex justify-between items-start gap-4 mb-3">
                     <div>
                         {event.property && event.property !== 'Both' && (
-                            <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block ${
-                                event.property === 'Lincoln' ? 'bg-ballys-red/10 text-ballys-red' : 'bg-green-500/10 text-green-600'
-                            }`}>
+                            <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block ${event.property === 'Lincoln' ? 'bg-ballys-red/10 text-ballys-red' : 'bg-green-500/10 text-green-600'
+                                }`}>
                                 {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
                             </span>
                         )}

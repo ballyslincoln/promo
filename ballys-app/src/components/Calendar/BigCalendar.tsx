@@ -48,34 +48,34 @@ const CustomToolbar = (toolbar: any) => {
   };
 
   return (
-    <div className="flex items-center justify-between mb-4 p-4 bg-surface border-b border-border rounded-t-2xl">
-      <div className="flex items-center gap-4">
-        <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
+    <div className="flex flex-col md:flex-row items-center justify-between mb-4 p-3 md:p-4 bg-surface border-b border-border rounded-t-2xl gap-3 md:gap-0">
+      <div className="flex items-center justify-between w-full md:w-auto gap-4">
+        <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg scale-90 md:scale-100 origin-left">
            <button
             onClick={() => toolbar.onView('month')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'month' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-all ${toolbar.view === 'month' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Month
           </button>
           <button
             onClick={() => toolbar.onView('week')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'week' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-all ${toolbar.view === 'week' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Week
           </button>
           <button
             onClick={() => toolbar.onView('day')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${toolbar.view === 'day' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+            className={`px-3 py-1.5 rounded-md text-xs md:text-sm font-medium transition-all ${toolbar.view === 'day' ? 'bg-surface text-ballys-red shadow-sm' : 'text-text-muted hover:text-text-main'}`}
           >
             Day
           </button>
         </div>
-        <h2 className="text-xl font-bold text-text-main capitalize">
+        <h2 className="text-base md:text-xl font-bold text-text-main capitalize truncate">
           {label()}
         </h2>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2 w-full md:w-auto justify-between md:justify-end">
         <button
           onClick={goToBack}
           className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors text-text-light hover:text-text-main"
@@ -84,7 +84,7 @@ const CustomToolbar = (toolbar: any) => {
         </button>
         <button
           onClick={goToCurrent}
-          className="px-3 py-1.5 text-sm font-medium text-text-muted hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors uppercase tracking-wider"
+          className="px-3 py-1.5 text-xs md:text-sm font-medium text-text-muted hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors uppercase tracking-wider"
         >
           Today
         </button>
@@ -104,20 +104,15 @@ const CustomEvent = ({ event }: { event: any }) => {
   const adminEvent = event.resource as AdminEvent;
   
   return (
-    <div className="h-full w-full overflow-hidden text-white">
+    <div className="h-full w-full overflow-hidden text-white p-0.5">
       <div className="flex items-center gap-1 mb-0.5">
         {adminEvent.startTime && (
-           <span className="text-[10px] font-mono opacity-80">{adminEvent.startTime}</span>
+           <span className="text-[9px] font-mono opacity-90">{adminEvent.startTime}</span>
         )}
       </div>
-      <div className="font-bold text-xs leading-tight truncate">
+      <div className="font-bold text-[10px] leading-tight truncate">
         {event.title}
       </div>
-      {adminEvent.category && (
-        <div className="text-[9px] opacity-90 uppercase tracking-wider mt-0.5 truncate">
-          {adminEvent.category}
-        </div>
-      )}
     </div>
   );
 };
@@ -142,23 +137,8 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
       const start = new Date(`${startDateStr}T${startTimeStr}`);
       const end = new Date(`${endDateStr}T${endTimeStr}`);
 
-      // Handle recurring events (simple expansion for current view range could be complex, 
-      // but for now let's just map the base event if it's a single instance or let the parent handle expansion.
-      // Since the parent 'Dashboard' already has logic to filter events by day, 
-      // we might need to expand recurring events here if we want them to show up on all days in Month view.
-      
-      // For this implementation, let's assume 'events' passed in are "Rules" and we need to expand them 
-      // OR we rely on the parent to pass expanded events.
-      // The current 'events' prop is AdminEvent[] which are rules.
-      
-      // Let's expand for a reasonable range (e.g. +/- 1 year) or just for the current view? 
-      // React-big-calendar expects concrete date instances.
-      
       if (event.isRecurring && event.daysOfWeek && event.daysOfWeek.length > 0) {
          // Expand recurring events for the next 3 months and previous 1 month from now
-         // A better approach is to expand based on the visible range, but we don't have easy access to that in this transform without state.
-         // Let's just expand for the current year + next year.
-         
          const expandStart = new Date();
          expandStart.setMonth(expandStart.getMonth() - 1);
          const expandEnd = new Date();
@@ -181,7 +161,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
                      start: eventStart,
                      end: eventEnd,
                      resource: event,
-                     allDay: false // or check if times cover full day
+                     allDay: false 
                  });
              }
              current.setDate(current.getDate() + 1);
@@ -193,7 +173,7 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
             start,
             end,
             resource: event,
-            allDay: !event.startTime // Assume all day if no start time? Or strict check.
+            allDay: !event.startTime
           });
       }
     });
@@ -206,37 +186,32 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
     let backgroundColor = '#3174ad';
     let color = 'white';
     
-    // Custom colors based on category
     switch (adminEvent.category) {
-        case 'Invited': backgroundColor = '#FBBF24'; color = '#000'; break; // Amber
-        case 'Open': backgroundColor = '#EF4444'; break; // Red
-        case 'Dining': backgroundColor = '#3B82F6'; break; // Blue
-        case 'Promo': backgroundColor = '#8B5CF6'; break; // Purple
-        case 'Entertainment': backgroundColor = '#EC4899'; break; // Pink
-        case 'Schedule': backgroundColor = '#10B981'; break; // Green
-        case 'Internal': backgroundColor = '#6B7280'; break; // Gray
-    }
-
-    if (adminEvent.highlight) {
-        // backgroundColor = '#D97706'; // Darker amber
+        case 'Invited': backgroundColor = '#FBBF24'; color = '#000'; break;
+        case 'Open': backgroundColor = '#EF4444'; break;
+        case 'Dining': backgroundColor = '#3B82F6'; break;
+        case 'Promo': backgroundColor = '#8B5CF6'; break;
+        case 'Entertainment': backgroundColor = '#EC4899'; break;
+        case 'Schedule': backgroundColor = '#10B981'; break;
+        case 'Internal': backgroundColor = '#6B7280'; break;
     }
 
     return {
       style: {
         backgroundColor,
         color,
-        borderRadius: '6px',
+        borderRadius: '4px',
         border: 'none',
         display: 'block',
         opacity: 0.9,
-        fontSize: '0.8rem',
-        padding: '2px 4px'
+        fontSize: '0.75rem',
+        padding: '1px 2px'
       }
     };
   };
 
   return (
-    <div className="h-[700px] bg-surface rounded-2xl shadow-sm border border-border overflow-hidden text-text-main">
+    <div className="h-[500px] md:h-[700px] bg-surface rounded-2xl shadow-sm border border-border overflow-hidden text-text-main">
       <Calendar
         localizer={localizer}
         events={calendarEvents}

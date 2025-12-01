@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download,
-  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Calendar as CalendarIcon, List
+  AlertCircle, FileText, Star, Settings, Check, Database, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Calendar as CalendarIcon, List, Menu
 } from 'lucide-react';
 import type { AdminEvent, ScheduleItem } from './types';
 import { getDefaultPromotions } from './data';
@@ -36,6 +36,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [previewEditId, setPreviewEditId] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<'date-desc' | 'date-asc' | 'last-edited' | 'property'>('date-desc');
   const [eventsViewMode, setEventsViewMode] = useState<'list' | 'calendar'>('list');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Check for mobile view
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -69,6 +78,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     const defaultPromotions = getDefaultPromotions();
     setEvents(defaultPromotions);
     showToast('Default promotions loaded. Click "Publish All" to save to live site.');
+    setShowMobileMenu(false);
   };
 
   // Helper to check if an event has unsaved changes
@@ -268,6 +278,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     a.download = `ballys-events-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    setShowMobileMenu(false);
   };
 
   const toggleSelect = (id: string) => {
@@ -322,18 +333,23 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   };
 
   const filteredEvents = getFilteredEvents();
-
   const currentEvent = editingId ? events.find(e => e.id === editingId) : null;
 
+  // Should we show the list view or the detail view?
+  // On mobile: if editingId is set or showAddForm is true, show detail. Else show list.
+  // On desktop: show both side-by-side.
+  const showList = !isMobile || (!editingId && !showAddForm && !showBulkUpload && !showPreview);
+  const showDetail = editingId || showAddForm || showBulkUpload;
+
   return (
-    <div className="fixed inset-0 z-[100] bg-background text-text-main overflow-hidden font-sans">
+    <div className="fixed inset-0 z-[100] bg-background text-text-main overflow-hidden font-sans flex flex-col">
       {/* Preview Mode Overlay */}
       {showPreview && (
-        <div className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-sm">
-          <div className="sticky top-0 z-[210] bg-ballys-red text-white px-4 py-2 flex items-center justify-between shadow-md">
+        <div className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-sm flex flex-col">
+          <div className="sticky top-0 z-[210] bg-ballys-red text-white px-4 py-2 flex items-center justify-between shadow-md pt-safe-top">
             <div className="flex items-center gap-2 font-bold text-sm">
               <Eye className="w-4 h-4" />
-              PREVIEW MODE (Unsaved Changes Visible)
+              PREVIEW MODE
             </div>
             <button
               onClick={() => setShowPreview(false)}
@@ -342,7 +358,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               Exit Preview
             </button>
           </div>
-          <div className="h-[calc(100vh-40px)] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
              <Dashboard 
                previewEvents={events} 
                previewSchedules={schedules} 
@@ -386,353 +402,239 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
         </div>
       )}
 
-      <div className="relative z-10 h-full flex flex-col">
-        {/* Header */}
-        <header className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-border px-6 py-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Settings className="w-6 h-6 text-ballys-red" />
-              <div>
-                <h1 className="text-xl font-bold text-text-main">Admin Panel</h1>
-                <p className="text-xs text-text-muted">Manage Events & Schedules</p>
-              </div>
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-border px-4 py-3 shadow-sm pt-safe-top">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="bg-ballys-red/10 p-2 rounded-lg shrink-0">
+                 <Settings className="w-5 h-5 text-ballys-red" />
             </div>
-            
-            {/* Center Actions */}
-            <div className="flex-1 flex justify-center gap-3">
+            <div className="truncate">
+              <h1 className="text-lg font-bold text-text-main truncate">Admin</h1>
+              <p className="text-[10px] text-text-muted uppercase tracking-wider truncate">Manage Content</p>
+            </div>
+          </div>
+          
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-3">
               <button
                 onClick={() => setShowPreview(true)}
-                className="px-6 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-full text-sm font-bold flex items-center gap-2 transition-colors shadow-sm text-text-main"
-                title="Preview changes as they would appear on the live site"
+                className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
               >
-                <Eye className="w-4 h-4 text-text-muted" />
-                Preview Site
+                <Eye className="w-4 h-4" /> Preview
               </button>
               
                <button
                 onClick={handlePublishAll}
-                className={`px-8 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all shadow-lg ${
+                className={`px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-sm ${
                   hasUnsavedChanges()
-                    ? 'bg-green-600 hover:bg-green-700 text-white hover:scale-105 shadow-green-500/20'
-                    : 'bg-gray-100 dark:bg-slate-800 text-text-muted cursor-default border border-border'
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-gray-100 dark:bg-slate-800 text-text-muted border border-border'
                 }`}
               >
                 <Globe className="w-4 h-4" />
-                {hasUnsavedChanges() ? 'Publish All Changes' : 'All Changes Published'}
+                {hasUnsavedChanges() ? 'Publish All' : 'Published'}
               </button>
-            </div>
 
-            {/* View Toggle */}
-            <div className="flex gap-2 mr-4">
-               <div className="bg-gray-100 dark:bg-slate-800 p-1 rounded-lg flex mr-4 border border-border">
-                  <button
-                    onClick={() => setEventsViewMode('list')}
-                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'list' ? 'bg-surface shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
-                    title="List View"
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                   <button
-                    onClick={() => setEventsViewMode('calendar')}
-                    className={`p-2 rounded-md transition-all ${eventsViewMode === 'calendar' ? 'bg-surface shadow-sm text-ballys-red' : 'text-text-muted hover:text-text-main'}`}
-                     title="Calendar View"
-                  >
-                    <CalendarIcon className="w-4 h-4" />
-                  </button>
-               </div>
-
-              <button
-                onClick={() => setActiveView('events')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'events'
-                  ? 'bg-ballys-red text-white shadow-md'
-                  : 'bg-surface border border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800'
-                  }`}
-              >
-                Events
-              </button>
-              <button
-                onClick={() => setActiveView('schedules')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeView === 'schedules'
-                  ? 'bg-ballys-red text-white shadow-md'
-                  : 'bg-surface border border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800'
-                  }`}
-              >
-                Schedules
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={async () => {
-                  if (confirm('Initialize database tables? This is safe to run if tables already exist.')) {
-                    try {
-                      await eventService.initDatabase();
-                      showToast('Database initialized successfully!');
-                    } catch (e) {
-                      alert('Failed to initialize database. Check console for errors.');
-                    }
-                  }
-                }}
-                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 rounded-lg flex items-center gap-2 text-sm transition-colors"
-                title="Create database tables if missing"
-              >
-                <Database className="w-4 h-4" />
-                Init DB
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm('This will replace all current events with default promotions. Continue?')) {
-                    initializeWithDefaults();
-                  }
-                }}
-                className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 rounded-lg flex items-center gap-2 text-sm transition-colors"
-                title="Load default promotions"
-              >
-                <Settings className="w-4 h-4" />
-                Load Defaults
-              </button>
-              <button
-                onClick={handleExport}
-                className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border text-text-main rounded-lg flex items-center gap-2 text-sm transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-ballys-red hover:bg-ballys-darkRed text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2 shadow-md"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
-                <X className="w-4 h-4" />
-                Back to Site
+                <X className="w-5 h-5" />
+              </button>
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-2">
+             <button
+                onClick={handlePublishAll}
+                className={`p-2 rounded-lg transition-all ${
+                  hasUnsavedChanges()
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-400'
+                }`}
+              >
+                <Globe className="w-5 h-5" />
               </button>
               <button
-                onClick={() => {
-                    if (confirm('Are you sure you want to log out?')) {
-                        localStorage.removeItem('ballys_auth');
-                        localStorage.removeItem('ballys_auth_time');
-                        window.location.reload();
-                    }
-                }}
-                className="px-3 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-text-muted rounded-lg text-xs font-medium transition-colors"
-                title="Log Out"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Log Out
+                <Menu className="w-6 h-6 text-text-main" />
               </button>
-            </div>
           </div>
-        </header>
+        </div>
 
-        <div className="flex-1 overflow-hidden flex">
-          {/* Sidebar */}
-          <div className="w-96 border-r border-border bg-surface/60 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain">
-            {activeView === 'events' ? (
-              <div className="p-4 space-y-4">
-                {/* Search & Filters */}
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search title, details, tags..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-sm text-text-main placeholder:text-text-light"
-                    />
-                    {searchTerm && (
-                        <button
-                            onClick={() => setSearchTerm('')}
-                            className="absolute right-3 top-2.5 text-text-light hover:text-text-main transition-colors"
-                        >
-                            <X className="w-4 h-4" />
+        {/* Mobile Menu Dropdown */}
+        <AnimatePresence>
+            {showMobileMenu && (
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="md:hidden overflow-hidden bg-surface border-t border-border mt-3"
+                >
+                    <div className="py-2 space-y-1">
+                        <button onClick={() => { setShowPreview(true); setShowMobileMenu(false); }} className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3">
+                            <Eye className="w-4 h-4" /> Preview Site
                         </button>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <select
-                      value={filterCategory}
-                      onChange={(e) => setFilterCategory(e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
-                    >
-                      <option value="all">All Categories</option>
-                      {CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                    <div className="relative">
-                      <select
-                        value={sortOption}
-                        onChange={(e) => setSortOption(e.target.value as any)}
-                        className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm appearance-none cursor-pointer text-text-main"
-                      >
-                        <option value="date-desc">Newest Date</option>
-                        <option value="date-asc">Oldest Date</option>
-                        <option value="last-edited">Last Edited</option>
-                        <option value="property">Property</option>
-                      </select>
-                      <ArrowUpDown className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
+                        <button onClick={handleExport} className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3">
+                            <Download className="w-4 h-4" /> Export Data
+                        </button>
+                         <button onClick={() => { 
+                             if(confirm('Log out?')) { localStorage.removeItem('ballys_auth'); window.location.reload(); } 
+                         }} className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-red-600">
+                             Log Out
+                         </button>
+                         <button onClick={onClose} className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 font-semibold border-t border-border">
+                            <X className="w-4 h-4" /> Close Admin
+                        </button>
                     </div>
-                  </div>
-                </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+      </header>
 
-                {/* Bulk Actions */}
-                {selectedEvents.size > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg flex items-center justify-between"
-                  >
-                    <span className="text-sm text-red-800 dark:text-red-400">{selectedEvents.size} selected</span>
-                    <button
-                      onClick={handleBulkDelete}
-                      className="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded text-sm flex items-center gap-2 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete
-                    </button>
-                  </motion.div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
+      <div className="flex-1 overflow-hidden flex relative">
+        {/* Sidebar / List View */}
+        <div className={`
+            flex-1 md:w-96 md:flex-none border-r border-border bg-surface/60 backdrop-blur-xl overflow-y-auto scroll-smooth overscroll-contain
+            ${showList ? 'block' : 'hidden md:block'}
+        `}>
+            {/* View Toggle Tabs */}
+             <div className="p-4 pb-0">
+                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-border">
                   <button
-                    onClick={() => handleAdd()}
-                    className="flex-1 px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                    onClick={() => setActiveView('events')}
+                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'events'
+                      ? 'bg-surface text-text-main shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                      }`}
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Event
+                    Events
                   </button>
                   <button
-                    onClick={() => {
-                      setShowBulkUpload(true);
-                      setShowAddForm(false);
-                      setEditingId(null);
-                    }}
-                    className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                    onClick={() => setActiveView('schedules')}
+                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'schedules'
+                      ? 'bg-surface text-text-main shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                      }`}
                   >
-                    <Upload className="w-4 h-4" />
+                    Schedules
                   </button>
                 </div>
+             </div>
 
-                {/* Event List */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-2 py-1">
-                    <span className="text-xs text-text-light uppercase tracking-wider">
-                      Events ({filteredEvents.length})
-                    </span>
-                    {filteredEvents.length > 0 && (
-                      <button
-                        onClick={toggleSelectAll}
-                        className="text-xs text-text-light hover:text-text-main transition-colors"
-                      >
-                        {selectedEvents.size === filteredEvents.length ? 'Deselect All' : 'Select All'}
+          {activeView === 'events' ? (
+            <div className="p-4 space-y-4">
+              {/* Search & Filters */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-text-light absolute left-3 top-3 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2.5 pl-9 bg-surface border border-border rounded-lg focus:outline-none focus:border-ballys-red text-sm text-text-main"
+                  />
+                  {searchTerm && (
+                      <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-text-light">
+                          <X className="w-4 h-4" />
                       </button>
-                    )}
-                  </div>
-                  {filteredEvents.length === 0 ? (
-                    <div className="text-center py-12 text-text-light text-sm border border-dashed border-border rounded-lg bg-gray-50 dark:bg-slate-800">
-                      No events found
-                    </div>
-                  ) : (
-                    filteredEvents.map(event => {
-                      const status = getEventStatus(event);
-                      return (
-                        <div
-                          key={event.id}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === event.id
-                            ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
-                            : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-600'
-                            }`}
-                          onClick={() => handleEdit(event.id)}
-                        >
-                          {/* Status Indicator Strip */}
-                          {status !== 'synced' && (
-                            <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                              status === 'new' ? 'bg-green-500' : 'bg-yellow-500'
-                            }`} />
-                          )}
-                          
-                          <div className="flex items-start gap-3 pl-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedEvents.has(event.id)}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                toggleSelect(event.id);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-ballys-red focus:ring-ballys-red"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className={`font-semibold text-sm truncate ${editingId === event.id ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{event.title || 'Untitled'}</h3>
-                                {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                                    event.isRecurring 
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' 
-                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
-                                }`}>
-                                    {event.isRecurring 
-                                        ? (event.daysOfWeek && event.daysOfWeek.length > 0 
-                                            ? event.daysOfWeek.map(d => DAYS_OF_WEEK[d].slice(0, 3)).join(', ') 
-                                            : 'Weekly')
-                                        : (event.startDate ? new Date(event.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Date')
-                                    }
-                                </span>
-                                <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-text-muted border border-border">
-                                  {event.category}
-                                </span>
-                                {status !== 'synced' && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                    status === 'new' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30' : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-900/30'
-                                  }`}>
-                                    {status === 'new' ? 'New' : 'Edited'}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(event.id);
-                              }}
-                              className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/20 rounded text-text-light hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
                   )}
                 </div>
-              </div>
-            ) : (
-              <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted">Schedule Categories</h3>
-                  <button
-                    onClick={() => {
-                      const name = prompt('Enter category name:');
-                      if (name) addScheduleCategory(name);
-                    }}
-                    className="px-3 py-1.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg text-xs font-medium flex items-center gap-2 transition-colors text-white shadow-sm"
+                <div className="flex gap-2">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-surface border border-border rounded-lg text-xs text-text-main"
                   >
-                    <Plus className="w-3 h-3" />
-                    Add Category
-                  </button>
+                    <option value="all">All Cats</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <select
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value as any)}
+                      className="flex-1 px-3 py-2 bg-surface border border-border rounded-lg text-xs text-text-main"
+                    >
+                      <option value="date-desc">Newest</option>
+                      <option value="date-asc">Oldest</option>
+                      <option value="last-edited">Edited</option>
+                    </select>
                 </div>
-                <div className="space-y-2">
-                  {Object.keys(schedules).map((category) => {
-                    const status = getScheduleStatus(category);
+              </div>
+
+              {/* Bulk Actions */}
+              {selectedEvents.size > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg flex items-center justify-between"
+                >
+                  <span className="text-xs text-red-800 dark:text-red-400">{selectedEvents.size} selected</span>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-2 py-1 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded text-xs flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" /> Delete
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleAdd()}
+                  className="flex-1 px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Event
+                </button>
+                <button
+                  onClick={() => {
+                    setShowBulkUpload(true);
+                    setShowAddForm(false);
+                    setEditingId(null);
+                  }}
+                  className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                >
+                  <Upload className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Event List */}
+              <div className="space-y-2 pb-20">
+                <div className="flex items-center justify-between px-2 py-1">
+                  <span className="text-xs text-text-light uppercase tracking-wider">
+                    Events ({filteredEvents.length})
+                  </span>
+                  {filteredEvents.length > 0 && (
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-xs text-text-light hover:text-text-main transition-colors"
+                    >
+                      {selectedEvents.size === filteredEvents.length ? 'None' : 'All'}
+                    </button>
+                  )}
+                </div>
+                {filteredEvents.length === 0 ? (
+                  <div className="text-center py-12 text-text-light text-sm border border-dashed border-border rounded-lg bg-gray-50 dark:bg-slate-800">
+                    No events found
+                  </div>
+                ) : (
+                  filteredEvents.map(event => {
+                    const status = getEventStatus(event);
                     return (
                       <div
-                        key={category}
-                        onClick={() => setEditingId(category)}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === category
+                        key={event.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden active:scale-[0.99] ${editingId === event.id
                           ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
-                          : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-600'
+                          : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800'
                           }`}
+                        onClick={() => handleEdit(event.id)}
                       >
                         {/* Status Indicator Strip */}
                         {status !== 'synced' && (
@@ -740,105 +642,177 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                             status === 'new' ? 'bg-green-500' : 'bg-yellow-500'
                           }`} />
                         )}
-                        <div className="flex items-center justify-between pl-2">
-                          <div className="flex items-center gap-2">
-                             <h4 className={`font-semibold text-sm ${editingId === category ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{category}</h4>
-                             {status !== 'synced' && (
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                  status === 'new' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30' : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-900/30'
-                                }`}>
-                                  {status === 'new' ? 'New' : 'Edited'}
-                                </span>
-                              )}
+                        
+                        <div className="flex items-start gap-3 pl-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedEvents.has(event.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleSelect(event.id);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1 w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-700 text-ballys-red focus:ring-ballys-red"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className={`font-semibold text-sm truncate ${editingId === event.id ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{event.title || 'Untitled'}</h3>
+                              {event.highlight && <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700">
+                                  {event.isRecurring 
+                                      ? 'Weekly'
+                                      : (event.startDate ? new Date(event.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Date')
+                                  }
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-text-muted border border-border">
+                                {event.category}
+                              </span>
+                            </div>
                           </div>
-                          <span className="text-xs text-text-light">{schedules[category].length} items</span>
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted">Categories</h3>
+                <button
+                  onClick={() => {
+                    const name = prompt('Enter category name:');
+                    if (name) addScheduleCategory(name);
+                  }}
+                  className="px-3 py-1.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg text-xs font-medium flex items-center gap-2 transition-colors text-white shadow-sm"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add
+                </button>
+              </div>
+              <div className="space-y-2">
+                {Object.keys(schedules).map((category) => {
+                  const status = getScheduleStatus(category);
+                  return (
+                    <div
+                      key={category}
+                      onClick={() => setEditingId(category)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === category
+                        ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
+                        : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800'
+                        }`}
+                    >
+                      {/* Status Indicator Strip */}
+                      {status !== 'synced' && (
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                          status === 'new' ? 'bg-green-500' : 'bg-yellow-500'
+                        }`} />
+                      )}
+                      <div className="flex items-center justify-between pl-2">
+                        <div className="flex items-center gap-2">
+                           <h4 className={`font-semibold text-sm ${editingId === category ? 'text-red-900 dark:text-red-400' : 'text-text-main'}`}>{category}</h4>
+                        </div>
+                        <span className="text-xs text-text-light">{schedules[category].length} items</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Main Content - Edit Form / Details */}
+        <div className={`
+            flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth overscroll-contain bg-gray-50/50 dark:bg-slate-950/50
+            absolute inset-0 md:relative bg-background z-10 md:z-auto
+            ${showDetail ? 'block' : 'hidden md:block'}
+        `}>
+          {/* Mobile Back Button */}
+          <div className="md:hidden mb-4 flex items-center gap-2">
+              <button onClick={() => { setEditingId(null); setShowAddForm(false); setShowBulkUpload(false); }} className="flex items-center gap-1 text-sm font-medium text-text-muted">
+                  <ChevronLeft className="w-4 h-4" /> Back to List
+              </button>
+          </div>
+
+          {eventsViewMode === 'calendar' && activeView === 'events' && !isMobile ? (
+              <div className="h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-6">
+                       <div>
+                          <h2 className="text-2xl font-bold text-text-main">Calendar Management</h2>
+                          <p className="text-sm text-text-muted">Drag to select days, click to edit events.</p>
+                      </div>
+                      <button
+                          onClick={() => handleAdd()}
+                          className="px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                      >
+                          <Plus className="w-4 h-4" />
+                          New Event
+                      </button>
+                  </div>
+                  <BigCalendar
+                      events={events}
+                      onSelectEvent={(event) => handleEdit(event.id)}
+                      onSelectSlot={({ start }) => handleAdd(start)}
+                  />
+              </div>
+          ) : (
+          <AnimatePresence mode="wait">
+            {activeView === 'events' ? (
+              showAddForm && currentEvent ? (
+                <EventForm
+                  key={editingId}
+                  event={currentEvent}
+                  availableTags={availableTags}
+                  onRefreshTags={refreshTags}
+                  onSave={handleSaveEvent}
+                  onCancel={() => {
+                    setEditingId(null);
+                    setShowAddForm(false);
+                  }}
+                />
+              ) : showBulkUpload ? (
+                <BulkUploadForm
+                  onUpload={handleBulkUpload}
+                  onCancel={() => setShowBulkUpload(false)}
+                  json={bulkJson}
+                  onChange={setBulkJson}
+                />
+              ) : (
+                <EmptyState />
+              )
+            ) : editingId && schedules[editingId] ? (
+              <ScheduleForm
+                category={editingId}
+                items={schedules[editingId]}
+                onUpdate={(items) => {
+                  const updated = { ...schedules, [editingId]: items };
+                  setSchedules(updated);
+                }}
+                onDeleteCategory={() => {
+                  if (confirm(`Delete category "${editingId}"?`)) {
+                    removeScheduleCategory(editingId);
+                    setEditingId(null);
+                  }
+                }}
+                onCancel={() => setEditingId(null)}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="bg-surface border border-border rounded-2xl p-8 md:p-12 max-w-md shadow-sm mx-auto">
+                  <Settings className="w-12 h-12 md:w-16 md:h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2 text-text-main">No Category Selected</h3>
+                  <p className="text-text-muted text-sm">
+                    Select a schedule category from the list to edit.
+                  </p>
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Main Content - Edit Form */}
-          <div className="flex-1 overflow-y-auto p-6 scroll-smooth overscroll-contain bg-gray-50/50 dark:bg-slate-950/50">
-            {eventsViewMode === 'calendar' && activeView === 'events' ? (
-                <div className="h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-6">
-                         <div>
-                            <h2 className="text-2xl font-bold text-text-main">Calendar Management</h2>
-                            <p className="text-sm text-text-muted">Drag to select days, click to edit events.</p>
-                        </div>
-                        <button
-                            onClick={() => handleAdd()}
-                            className="px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
-                        >
-                            <Plus className="w-4 h-4" />
-                            New Event
-                        </button>
-                    </div>
-                    <BigCalendar
-                        events={events}
-                        onSelectEvent={(event) => handleEdit(event.id)}
-                        onSelectSlot={({ start }) => handleAdd(start)}
-                    />
-                </div>
-            ) : (
-            <AnimatePresence mode="wait">
-              {activeView === 'events' ? (
-                showAddForm && currentEvent ? (
-                  <EventForm
-                    key={editingId}
-                    event={currentEvent}
-                    availableTags={availableTags}
-                    onRefreshTags={refreshTags}
-                    onSave={handleSaveEvent}
-                    onCancel={() => {
-                      setEditingId(null);
-                      setShowAddForm(false);
-                    }}
-                  />
-                ) : showBulkUpload ? (
-                  <BulkUploadForm
-                    onUpload={handleBulkUpload}
-                    onCancel={() => setShowBulkUpload(false)}
-                    json={bulkJson}
-                    onChange={setBulkJson}
-                  />
-                ) : (
-                  <EmptyState />
-                )
-              ) : editingId && schedules[editingId] ? (
-                <ScheduleForm
-                  category={editingId}
-                  items={schedules[editingId]}
-                  onUpdate={(items) => {
-                    const updated = { ...schedules, [editingId]: items };
-                    setSchedules(updated);
-                  }}
-                  onDeleteCategory={() => {
-                    if (confirm(`Delete category "${editingId}"?`)) {
-                      removeScheduleCategory(editingId);
-                      setEditingId(null);
-                    }
-                  }}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="bg-surface border border-border rounded-2xl p-12 max-w-md shadow-sm">
-                    <Settings className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold mb-2 text-text-main">No Category Selected</h3>
-                    <p className="text-text-muted text-sm">
-                      Select a schedule category from the sidebar to edit, or create a new one.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </AnimatePresence>
-            )}
-          </div>
+          </AnimatePresence>
+          )}
         </div>
       </div>
 
@@ -902,43 +876,6 @@ function ScheduleForm({
     setLocalItems(updated);
   };
 
-  const handleExport = () => {
-    const dataStr = JSON.stringify(localItems, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${category.toLowerCase().replace(/\s+/g, '-')}-schedule.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const json = JSON.parse(event.target?.result as string);
-          if (Array.isArray(json)) {
-            setLocalItems(json);
-          } else {
-            alert('Invalid JSON format: Must be an array of schedule items');
-          }
-        } catch (err) {
-          alert('Failed to parse JSON file');
-        }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
-
   const handleSave = () => {
     onUpdate(localItems);
   };
@@ -950,27 +887,13 @@ function ScheduleForm({
       exit={{ opacity: 0, y: -20 }}
       className="max-w-3xl mx-auto"
     >
-      <div className="bg-surface border border-border rounded-2xl p-6 space-y-6 shadow-sm">
-        <div className="flex items-center justify-between">
+      <div className="bg-surface border border-border rounded-2xl p-4 md:p-6 space-y-6 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-text-main">{category}</h2>
             <p className="text-sm text-text-muted mt-1">Edit hours and locations</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={handleExport}
-              className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
-              title="Export JSON"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleImport}
-              className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm flex items-center gap-2 transition-colors text-text-main"
-              title="Import JSON"
-            >
-              <Upload className="w-4 h-4" />
-            </button>
+          <div className="flex gap-2 self-end md:self-auto">
             <button
               onClick={handleSave}
               className="px-4 py-2 bg-ballys-red/10 hover:bg-ballys-red/20 border border-ballys-red/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors text-ballys-red"
@@ -980,25 +903,10 @@ function ScheduleForm({
             </button>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2">
-          <button
-            onClick={onDeleteCategory}
-            className="px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm transition-colors"
-          >
-            Delete Category
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm transition-colors text-text-main"
-          >
-            Back
-          </button>
-        </div>
-
 
         <div className="space-y-4">
           {localItems.map((item, index) => (
-            <div key={index} className="flex gap-2 items-center bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-border">
+            <div key={index} className="flex flex-col md:flex-row gap-2 md:items-center bg-gray-50 dark:bg-slate-800 p-4 rounded-lg border border-border">
               <input
                 type="text"
                 value={item.name}
@@ -1015,7 +923,7 @@ function ScheduleForm({
               />
               <button
                 onClick={() => removeItem(index)}
-                className="p-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 border border-border hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-colors text-text-light hover:text-red-600 dark:hover:text-red-400"
+                className="p-2 bg-surface hover:bg-red-50 dark:hover:bg-red-900/20 border border-border hover:border-red-200 dark:hover:border-red-800 rounded-lg transition-colors text-text-light hover:text-red-600 dark:hover:text-red-400 self-end md:self-center"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -1028,6 +936,14 @@ function ScheduleForm({
             <Plus className="w-4 h-4" />
             Add Item
           </button>
+        </div>
+         <div className="flex justify-end pt-4 border-t border-border">
+            <button
+                onClick={onDeleteCategory}
+                className="px-4 py-2 text-red-600 text-sm font-medium hover:underline"
+            >
+                Delete Category
+            </button>
         </div>
       </div>
     </motion.div >
@@ -1266,42 +1182,36 @@ function EventForm({
     >
       <div className="bg-surface border border-border rounded-2xl shadow-lg overflow-hidden">
         {/* Form Header */}
-        <div className="px-6 py-4 border-b border-border bg-gray-50 dark:bg-slate-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+        <div className="px-4 md:px-6 py-4 border-b border-border bg-gray-50 dark:bg-slate-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
           <div className="flex items-center gap-4">
-             <button
-              onClick={onCancel}
-              className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition-colors text-text-muted"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2 text-text-main">
-                 {event.id.startsWith('event-') ? 'Create New Event' : 'Edit Event'}
+                 {event.id.startsWith('event-') ? 'New Event' : 'Edit Event'}
                  {formData.highlight && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}
               </h2>
-              <p className="text-xs text-text-muted">
-                {formData.title || 'Untitled Event'}
-              </p>
             </div>
           </div>
           <div className="flex gap-2">
-            <button
+             {/* Mobile: Just save icon. Desktop: Full button */}
+             <button
               onClick={() => onSave(formData, false)}
-              className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-700 border border-border rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
+              className="px-3 md:px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-700 border border-border rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
+              title="Save Draft"
             >
-              Save Draft
+              <span className="md:hidden"><Check className="w-4 h-4" /></span>
+              <span className="hidden md:inline">Draft</span>
             </button>
             <button
               onClick={() => onSave(formData, true)}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
+              className="px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
             >
-              <Globe className="w-4 h-4" />
-              Save & Publish
+               <Globe className="w-4 h-4" />
+              <span className="hidden md:inline">Publish</span>
             </button>
           </div>
         </div>
 
-        <div className="p-6 space-y-8">
+        <div className="p-4 md:p-6 space-y-8">
           {/* Title & Basic Info */}
           <div className="space-y-4">
              <div>
@@ -1310,9 +1220,8 @@ function EventForm({
                   type="text"
                   value={formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
-                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-xl font-bold placeholder:text-text-light/50 transition-all text-text-main"
+                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-ballys-red focus:ring-1 focus:ring-ballys-red text-lg md:text-xl font-bold placeholder:text-text-light/50 transition-all text-text-main"
                   placeholder="Enter event name..."
-                  autoFocus
                 />
              </div>
              
@@ -1383,16 +1292,16 @@ function EventForm({
 
           {/* Tabs for other sections */}
           <div className="border-t border-border pt-6">
-             <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg inline-flex border border-border">
+             <div className="flex gap-2 mb-6 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg inline-flex border border-border w-full md:w-auto overflow-x-auto">
                 <button 
                     onClick={() => setActiveTab('details')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'details' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+                    className={`flex-1 md:flex-none px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'details' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Details & Media
                 </button>
                  <button 
                     onClick={() => setActiveTab('time')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'time' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+                    className={`flex-1 md:flex-none px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'time' ? 'bg-surface text-text-main shadow-sm' : 'text-text-muted hover:text-text-main'}`}
                 >
                     Date & Time
                 </button>
@@ -1460,15 +1369,15 @@ function EventForm({
                                             type="text" 
                                             value={newTag}
                                             onChange={(e) => setNewTag(e.target.value)}
-                                            className="px-2 py-1 bg-gray-50 dark:bg-slate-800 border border-border rounded text-xs focus:outline-none focus:border-ballys-red text-text-main"
-                                            placeholder="New Tag Name"
+                                            className="px-2 py-1 bg-gray-50 dark:bg-slate-800 border border-border rounded text-xs focus:outline-none focus:border-ballys-red text-text-main w-20 md:w-auto"
+                                            placeholder="New Tag"
                                         />
                                         <button onClick={handleAddNewTag} disabled={!newTag.trim()} className="text-xs bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 px-2 py-1 rounded text-text-main disabled:opacity-50">
-                                            Save Tag
+                                            Save
                                         </button>
                                     </div>
                                     <button onClick={addMeta} className="text-xs text-ballys-red hover:text-ballys-darkRed font-medium flex items-center gap-1">
-                                        <Plus className="w-3 h-3" /> Add Tag
+                                        <Plus className="w-3 h-3" /> Add
                                     </button>
                                 </div>
                             </div>
@@ -1515,7 +1424,7 @@ function EventForm({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="bg-surface border border-border rounded-xl p-6"
+                        className="bg-surface border border-border rounded-xl p-4 md:p-6"
                     >
                          <div className="space-y-6">
                             <div className="flex items-center gap-3 mb-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg border border-border">
@@ -1546,13 +1455,13 @@ function EventForm({
                                         : 'bg-surface border-border text-text-muted hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-text-main'
                                         }`}
                                     >
-                                    {day}
+                                    {day.slice(0, 3)}
                                     </button>
                                 ))}
                                 </div>
                             </div>
                             ) : (
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                 <label className="block text-xs font-bold uppercase tracking-wider text-text-light mb-2">Start Date</label>
                                 <input
@@ -1695,7 +1604,7 @@ function EmptyState() {
         <Settings className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
         <h3 className="text-xl font-bold mb-2 text-text-main">No Event Selected</h3>
         <p className="text-text-muted text-sm">
-          Select an event from the sidebar to edit, or create a new event to get started.
+          Select an event from the list to edit, or create a new event to get started.
         </p>
       </div>
     </motion.div>
