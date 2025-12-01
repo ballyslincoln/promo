@@ -1,4 +1,4 @@
-import { AdminEvent } from '../types';
+import type { AdminEvent } from '../types';
 
 const formatDateForCalendar = (date: string, time?: string): string => {
   const cleanDate = date.replace(/-/g, '');
@@ -30,7 +30,6 @@ export const generateGoogleCalendarUrl = (event: AdminEvent): string => {
     let end = '';
     if (!endTime) {
         // Parse start time
-        const [h, m] = startTime.split(':').map(Number);
         // Create a date object to handle hour rollover
         const d = new Date(startDate + 'T' + startTime);
         d.setHours(d.getHours() + 1);
@@ -80,7 +79,6 @@ export const downloadICS = (event: AdminEvent) => {
       startLine = `DTSTART:${formatDateForCalendar(startDate, startTime)}`;
       
       if (!endTime) {
-           const [h, m] = startTime.split(':').map(Number);
            const d = new Date(startDate + 'T' + startTime);
            d.setHours(d.getHours() + 1);
            

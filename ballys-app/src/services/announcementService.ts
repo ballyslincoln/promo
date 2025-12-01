@@ -1,5 +1,5 @@
 import { sql } from '../db';
-import { Announcement } from '../types';
+import type { Announcement } from '../types';
 
 // Ensure the table exists
 export const initAnnouncementTable = async () => {

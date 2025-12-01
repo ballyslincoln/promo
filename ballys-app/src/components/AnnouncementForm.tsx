@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Announcement, AnnouncementType } from '../types';
+import type { Announcement, AnnouncementType } from '../types';
 
 export default function AnnouncementForm({
     announcement,

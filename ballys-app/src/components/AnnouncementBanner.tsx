@@ -1,5 +1,5 @@
 import React from 'react';
-import { Announcement } from '../types';
+import type { Announcement } from '../types';
 import { X, AlertTriangle, Info, AlertCircle } from 'lucide-react';
 
 interface Props {
