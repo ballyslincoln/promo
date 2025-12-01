@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send } from 'lucide-react';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send, ThumbsUp, Trash2 } from 'lucide-react';
 import type { AdminEvent, Interaction, User } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 import { interactionService } from '../services/interactionService';
@@ -80,7 +80,9 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
       type: 'comment',
       content: text,
       created_at: new Date().toISOString(),
-      username: currentUser?.username || 'Guest'
+      username: currentUser?.username || 'Guest',
+      likes: 0,
+      hasLiked: false
     };
 
     setComments(prev => [optimisticComment, ...prev]);
@@ -99,6 +101,39 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
       // Error, remove optimistic comment and restore text
       setComments(prev => prev.filter(c => c.id !== tempId));
       setCommentText(text);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    // Optimistic update
+    const prevComments = [...comments];
+    setComments(prev => prev.filter(c => c.id !== commentId));
+
+    const success = await interactionService.deleteInteraction(commentId);
+    if (!success) {
+      // Revert
+      setComments(prevComments);
+      alert("Failed to delete comment");
+    }
+  };
+
+  const handleToggleLike = async (commentId: string) => {
+    // Find comment
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    // Optimistic update
+    const newHasLiked = !comment.hasLiked;
+    const newLikes = newHasLiked ? (comment.likes || 0) + 1 : (comment.likes || 0) - 1;
+
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, hasLiked: newHasLiked, likes: newLikes } : c));
+
+    const success = await interactionService.toggleLike(commentId);
+    if (!success) {
+      // Revert (actually toggleLike returns boolean success, but complex logic might be needed if it failed to toggle specifically)
+      // For now assuming success means it worked as intended. If it returns false, it might mean network error.
+      // Let's just revert state if false.
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, hasLiked: !newHasLiked, likes: comment.likes } : c));
     }
   };
 
@@ -152,8 +187,8 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                   <div className="flex-1">
                     {event.property && event.property !== 'Both' && (
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2 inline-block shadow-sm ${event.property === 'Lincoln'
-                          ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                          : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                        ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                        : 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                         }`}>
                         {event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton"}
                       </span>
@@ -168,8 +203,8 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                     onClick={handleAddAura}
                     disabled={hasAura}
                     className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${hasAura
-                        ? 'bg-ballys-gold/20 text-yellow-600 dark:text-yellow-400 cursor-default'
-                        : 'bg-white/50 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 text-slate-500 dark:text-slate-400 hover:scale-105 active:scale-95'
+                      ? 'bg-ballys-gold/20 text-yellow-600 dark:text-yellow-400 cursor-default'
+                      : 'bg-white/50 dark:bg-black/30 hover:bg-white dark:hover:bg-black/50 text-slate-500 dark:text-slate-400 hover:scale-105 active:scale-95'
                       }`}
                   >
                     <Zap className={`w-6 h-6 ${hasAura ? 'fill-current' : ''}`} />
@@ -367,20 +402,42 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                       <p className="text-center text-sm text-slate-400 italic py-4">Be the first to share your thoughts!</p>
                     ) : (
                       comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3">
+                        <div key={comment.id} className="flex gap-3 group/comment">
                           <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700">
                             {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
                           </div>
-                          <div>
-                            <div className="flex items-baseline gap-2 mb-1">
-                              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{comment.username || 'Anonymous'}</span>
-                              <span className="text-[10px] text-slate-400">
-                                {new Date(comment.created_at).toLocaleDateString()}
-                              </span>
+                          <div className="flex-1">
+                            <div className="flex items-baseline justify-between mb-1">
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{comment.username || 'Anonymous'}</span>
+                                <span className="text-[10px] text-slate-400">
+                                  {new Date(comment.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {(currentUser && (currentUser.id === comment.user_id || currentUser.username === 'Admin')) && (
+                                <button
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="opacity-0 group-hover/comment:opacity-100 transition-opacity p-1 text-slate-400 hover:text-red-500"
+                                  title="Delete Comment"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
                             </div>
-                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg rounded-tl-none">
+                            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-lg rounded-tl-none mb-1">
                               {comment.content}
                             </p>
+
+                            {/* Like Button */}
+                            <div className="flex items-center gap-2 ml-1">
+                              <button
+                                onClick={() => handleToggleLike(comment.id)}
+                                className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${comment.hasLiked ? 'text-blue-500' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                              >
+                                <ThumbsUp className={`w-3 h-3 ${comment.hasLiked ? 'fill-current' : ''}`} />
+                                <span>{comment.likes || 0}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))

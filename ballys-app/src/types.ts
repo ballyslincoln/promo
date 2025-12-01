@@ -58,8 +58,10 @@ export interface Interaction {
   id: string;
   event_id: string;
   user_id: string;
-  type: 'aura' | 'comment';
+  type: 'aura' | 'comment' | 'like';
   content?: string;
   created_at: string;
   username?: string; // Joined field
+  likes?: number;
+  hasLiked?: boolean;
 }

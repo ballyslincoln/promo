@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, MessageSquarePlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, MessageSquarePlus, Zap, MessageSquare } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
+import { interactionService } from './services/interactionService';
 import BigCalendar from './components/Calendar/BigCalendar';
 import EventDetailsModal from './components/EventDetailsModal';
 import { ThemeToggle } from './components/ThemeToggle';
 
-// Helper to format date
 const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(date);
 };
@@ -89,6 +89,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     // Data state
     const [allEventRules, setAllEventRules] = useState<AdminEvent[]>([]);
     const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
+    const [stats, setStats] = useState<Record<string, { aura: number, comments: number }>>({});
 
     // UI State
     const [activeTab, setActiveTab] = useState<'events' | 'schedules'>('events');
@@ -120,6 +121,22 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     useEffect(() => {
         loadData();
     }, [previewEvents, previewSchedules]);
+
+    // Fetch stats for visible events
+    useEffect(() => {
+        const fetchStats = async () => {
+            const visibleEvents = allEventRules.filter(e => shouldShowEvent(e, selectedDate));
+            if (visibleEvents.length > 0) {
+                const ids = visibleEvents.map(e => e.id);
+                const newStats = await interactionService.getStatsForEvents(ids);
+                setStats(prev => ({ ...prev, ...newStats }));
+            }
+        };
+
+        if (viewMode === 'list' && activeTab === 'events' && allEventRules.length > 0) {
+            fetchStats();
+        }
+    }, [selectedDate, allEventRules, viewMode, activeTab]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -273,7 +290,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-4 px-4 py-4">
                     {/* Top Bar */}
                     <div className="w-full relative flex items-center justify-between min-h-[40px]">
-                        
+
                         {/* Logo & Title Area */}
                         <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                             <div className="relative">
@@ -317,8 +334,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     key={prop}
                                     onClick={() => setSelectedProperty(prop as any)}
                                     className={`relative z-10 px-4 py-1.5 text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 rounded-full ${selectedProperty === prop
-                                            ? 'text-white'
-                                            : 'text-text-muted hover:text-text-main'
+                                        ? 'text-white'
+                                        : 'text-text-muted hover:text-text-main'
                                         }`}
                                 >
                                     {selectedProperty === prop && (
@@ -440,8 +457,8 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                         key={tab}
                                         onClick={() => setActiveTab(tab as any)}
                                         className={`flex-1 py-2.5 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] relative z-10 transition-colors duration-300 ${activeTab === tab
-                                                ? 'text-ballys-red'
-                                                : 'text-text-muted hover:text-text-main'
+                                            ? 'text-ballys-red'
+                                            : 'text-text-muted hover:text-text-main'
                                             }`}
                                     >
                                         {activeTab === tab && (
@@ -508,16 +525,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Invited').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
-                                                    // Create a copy of the event with the selected date to ensure 
-                                                    // the modal shows the date we are currently looking at
-                                                    const eventWithDate = {
-                                                        ...e,
-                                                        startDate: selectedDate.toISOString().split('T')[0]
-                                                    };
-                                                    setSelectedEvent(eventWithDate);
-                                                    setIsModalOpen(true);
-                                                }} />
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    stats={stats[event.id]}
+                                                    onEdit={onEditEvent}
+                                                    onClick={(e) => {
+                                                        const eventWithDate = {
+                                                            ...e,
+                                                            startDate: selectedDate.toISOString().split('T')[0]
+                                                        };
+                                                        setSelectedEvent(eventWithDate);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Invited').length === 0 && (
@@ -533,16 +554,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Open').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
-                                                    // Create a copy of the event with the selected date to ensure 
-                                                    // the modal shows the date we are currently looking at
-                                                    const eventWithDate = {
-                                                        ...e,
-                                                        startDate: selectedDate.toISOString().split('T')[0]
-                                                    };
-                                                    setSelectedEvent(eventWithDate);
-                                                    setIsModalOpen(true);
-                                                }} />
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    stats={stats[event.id]}
+                                                    onEdit={onEditEvent}
+                                                    onClick={(e) => {
+                                                        const eventWithDate = {
+                                                            ...e,
+                                                            startDate: selectedDate.toISOString().split('T')[0]
+                                                        };
+                                                        setSelectedEvent(eventWithDate);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Open').length === 0 && (
@@ -558,16 +583,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Dining').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
-                                                    // Create a copy of the event with the selected date to ensure 
-                                                    // the modal shows the date we are currently looking at
-                                                    const eventWithDate = {
-                                                        ...e,
-                                                        startDate: selectedDate.toISOString().split('T')[0]
-                                                    };
-                                                    setSelectedEvent(eventWithDate);
-                                                    setIsModalOpen(true);
-                                                }} />
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    stats={stats[event.id]}
+                                                    onEdit={onEditEvent}
+                                                    onClick={(e) => {
+                                                        const eventWithDate = {
+                                                            ...e,
+                                                            startDate: selectedDate.toISOString().split('T')[0]
+                                                        };
+                                                        setSelectedEvent(eventWithDate);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Dining').length === 0 && (
@@ -583,16 +612,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Promo').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
-                                                    // Create a copy of the event with the selected date to ensure 
-                                                    // the modal shows the date we are currently looking at
-                                                    const eventWithDate = {
-                                                        ...e,
-                                                        startDate: selectedDate.toISOString().split('T')[0]
-                                                    };
-                                                    setSelectedEvent(eventWithDate);
-                                                    setIsModalOpen(true);
-                                                }} />
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    stats={stats[event.id]}
+                                                    onEdit={onEditEvent}
+                                                    onClick={(e) => {
+                                                        const eventWithDate = {
+                                                            ...e,
+                                                            startDate: selectedDate.toISOString().split('T')[0]
+                                                        };
+                                                        setSelectedEvent(eventWithDate);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Promo').length === 0 && (
@@ -608,16 +641,20 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Entertainment').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
-                                                    // Create a copy of the event with the selected date to ensure 
-                                                    // the modal shows the date we are currently looking at
-                                                    const eventWithDate = {
-                                                        ...e,
-                                                        startDate: selectedDate.toISOString().split('T')[0]
-                                                    };
-                                                    setSelectedEvent(eventWithDate);
-                                                    setIsModalOpen(true);
-                                                }} />
+                                                <EventCard
+                                                    key={event.id}
+                                                    event={event}
+                                                    stats={stats[event.id]}
+                                                    onEdit={onEditEvent}
+                                                    onClick={(e) => {
+                                                        const eventWithDate = {
+                                                            ...e,
+                                                            startDate: selectedDate.toISOString().split('T')[0]
+                                                        };
+                                                        setSelectedEvent(eventWithDate);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Entertainment').length === 0 && (
@@ -686,7 +723,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                         &copy; Bally's Corporation {new Date().getFullYear()} All Rights Reserved
                     </p>
                     <div className="pt-2 flex items-center justify-center gap-3 text-[9px] text-text-light/70 font-mono uppercase tracking-wider">
-                        <span>v8.3</span>
+                        <span>v8.4</span>
                         <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
                         <span>Created in Lincoln, RI</span>
                     </div>
@@ -793,10 +830,6 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
     );
 }
 
-// Old calendar view removed in favor of BigCalendar
-// function CalendarView... was here
-
-
 function Section({ title, icon, children, onAddEvent }: { title: string, icon: React.ReactNode, children: React.ReactNode, onAddEvent?: () => void }) {
     return (
         <div className="mb-8">
@@ -835,7 +868,7 @@ function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () 
     );
 }
 
-function EventCard({ event, onEdit, onClick }: { event: Event, onEdit?: (event: Event) => void, onClick?: (event: Event) => void }) {
+function EventCard({ event, stats, onEdit, onClick }: { event: Event, stats?: { aura: number, comments: number }, onEdit?: (event: Event) => void, onClick?: (event: Event) => void }) {
     return (
         <div
             onClick={() => onClick && onClick(event)}
@@ -918,16 +951,38 @@ function EventCard({ event, onEdit, onClick }: { event: Event, onEdit?: (event: 
                     </ul>
                 )}
 
-                {event.meta && (
-                    <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-border">
-                        {event.meta.map((meta, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border group-hover:border-gray-300 dark:group-hover:border-gray-600 transition-colors">
-                                <span className="text-[9px] font-bold text-text-light uppercase tracking-wider">{meta.label}</span>
-                                <span className="text-xs text-text-main font-medium">{meta.value}</span>
-                            </div>
-                        ))}
+                <div className="flex items-center justify-between mt-5 pt-5 border-t border-border">
+                    {event.meta ? (
+                        <div className="flex flex-wrap gap-2">
+                            {event.meta.map((meta, idx) => (
+                                <div key={idx} className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border group-hover:border-gray-300 dark:group-hover:border-gray-600 transition-colors">
+                                    <span className="text-[9px] font-bold text-text-light uppercase tracking-wider">{meta.label}</span>
+                                    <span className="text-xs text-text-main font-medium">{meta.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : <div />}
+
+                    {/* Stats Preview */}
+                    <div className="flex items-center gap-3 ml-auto pl-2">
+                        {stats && (stats.aura > 0 || stats.comments > 0) && (
+                            <>
+                                {stats.aura > 0 && (
+                                    <div className="flex items-center gap-1 text-yellow-500">
+                                        <Zap className="w-3.5 h-3.5 fill-current" />
+                                        <span className="text-xs font-bold">{stats.aura}</span>
+                                    </div>
+                                )}
+                                {stats.comments > 0 && (
+                                    <div className="flex items-center gap-1 text-text-muted">
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                        <span className="text-xs font-bold">{stats.comments}</span>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
