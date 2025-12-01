@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2 } from 'lucide-react';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download } from 'lucide-react';
 import type { AdminEvent } from '../types';
+import { generateGoogleCalendarUrl, downloadICS } from '../services/calendarService';
 
 interface EventDetailsModalProps {
   event: AdminEvent | null;
@@ -113,6 +114,26 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                         </div>
                     </div>
                  )}
+              </div>
+
+              {/* Add to Calendar Actions */}
+              <div className="flex flex-wrap gap-3 mb-8">
+                <a
+                  href={generateGoogleCalendarUrl(event)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                >
+                  <CalendarPlus className="w-4 h-4 text-blue-500" />
+                  Add to Google Calendar
+                </a>
+                <button
+                  onClick={() => downloadICS(event)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                >
+                  <Download className="w-4 h-4 text-green-500" />
+                  Download .ICS File
+                </button>
               </div>
 
               <div className="space-y-6">

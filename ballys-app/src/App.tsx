@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import AdminPanel from './AdminPanel';
+import AnnouncementBanner from './components/AnnouncementBanner';
+import { getActiveAnnouncement, initAnnouncementTable } from './services/announcementService';
+import type { Announcement } from './types';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -20,6 +23,16 @@ function App() {
     return false;
   });
   const [showAdmin, setShowAdmin] = useState(false);
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+
+  useEffect(() => {
+    const checkAnnouncement = async () => {
+        await initAnnouncementTable();
+        const active = await getActiveAnnouncement();
+        setAnnouncement(active);
+    };
+    checkAnnouncement();
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -58,28 +71,46 @@ function App() {
     };
   }, [isAuthenticated]);
 
-  if (showAdmin) {
-    return <AdminPanel onClose={() => setShowAdmin(false)} />;
-  }
+  const handleDismissAnnouncement = () => {
+    setAnnouncement(null);
+  };
 
-  if (!isAuthenticated) {
-    return (
-      <Login
-        onLogin={() => {
-            setIsAuthenticated(true);
-            localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
-        }}
-        onAdminLogin={() => {
-            setShowAdmin(true);
-            // If logging in via admin shortcut, also authenticate
-            setIsAuthenticated(true);
-            localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
-        }}
-      />
-    );
-  }
+  const renderContent = () => {
+      if (showAdmin) {
+        return <AdminPanel onClose={() => setShowAdmin(false)} />;
+      }
+    
+      if (!isAuthenticated) {
+        return (
+          <Login
+            onLogin={() => {
+                setIsAuthenticated(true);
+                localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
+            }}
+            onAdminLogin={() => {
+                setShowAdmin(true);
+                // If logging in via admin shortcut, also authenticate
+                setIsAuthenticated(true);
+                localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
+            }}
+          />
+        );
+      }
+    
+      return <Dashboard onAdminOpen={() => setShowAdmin(true)} />;
+  };
 
-  return <Dashboard onAdminOpen={() => setShowAdmin(true)} />;
+  return (
+    <>
+        {announcement && (
+            <AnnouncementBanner 
+                announcement={announcement} 
+                onDismiss={handleDismissAnnouncement} 
+            />
+        )}
+        {renderContent()}
+    </>
+  );
 }
 
 export default App;

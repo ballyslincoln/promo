@@ -26,3 +26,12 @@ CREATE TABLE IF NOT EXISTS tags (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE
 );
+
+CREATE TABLE IF NOT EXISTS announcements (
+  id TEXT PRIMARY KEY,
+  message TEXT NOT NULL,
+  type TEXT NOT NULL,
+  active BOOLEAN DEFAULT TRUE,
+  "expirationDate" TEXT,
+  "createdAt" TEXT NOT NULL
+);

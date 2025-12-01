@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Plus, Trash2, Upload, Download,
-  AlertCircle, FileText, Star, Settings, Check, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Menu
+  AlertCircle, FileText, Star, Settings, Check, Globe, Eye, ArrowUpDown, ChevronLeft, Search, Menu,
+  Megaphone
 } from 'lucide-react';
-import type { AdminEvent, ScheduleItem } from './types';
+import type { AdminEvent, ScheduleItem, Announcement } from './types';
 import { eventService } from './services/eventService';
+import { getAllAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement } from './services/announcementService';
+import AnnouncementForm from './components/AnnouncementForm';
 import Dashboard from './Dashboard';
 import BigCalendar from './components/Calendar/BigCalendar';
 
@@ -17,6 +20,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [events, setEvents] = useState<AdminEvent[]>([]);
   const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   
   // Persisted state (live copy)
   const [savedEvents, setSavedEvents] = useState<AdminEvent[]>([]);
@@ -29,7 +33,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [bulkJson, setBulkJson] = useState('');
-  const [activeView, setActiveView] = useState<'events' | 'schedules'>('events');
+  const [activeView, setActiveView] = useState<'events' | 'schedules' | 'announcements'>('events');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [previewEditId, setPreviewEditId] = useState<string | null>(null);
@@ -54,6 +58,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     const loadedEvents = await eventService.getEvents();
     const loadedSchedules = await eventService.getSchedules();
     const loadedTags = await eventService.getTags();
+    const loadedAnnouncements = await getAllAnnouncements();
     
     setEvents(loadedEvents);
     setSavedEvents(JSON.parse(JSON.stringify(loadedEvents))); // Deep copy
@@ -62,6 +67,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
     setSavedSchedules(JSON.parse(JSON.stringify(loadedSchedules))); // Deep copy
 
     setAvailableTags(loadedTags);
+    setAnnouncements(loadedAnnouncements);
   };
 
   useEffect(() => {
@@ -550,6 +556,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                   >
                     Schedules
                   </button>
+                  <button
+                    onClick={() => setActiveView('announcements')}
+                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${activeView === 'announcements'
+                      ? 'bg-surface text-text-main shadow-sm'
+                      : 'text-text-muted hover:text-text-main'
+                      }`}
+                  >
+                    Alerts
+                  </button>
                 </div>
              </div>
 
@@ -706,6 +721,61 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 )}
               </div>
             </div>
+          ) : activeView === 'announcements' ? (
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted">Global Alerts</h3>
+                <button 
+                   onClick={() => {
+                       setEditingId('new-announcement');
+                       setShowAddForm(true);
+                   }}
+                   className="px-3 py-1.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg text-xs font-medium flex items-center gap-2 transition-colors text-white shadow-sm"
+                >
+                   <Plus className="w-3 h-3" />
+                   New
+                </button>
+              </div>
+              <div className="space-y-2">
+                {announcements.map(ann => (
+                   <div 
+                       key={ann.id}
+                       onClick={() => {
+                           setEditingId(ann.id);
+                           setShowAddForm(true);
+                       }}
+                       className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden ${editingId === ann.id ? 'bg-red-50 border-red-200' : 'bg-surface border-border hover:bg-gray-50'}`}
+                   >
+                       {ann.active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500" />}
+                       <div className="flex items-start gap-3 pl-2">
+                            {ann.type === 'error' && <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />}
+                            {ann.type === 'warning' && <AlertCircle className="w-4 h-4 text-yellow-500 mt-0.5" />}
+                            {ann.type === 'info' && <Megaphone className="w-4 h-4 text-blue-500 mt-0.5" />}
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-text-main line-clamp-2">{ann.message}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                                        ann.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                                    }`}>
+                                        {ann.active ? 'Active' : 'Inactive'}
+                                    </span>
+                                    {ann.expirationDate && (
+                                        <span className="text-[10px] text-text-muted truncate">
+                                            Exp: {new Date(ann.expirationDate).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                       </div>
+                   </div>
+               ))}
+               {announcements.length === 0 && (
+                   <div className="text-center py-8 text-text-light text-sm border border-dashed border-border rounded-lg">
+                       No alerts found
+                   </div>
+               )}
+              </div>
+            </div>
           ) : (
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
@@ -808,6 +878,48 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               ) : (
                 <EmptyState />
               )
+            ) : activeView === 'announcements' ? (
+                editingId ? (
+                    <AnnouncementForm 
+                        announcement={announcements.find(a => a.id === editingId) || null}
+                        onSave={async (ann) => {
+                            if (announcements.some(a => a.id === ann.id)) {
+                                await updateAnnouncement(ann);
+                            } else {
+                                await createAnnouncement(ann);
+                            }
+                            const loaded = await getAllAnnouncements();
+                            setAnnouncements(loaded);
+                            setEditingId(null);
+                            setShowAddForm(false);
+                            showToast('Alert saved successfully');
+                        }}
+                        onDelete={async (id) => {
+                            if (confirm('Delete this alert?')) {
+                                await deleteAnnouncement(id);
+                                const loaded = await getAllAnnouncements();
+                                setAnnouncements(loaded);
+                                setEditingId(null);
+                                setShowAddForm(false);
+                                showToast('Alert deleted');
+                            }
+                        }}
+                        onCancel={() => {
+                            setEditingId(null);
+                            setShowAddForm(false);
+                        }}
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <div className="bg-surface border border-border rounded-2xl p-8 md:p-12 max-w-md shadow-sm mx-auto">
+                            <Megaphone className="w-12 h-12 md:w-16 md:h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                            <h3 className="text-xl font-bold mb-2 text-text-main">Manage Alerts</h3>
+                            <p className="text-text-muted text-sm">
+                                Select an alert to edit or create a new one.
+                            </p>
+                        </div>
+                    </div>
+                )
             ) : editingId && schedules[editingId] ? (
               <ScheduleForm
                 category={editingId}

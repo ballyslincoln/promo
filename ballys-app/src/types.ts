@@ -36,3 +36,13 @@ export interface ScheduleItem {
   time: string;
 }
 
+export type AnnouncementType = 'info' | 'warning' | 'error';
+
+export interface Announcement {
+  id: string;
+  message: string;
+  type: AnnouncementType;
+  active: boolean;
+  expirationDate?: string; // ISO string
+  createdAt: string; // ISO string
+}
