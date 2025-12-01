@@ -21,8 +21,40 @@ const generateUsername = () => {
     return `${adj}${noun}${num}`;
 };
 
+// Initialize DB Tables
+const initDB = async (sql) => {
+    try {
+        await sql`
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                ip_address TEXT NOT NULL UNIQUE,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+        `;
+        await sql`
+            CREATE TABLE IF NOT EXISTS interactions (
+                id TEXT PRIMARY KEY,
+                event_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                content TEXT,
+                created_at TEXT NOT NULL
+            );
+        `;
+        // We can add other tables here if needed, but these are critical for interactions
+    } catch (e) {
+        console.error('Failed to init DB tables in API:', e);
+    }
+};
+
 export default async (req, context) => {
     // Use DATABASE_URL from environment
+    if (!process.env.DATABASE_URL) {
+        console.error('DATABASE_URL is missing in environment variables');
+        return new Response(JSON.stringify({ error: 'Database configuration missing' }), { status: 500 });
+    }
+
     const sql = neon(process.env.DATABASE_URL);
 
     // Get IP from Netlify headers
@@ -40,6 +72,9 @@ export default async (req, context) => {
     }
 
     try {
+        // Ensure tables exist (lazy init)
+        await initDB(sql);
+
         // 1. Get or Create User based on IP
         let user;
         // Only try to find/create user if we have a valid IP (not unknown, though locally it might be unknown)

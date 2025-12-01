@@ -3,6 +3,22 @@ import type { Interaction, User } from '../types';
 import { generateId } from '../utils';
 import { userService } from './userService';
 
+const LOCAL_STORAGE_KEY = 'ballys_interactions';
+
+const getLocalInteractions = (): Interaction[] => {
+  try {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+const saveLocalInteraction = (interaction: Interaction) => {
+  const current = getLocalInteractions();
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([...current, interaction]));
+};
+
 export const interactionService = {
   // Add +1 Aura
   async addAura(eventId: string): Promise<boolean> {
@@ -21,12 +37,32 @@ export const interactionService = {
     } catch (e) {
       console.warn('API unavailable, falling back to direct DB', e);
 
-      if (!sql) return false;
+      const user = await userService.getOrCreateUser();
+      if (!user) return false;
+
+      if (!sql) {
+        // LocalStorage Fallback
+        const interactions = getLocalInteractions();
+        const existing = interactions.find(i =>
+          i.event_id === eventId &&
+          i.user_id === user.id &&
+          i.type === 'aura'
+        );
+
+        if (existing) return false;
+
+        const interaction: Interaction = {
+          id: generateId(),
+          event_id: eventId,
+          user_id: user.id,
+          type: 'aura',
+          created_at: new Date().toISOString()
+        };
+        saveLocalInteraction(interaction);
+        return true;
+      }
 
       try {
-        const user = await userService.getOrCreateUser();
-        if (!user) return false;
-
         // Check duplicate
         const existing = await sql`
             SELECT id FROM interactions 
@@ -69,12 +105,36 @@ export const interactionService = {
     } catch (e) {
       console.warn('API unavailable, falling back to direct DB', e);
 
-      if (!sql) return null;
+      const user = await userService.getOrCreateUser();
+      if (!user) return null;
+
+      if (!sql) {
+        // LocalStorage Fallback
+        const interactions = getLocalInteractions();
+        const lastComment = interactions
+          .filter(i => i.user_id === user.id && i.type === 'comment')
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+        if (lastComment) {
+          const lastTime = new Date(lastComment.created_at).getTime();
+          const now = new Date().getTime();
+          if (now - lastTime < 5000) return null; // Rate limit
+        }
+
+        const interaction: Interaction = {
+          id: generateId(),
+          event_id: eventId,
+          user_id: user.id,
+          type: 'comment',
+          content,
+          created_at: new Date().toISOString(),
+          username: user.username
+        };
+        saveLocalInteraction(interaction);
+        return interaction;
+      }
 
       try {
-        const user = await userService.getOrCreateUser();
-        if (!user) return null;
-
         // Rate limit check (simple)
         const lastComment = await sql`
             SELECT created_at FROM interactions
@@ -138,12 +198,28 @@ export const interactionService = {
     } catch (e) {
       console.warn('API unavailable, falling back to direct DB', e);
 
-      if (!sql) return { auraCount: 0, comments: [], hasUserAura: false };
+      const user = await userService.getOrCreateUser();
+      if (!user) return { auraCount: 0, comments: [], hasUserAura: false };
+
+      if (!sql) {
+        // LocalStorage Fallback
+        const interactions = getLocalInteractions();
+
+        const auraCount = interactions.filter(i => i.event_id === eventId && i.type === 'aura').length;
+        const hasUserAura = interactions.some(i => i.event_id === eventId && i.user_id === user.id && i.type === 'aura');
+        const comments = interactions
+          .filter(i => i.event_id === eventId && i.type === 'comment')
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        return {
+          auraCount,
+          comments,
+          hasUserAura,
+          currentUser: user
+        };
+      }
 
       try {
-        const user = await userService.getOrCreateUser();
-        if (!user) return { auraCount: 0, comments: [], hasUserAura: false };
-
         const auraResult = await sql`
             SELECT COUNT(*) as count FROM interactions 
             WHERE event_id = ${eventId} AND type = 'aura'
@@ -188,4 +264,3 @@ export const interactionService = {
     }
   }
 };
-
