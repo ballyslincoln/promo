@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download } from 'lucide-react';
 import type { AdminEvent } from '../types';
-import { generateGoogleCalendarUrl, generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
+import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 
 interface EventDetailsModalProps {
   event: AdminEvent | null;
