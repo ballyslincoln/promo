@@ -199,8 +199,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                 // Show if property matches OR if property is 'Both' (or undefined which defaults to Both)
                 const prop = e.property || 'Both';
                 return prop === 'Both' || prop === selectedProperty;
-            })
-            .map(({ startDate, endDate, startTime, endTime, daysOfWeek, isRecurring, ...event }) => event);
+            });
     }, [allEventRules, selectedDate, selectedProperty]);
 
     // Computed events for calendar view - filtered by property but NOT date
@@ -506,7 +505,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Invited').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
+                                                    // Create a copy of the event with the selected date to ensure 
+                                                    // the modal shows the date we are currently looking at
+                                                    const eventWithDate = {
+                                                        ...e,
+                                                        startDate: selectedDate.toISOString().split('T')[0]
+                                                    };
+                                                    setSelectedEvent(eventWithDate);
+                                                    setIsModalOpen(true);
+                                                }} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Invited').length === 0 && (
@@ -522,7 +530,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Open').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
+                                                    // Create a copy of the event with the selected date to ensure 
+                                                    // the modal shows the date we are currently looking at
+                                                    const eventWithDate = {
+                                                        ...e,
+                                                        startDate: selectedDate.toISOString().split('T')[0]
+                                                    };
+                                                    setSelectedEvent(eventWithDate);
+                                                    setIsModalOpen(true);
+                                                }} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Open').length === 0 && (
@@ -538,7 +555,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Dining').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
+                                                    // Create a copy of the event with the selected date to ensure 
+                                                    // the modal shows the date we are currently looking at
+                                                    const eventWithDate = {
+                                                        ...e,
+                                                        startDate: selectedDate.toISOString().split('T')[0]
+                                                    };
+                                                    setSelectedEvent(eventWithDate);
+                                                    setIsModalOpen(true);
+                                                }} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Dining').length === 0 && (
@@ -554,7 +580,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Promo').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
+                                                    // Create a copy of the event with the selected date to ensure 
+                                                    // the modal shows the date we are currently looking at
+                                                    const eventWithDate = {
+                                                        ...e,
+                                                        startDate: selectedDate.toISOString().split('T')[0]
+                                                    };
+                                                    setSelectedEvent(eventWithDate);
+                                                    setIsModalOpen(true);
+                                                }} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Promo').length === 0 && (
@@ -570,7 +605,16 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
                                     >
                                         <div className="space-y-4">
                                             {events.filter(e => e.category === 'Entertainment').map((event) => (
-                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} />
+                                                <EventCard key={event.id} event={event} onEdit={onEditEvent} onClick={(e) => {
+                                                    // Create a copy of the event with the selected date to ensure 
+                                                    // the modal shows the date we are currently looking at
+                                                    const eventWithDate = {
+                                                        ...e,
+                                                        startDate: selectedDate.toISOString().split('T')[0]
+                                                    };
+                                                    setSelectedEvent(eventWithDate);
+                                                    setIsModalOpen(true);
+                                                }} />
                                             ))}
                                         </div>
                                         {events.filter(e => e.category === 'Entertainment').length === 0 && (
@@ -777,10 +821,11 @@ function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () 
     );
 }
 
-function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) => void }) {
+function EventCard({ event, onEdit, onClick }: { event: Event, onEdit?: (event: Event) => void, onClick?: (event: Event) => void }) {
     return (
         <div
-            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] [will-change:transform] ${event.highlight
+            onClick={() => onClick && onClick(event)}
+            className={`glass-card relative overflow-hidden rounded-2xl border transition-all duration-200 group transform-gpu [backface-visibility:hidden] [will-change:transform] cursor-pointer ${event.highlight
                 ? 'bg-gradient-to-br from-ballys-gold/10 to-surface/80 border-ballys-gold/30 shadow-lg'
                 : 'hover:bg-surface/80 hover:border-ballys-red/20'
                 }`}
@@ -830,14 +875,14 @@ function EventCard({ event, onEdit }: { event: Event, onEdit?: (event: Event) =>
                         {event.media.map((item, idx) => (
                             <div key={idx} className="relative rounded-lg overflow-hidden border border-border bg-gray-50 dark:bg-slate-800 group/media">
                                 {item.type === 'image' ? (
-                                    <div className="aspect-video relative cursor-pointer" onClick={() => window.open(item.url, '_blank')}>
+                                    <div className="aspect-video relative cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(item.url, '_blank'); }}>
                                         <img src={item.url} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/media:scale-110" />
                                         <div className="absolute inset-0 bg-black/0 group-hover/media:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover/media:opacity-100">
                                             <span className="text-xs font-bold uppercase tracking-wider text-white bg-black/50 px-2 py-1 rounded backdrop-blur-md">View</span>
                                         </div>
                                     </div>
                                 ) : (
-                                    <a href={item.url} download={item.name} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors aspect-video text-center">
+                                    <a href={item.url} download={item.name} onClick={(e) => e.stopPropagation()} className="flex flex-col items-center justify-center p-4 gap-2 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors aspect-video text-center">
                                         <FileText className="w-8 h-8 text-text-light group-hover/media:text-text-main transition-colors" />
                                         <span className="text-xs text-text-muted group-hover/media:text-text-main truncate w-full px-2">{item.name}</span>
                                         <span className="text-[9px] uppercase tracking-wider text-text-light bg-surface border border-border px-2 py-0.5 rounded">PDF</span>

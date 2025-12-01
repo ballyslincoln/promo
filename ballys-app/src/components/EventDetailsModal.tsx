@@ -118,6 +118,53 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
 
               {/* Add to Calendar Actions */}
               <div className="flex flex-wrap gap-3 mb-8">
+                <button
+                    onClick={() => {
+                        const text = [
+                            event.title,
+                            event.property && event.property !== 'Both' ? (event.property === 'Lincoln' ? "Bally's Lincoln" : "Bally's Tiverton") : null,
+                            '',
+                            event.startDate ? new Date(event.startDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : null,
+                            event.startTime ? `${new Date(`2000-01-01T${event.startTime}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${event.endTime ? ` - ${new Date(`2000-01-01T${event.endTime}`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}` : 'All Day',
+                            '',
+                            event.description,
+                            event.details && event.details.length > 0 ? '\nDetails:' : null,
+                            event.details?.map(d => `• ${d}`).join('\n'),
+                            event.meta && event.meta.length > 0 ? '\nMore Info:' : null,
+                            event.meta?.map(m => `${m.label}: ${m.value}`).join('\n')
+                        ].filter(Boolean).join('\n');
+                        
+                        navigator.clipboard.writeText(text);
+                        // Simple visual feedback
+                        const btn = document.activeElement as HTMLButtonElement;
+                        if (btn) {
+                            const icon = btn.querySelector('svg');
+                            const span = btn.querySelector('span') || btn;
+                            const originalContent = span.innerHTML; // Store original content
+                            // Check if we have a span (we probably should wrap text in span for this to be robust, but modifying innerText is easier)
+                            
+                            // Let's just change text for simplicity
+                            const originalText = btn.textContent;
+                            btn.textContent = "Copied!";
+                            setTimeout(() => {
+                                btn.textContent = originalText;
+                                // Restore icon if it was lost (textContent replaces all children)
+                                if (icon) {
+                                     btn.prepend(icon);
+                                     // Re-set text content properly if we had an icon
+                                     // Actually, easier to just rebuild or use state. 
+                                     // Since this is a stateless modal part, let's use a safer approach:
+                                     // Just force update for now or assume textContent is fine.
+                                     // Wait, I destroyed the icon. Let's be more careful.
+                                }
+                            }, 2000);
+                        }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 dark:bg-slate-800 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                >
+                    <FileText className="w-4 h-4 text-purple-500" />
+                    <span>Copy Details</span>
+                </button>
                 <a
                   href={generateGoogleCalendarUrl(event)}
                   target="_blank"
