@@ -3,7 +3,7 @@ import { dropSheetService } from '../../services/dropSheetService';
 import type { MailJob } from '../../services/dropSheetService';
 import JobCard from './JobCard';
 import AddJobModal from './AddJobModal';
-import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { SEED_JOBS } from '../../services/seedData';
 
@@ -17,6 +17,16 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date()); // Default to today (which will be Jan 2026 or current real time)
     const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+
+    // Mass Selection & Delete
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+
+    // Sort Configuration
+    const [sortConfig, setSortConfig] = useState<{ field: 'in_home_date' | 'vendor_mail_date', direction: 'asc' | 'desc' }>({
+        field: 'in_home_date',
+        direction: 'asc'
+    });
 
     useEffect(() => {
         loadJobs();
@@ -64,6 +74,75 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         }
         await loadJobs();
         setIsLoading(false);
+    };
+
+    const handleToggleSelect = (id: string, selected: boolean) => {
+        const newSelected = new Set(selectedJobIds);
+        if (selected) {
+            newSelected.add(id);
+        } else {
+            newSelected.delete(id);
+        }
+        setSelectedJobIds(newSelected);
+    };
+
+    const handleMassDelete = async () => {
+        if (!confirm(`Are you sure you want to delete ${selectedJobIds.size} jobs?`)) return;
+        setIsLoading(true);
+        
+        const ids = Array.from(selectedJobIds);
+        
+        // Optimistic update
+        setJobs(prev => prev.filter(j => !selectedJobIds.has(j.id)));
+        setSelectedJobIds(new Set());
+        setIsSelectionMode(false);
+
+        for (const id of ids) {
+            try {
+                await dropSheetService.deleteJob(id);
+            } catch (e) {
+                console.error(`Failed to delete job ${id}`, e);
+            }
+        }
+        setIsLoading(false);
+    };
+
+    const handleAnalyzeDuplicates = () => {
+        const groups = new Map<string, MailJob[]>();
+        
+        // Group by Campaign Name + Property + In-Home Date
+        jobs.forEach(job => {
+            const key = `${job.campaign_name?.trim().toLowerCase()}|${job.property}|${job.in_home_date}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key)?.push(job);
+        });
+
+        const potentialDuplicates: MailJob[] = [];
+        groups.forEach((group) => {
+            if (group.length > 1) {
+                potentialDuplicates.push(...group);
+            }
+        });
+
+        if (potentialDuplicates.length === 0) {
+            alert("No obvious duplicates found based on Campaign Name, Property, and In-Home Date.");
+            return;
+        }
+
+        const shouldSelect = confirm(`Found ${potentialDuplicates.length} potential duplicates (Same Name + Property + Date). Switch to selection mode with these highlighted?`);
+        if (shouldSelect) {
+            setIsSelectionMode(true);
+            const ids = new Set<string>();
+            potentialDuplicates.forEach(j => ids.add(j.id));
+            setSelectedJobIds(ids);
+        }
+    };
+    
+    const toggleSort = () => {
+        setSortConfig(prev => ({
+            ...prev,
+            direction: prev.direction === 'asc' ? 'desc' : 'asc'
+        }));
     };
 
     const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,6 +281,17 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         return matchesProperty && matchesMonth;
     });
 
+    const sortedFilteredJobs = [...filteredJobs].sort((a, b) => {
+        const dateA = a[sortConfig.field] ? new Date(a[sortConfig.field]).getTime() : 0;
+        const dateB = b[sortConfig.field] ? new Date(b[sortConfig.field]).getTime() : 0;
+        
+        if (sortConfig.direction === 'asc') {
+            return dateA - dateB;
+        } else {
+            return dateB - dateA;
+        }
+    });
+
     return (
         <div className="min-h-screen bg-background p-6">
             <div className="max-w-7xl mx-auto">
@@ -255,8 +345,62 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                 </div>
 
                 {/* Toolbar */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {/* Selection Controls */}
+                        {isSelectionMode ? (
+                            <>
+                                <button 
+                                    onClick={() => setIsSelectionMode(false)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <X className="w-4 h-4 text-text-muted" />
+                                    <span className="text-sm font-medium text-text-main">Cancel</span>
+                                </button>
+                                <button 
+                                    onClick={handleMassDelete}
+                                    disabled={selectedJobIds.size === 0}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-600 border border-red-200 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Delete ({selectedJobIds.size})</span>
+                                </button>
+                            </>
+                        ) : (
+                            <button 
+                                onClick={() => setIsSelectionMode(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                title="Mass Delete / Select"
+                            >
+                                <ListChecks className="w-4 h-4 text-text-muted" />
+                                <span className="text-sm font-medium text-text-main">Select</span>
+                            </button>
+                        )}
+
+                        {/* Analyze Duplicates */}
+                        <button 
+                            onClick={handleAnalyzeDuplicates}
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            title="Find duplicate jobs"
+                        >
+                            <AlertTriangle className="w-4 h-4 text-text-muted" />
+                            <span className="text-sm font-medium text-text-main">Duplicates</span>
+                        </button>
+
+                        {/* Sort */}
+                        <button 
+                            onClick={toggleSort}
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            title={`Sort by ${sortConfig.field === 'in_home_date' ? 'In-Home Date' : 'Vendor Mail Date'} (${sortConfig.direction})`}
+                        >
+                            <ArrowUpDown className={`w-4 h-4 text-text-muted transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                            <span className="text-sm font-medium text-text-main">
+                                {sortConfig.field === 'in_home_date' ? 'Due Date' : 'Mail Date'}
+                            </span>
+                        </button>
+
+                        <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+
                         {/* Export JSON */}
                         <button 
                             onClick={handleExportJSON}
@@ -272,13 +416,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                             <Plus className="w-4 h-4 text-text-muted" />
                             <span className="text-sm font-medium text-text-main">Import JSON</span>
                             <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
-                        </label>
-
-                         {/* Import CSV (Hidden or secondary? Keeping it for now as requested 'fix import csv') */}
-                        <label className="hidden flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                            <Upload className="w-4 h-4 text-text-muted" />
-                            <span className="text-sm font-medium text-text-main">Import CSV</span>
-                            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
                         </label>
                         
                         {/* Seed Data Button */}
@@ -305,18 +442,21 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                 <div className="space-y-4">
                     {isLoading ? (
                         <div className="text-center py-20 text-text-muted">Loading campaigns...</div>
-                    ) : filteredJobs.length === 0 ? (
+                    ) : sortedFilteredJobs.length === 0 ? (
                         <div className="text-center py-20 bg-surface border border-dashed border-border rounded-xl">
                             <p className="text-text-muted mb-2">No active campaigns found for {format(currentMonth, 'MMMM yyyy')}</p>
                             <p className="text-xs text-text-light">Change the month or add a new job to get started</p>
                         </div>
                     ) : (
-                        filteredJobs.map(job => (
+                        sortedFilteredJobs.map(job => (
                             <JobCard 
                                 key={job.id} 
                                 job={job} 
                                 onUpdate={handleUpdateJob} 
                                 onDelete={handleDeleteJob} 
+                                isSelectionMode={isSelectionMode}
+                                isSelected={selectedJobIds.has(job.id)}
+                                onToggleSelect={handleToggleSelect}
                             />
                         ))
                     )}

@@ -8,6 +8,9 @@ interface JobCardProps {
     job: MailJob;
     onUpdate: (job: MailJob) => void;
     onDelete: (id: string) => void;
+    isSelectionMode?: boolean;
+    isSelected?: boolean;
+    onToggleSelect?: (id: string, selected: boolean) => void;
 }
 
 const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>> = {
@@ -21,7 +24,7 @@ const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>
     sent_to_vendor: []
 };
 
-export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
+export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSelected, onToggleSelect }: JobCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editedJob, setEditedJob] = useState<MailJob>(job);
 
@@ -97,8 +100,24 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
     };
 
     return (
-        <div className="bg-surface border border-border rounded-xl p-4 mb-3 shadow-sm hover:shadow-md transition-shadow">
+        <div className={`bg-surface border rounded-xl p-4 mb-3 shadow-sm hover:shadow-md transition-shadow ${
+            job.mail_type.toLowerCase().includes('core') 
+                ? 'border-yellow-400 ring-1 ring-yellow-400/50 dark:border-yellow-500/50 bg-yellow-50/30 dark:bg-yellow-900/10' 
+                : 'border-border'
+        }`}>
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mb-4">
+                {/* Selection Checkbox */}
+                {isSelectionMode && (
+                    <div className="flex items-center h-full">
+                        <input 
+                            type="checkbox" 
+                            checked={isSelected} 
+                            onChange={(e) => onToggleSelect?.(job.id, e.target.checked)}
+                            className="w-5 h-5 accent-ballys-red cursor-pointer"
+                        />
+                    </div>
+                )}
+
                 {/* Status Indicator / Color Stripe */}
                 <div className={`w-1.5 self-stretch rounded-full ${job.property === 'Lincoln' ? 'bg-blue-500' : 'bg-orange-500'}`} />
 
