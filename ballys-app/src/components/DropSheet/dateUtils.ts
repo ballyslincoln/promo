@@ -1,4 +1,5 @@
 import { isWeekend, subDays, differenceInCalendarDays, parseISO, isValid, startOfDay } from 'date-fns';
+import { isHoliday } from './holidays';
 
 export const BUSINESS_DAYS_TO_DROP = 10;
 export const BUSINESS_DAYS_TO_ART = 5;
@@ -9,7 +10,7 @@ export function subtractBusinessDays(date: Date, days: number): Date {
     let remaining = days;
     while (remaining > 0) {
         current = subDays(current, 1);
-        if (!isWeekend(current)) {
+        if (!isWeekend(current) && !isHoliday(current)) {
             remaining--;
         }
     }

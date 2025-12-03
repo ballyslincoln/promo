@@ -326,6 +326,7 @@ export const eventService = {
       await sql`
         CREATE TABLE IF NOT EXISTS mail_jobs (
           id TEXT PRIMARY KEY,
+          job_number TEXT,
           campaign_name TEXT NOT NULL,
           mail_type TEXT,
           property TEXT,
@@ -341,9 +342,24 @@ export const eventService = {
         );
       `;
 
+      // Attempt to add job_number column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS job_number TEXT;`;
+      } catch (e) {}
+
       // Attempt to add submitted_date column if it doesn't exist (migration)
       try {
         await sql`ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS submitted_date TEXT;`;
+      } catch (e) {}
+
+      // Attempt to add postage column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS postage TEXT;`;
+      } catch (e) {}
+
+      // Attempt to add quantity column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS quantity INTEGER;`;
       } catch (e) {}
 
       console.log('Database initialized successfully');

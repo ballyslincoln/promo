@@ -25,6 +25,7 @@ export interface JobMilestones {
 
 export interface MailJob {
     id: string;
+    job_number?: string;
     campaign_name: string;
     mail_type: string;
     property: string; // 'Lincoln' | 'Tiverton'
@@ -59,15 +60,15 @@ export const dropSheetService = {
         try {
             await sql`
                 INSERT INTO mail_jobs (
-                    id, campaign_name, mail_type, property, 
+                    id, job_number, campaign_name, mail_type, property, 
                     job_submitted, submitted_date,
                     postage, quantity, in_home_date, first_valid_date, 
                     vendor_mail_date, milestones, created_at
                 ) VALUES (
-                    ${job.id}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, 
+                    ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, 
                     ${job.job_submitted ?? false}, ${job.submitted_date ?? null},
-                    ${job.postage}, ${job.quantity}, ${job.in_home_date}, ${job.first_valid_date},
-                    ${job.vendor_mail_date}, ${JSON.stringify(job.milestones)}, ${job.created_at}
+                    ${job.postage ?? 'Standard'}, ${job.quantity ?? 0}, ${job.in_home_date ?? null}, ${job.first_valid_date ?? null},
+                    ${job.vendor_mail_date ?? null}, ${JSON.stringify(job.milestones ?? {})}, ${job.created_at}
                 )
             `;
         } catch (e) {
@@ -81,17 +82,18 @@ export const dropSheetService = {
         try {
             await sql`
                 UPDATE mail_jobs SET
+                    job_number = ${job.job_number || null},
                     campaign_name = ${job.campaign_name},
                     mail_type = ${job.mail_type},
                     property = ${job.property},
                     job_submitted = ${job.job_submitted ?? false},
                     submitted_date = ${job.submitted_date ?? null},
-                    postage = ${job.postage},
-                    quantity = ${job.quantity},
-                    in_home_date = ${job.in_home_date},
-                    first_valid_date = ${job.first_valid_date},
-                    vendor_mail_date = ${job.vendor_mail_date},
-                    milestones = ${JSON.stringify(job.milestones)}
+                    postage = ${job.postage ?? 'Standard'},
+                    quantity = ${job.quantity ?? 0},
+                    in_home_date = ${job.in_home_date ?? null},
+                    first_valid_date = ${job.first_valid_date ?? null},
+                    vendor_mail_date = ${job.vendor_mail_date ?? null},
+                    milestones = ${JSON.stringify(job.milestones ?? {})}
                 WHERE id = ${job.id}
             `;
         } catch (e) {

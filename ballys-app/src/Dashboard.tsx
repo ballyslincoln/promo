@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, MessageSquarePlus, Zap, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, Zap, MessageSquare } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
@@ -8,6 +8,7 @@ import { interactionService } from './services/interactionService';
 import BigCalendar from './components/Calendar/BigCalendar';
 import EventDetailsModal from './components/EventDetailsModal';
 import { ThemeToggle } from './components/ThemeToggle';
+import Footer from './components/Footer';
 
 const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(date);
@@ -77,7 +78,7 @@ const ClockHeader = memo(() => {
     );
 });
 
-export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previewEvents, previewSchedules }: { onAdminOpen?: () => void, onEditEvent?: (event: Event) => void, onAddEvent?: (date: Date, category?: string) => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
+export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, onAddEvent, previewEvents, previewSchedules }: { onAdminOpen?: () => void, onPrivacyClick?: () => void, onEditEvent?: (event: Event) => void, onAddEvent?: (date: Date, category?: string) => void, previewEvents?: AdminEvent[], previewSchedules?: Record<string, ScheduleItem[]> }) {
     // Default to today's date
     const [selectedDate, setSelectedDate] = useState(() => {
         const today = new Date();
@@ -714,41 +715,7 @@ export default function Dashboard({ onAdminOpen, onEditEvent, onAddEvent, previe
             </main>
 
             {/* Footer */}
-            <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm pb-safe-bottom">
-                <div className="max-w-3xl mx-auto text-center space-y-3">
-                    <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
-                        Created by Regional Advertising Manager Jackson Kelly
-                    </p>
-                    <p className="text-[10px] text-text-light uppercase tracking-widest">
-                        &copy; Bally's Corporation {new Date().getFullYear()} All Rights Reserved
-                    </p>
-                    <div className="pt-2 flex items-center justify-center gap-3 text-[9px] text-text-light/70 font-mono uppercase tracking-wider">
-                        <span>v8.4</span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-                        <span>Created in Lincoln, RI</span>
-                    </div>
-
-                    <div className="flex justify-center mt-4">
-                        <a
-                            href="mailto:jkelly@ballyslincoln.com?subject=Feature Suggestion Ballys App"
-                            className="px-4 py-2 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-border rounded-xl text-[10px] font-bold text-text-main hover:text-ballys-red uppercase tracking-wider transition-all shadow-sm flex items-center gap-2 group"
-                        >
-                            <MessageSquarePlus className="w-3.5 h-3.5 text-text-muted group-hover:text-ballys-red transition-colors" />
-                            Suggest a Feature
-                        </a>
-                    </div>
-
-                    {onAdminOpen && (
-                        <button
-                            onClick={onAdminOpen}
-                            className="mt-4 px-3 py-1 bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border border-border rounded-full text-[9px] font-bold text-text-light hover:text-text-muted uppercase tracking-wider transition-colors inline-flex items-center gap-2"
-                        >
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
-                            Admin Access
-                        </button>
-                    )}
-                </div>
-            </footer>
+            <Footer onAdminOpen={onAdminOpen} onPrivacyClick={onPrivacyClick} />
 
             {/* Keyboard Shortcuts Modal */}
             <AnimatePresence>

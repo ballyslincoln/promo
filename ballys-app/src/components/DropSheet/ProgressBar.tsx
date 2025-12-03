@@ -66,27 +66,32 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, on
         <div className="w-full flex flex-col gap-2">
             <div className="flex items-center justify-between w-full gap-1">
                 {VISIBLE_STEPS.map((step) => {
-                    const dateVal = milestones[step.key];
-                    const statusKey = `${step.key}_status` as keyof JobMilestones;
-                    const status = milestones[statusKey] || (dateVal ? 'completed' : 'pending');
-                    const isCompleted = status === 'completed';
-                    const isInProgress = status === 'in_progress';
                     
                     // Check if enabled based on dependencies
                     const requiredSteps = DEPENDENCIES[step.key];
+                    const safeMilestones = milestones || {};
                     const isEnabled = !requiredSteps || requiredSteps.every(reqStep => {
-                         const reqStatus = milestones[`${reqStep}_status` as keyof JobMilestones];
-                         return !!milestones[reqStep] || reqStatus === 'completed';
+                         const reqStatus = safeMilestones[`${reqStep}_status` as keyof JobMilestones];
+                         return !!safeMilestones[reqStep] || reqStatus === 'completed';
                     });
                     
                     const canToggle = isEnabled; 
+                    const dateVal = safeMilestones[step.key];
+                    const statusKey = `${step.key}_status` as keyof JobMilestones;
+                    const status = safeMilestones[statusKey] || (dateVal ? 'completed' : 'pending');
+                    const isCompleted = status === 'completed';
+                    const isInProgress = status === 'in_progress'; 
 
                     return (
                         <div key={step.key} className="flex flex-col items-center flex-1 group relative">
                             <motion.button
+                                type="button"
                                 whileHover={canToggle ? { scale: 1.05 } : {}}
                                 whileTap={canToggle ? { scale: 0.95 } : {}}
-                                onClick={() => canToggle && onMilestoneClick(step.key)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (canToggle) onMilestoneClick(step.key);
+                                }}
                                 className={`
                                     w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold uppercase tracking-wide transition-all border shadow-sm overflow-hidden relative
                                     ${isCompleted 

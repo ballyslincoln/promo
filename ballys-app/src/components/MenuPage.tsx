@@ -1,96 +1,167 @@
-import { Calendar, Truck, LogOut, ShieldCheck } from 'lucide-react';
+import { Calendar, Truck, LogOut, ShieldCheck, ArrowRight, PackageCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Footer from './Footer';
 
 interface MenuPageProps {
     onSelect: (view: 'calendar' | 'dropsheet') => void;
     onLogout: () => void;
+    onPrivacyClick?: () => void;
 }
 
-export default function MenuPage({ onSelect, onLogout }: MenuPageProps) {
+export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPageProps) {
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 200,
+                damping: 20
+            }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Ambient Background - Enhanced */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-ballys-red/5 rounded-full blur-[120px] animate-pulse-slow" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-blue-500/5 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans selection:bg-ballys-red/30">
+            {/* Static Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,0,0,0.1),rgba(0,0,0,0))]" />
+                <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gradient-to-br from-ballys-red/10 to-transparent rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-gradient-to-tl from-blue-600/10 to-transparent rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
             </div>
 
-            <div className="z-10 max-w-5xl w-full">
-                <header className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
-                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-surface/50 backdrop-blur-md border border-white/10 rounded-2xl flex items-center justify-center shadow-xl shadow-black/5 ring-1 ring-black/5">
-                             <img src="/ballyb.png" className="w-8 h-8 object-contain drop-shadow-sm" alt="Logo" />
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="z-10 max-w-6xl w-full relative"
+            >
+                {/* Header */}
+                <motion.header 
+                    variants={itemVariants}
+                    className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6 px-4"
+                >
+                     <div className="flex items-center gap-5">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-ballys-red to-red-500 rounded-2xl blur opacity-40" />
+                            <div className="w-16 h-16 bg-surface/80 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/10 relative z-10">
+                                <img src="/ballyb.png" className="w-9 h-9 object-contain drop-shadow-md" alt="Logo" />
+                            </div>
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-text-main tracking-tight">Admin Portal</h1>
-                            <div className="flex items-center gap-2 text-text-muted">
-                                <ShieldCheck className="w-3 h-3" />
-                                <p className="text-xs font-medium uppercase tracking-widest">Authorized Session</p>
+                            <h1 className="text-4xl font-black text-text-main tracking-tighter mb-1">Admin<span className="text-ballys-red">Portal</span></h1>
+                            <div className="flex items-center gap-2 text-text-muted/80 bg-surface/50 w-fit px-3 py-1 rounded-full border border-black/5 backdrop-blur-sm">
+                                <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                                <p className="text-[11px] font-bold uppercase tracking-widest">Secure Session Active</p>
                             </div>
                         </div>
                      </div>
+
                      <button 
                         onClick={onLogout} 
-                        className="flex items-center gap-2 text-sm font-medium text-text-muted hover:text-text-main px-5 py-2.5 rounded-xl hover:bg-surface border border-transparent hover:border-border transition-all group"
+                        className="group flex items-center gap-3 text-sm font-semibold text-text-muted hover:text-red-500 px-6 py-3 rounded-full bg-surface/50 hover:bg-red-50/50 border border-transparent hover:border-red-100 transition-colors backdrop-blur-md"
                      >
-                         <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-                         Logout
+                         <span>Sign Out</span>
+                         <div className="bg-black/5 dark:bg-white/10 p-1 rounded-full group-hover:bg-red-100 dark:group-hover:bg-red-900/20 transition-colors">
+                            <LogOut className="w-4 h-4" />
+                         </div>
                      </button>
-                </header>
+                </motion.header>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                {/* Cards Grid */}
+                <div className="grid md:grid-cols-2 gap-8 px-2">
                     {/* Calendar Option */}
                     <motion.button
-                        whileHover={{ scale: 1.02, y: -5 }}
+                        variants={itemVariants}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => onSelect('calendar')}
-                        className="group relative h-80 bg-surface/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-ballys-red/10 transition-all overflow-hidden text-left"
+                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-xl transition-shadow overflow-hidden text-left"
                     >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-ballys-red/10 to-transparent rounded-full blur-3xl -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-                        
-                        <div className="p-5 bg-white dark:bg-white/5 border border-black/5 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300 origin-top-left shadow-sm">
-                            <Calendar className="w-8 h-8 text-ballys-red" />
+                        {/* Static Background Gradients */}
+                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-ballys-red/10 to-transparent rounded-full blur-[80px] -mr-20 -mt-20 opacity-60 mix-blend-overlay" />
+
+                        {/* Icon */}
+                        <div className="relative z-10 mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                <Calendar className="w-8 h-8 text-ballys-red" />
+                            </div>
                         </div>
 
-                        <div className="relative z-10">
-                            <h2 className="text-3xl font-bold text-text-main mb-3 group-hover:text-ballys-red transition-colors">Calendar Management</h2>
-                            <p className="text-text-muted text-base leading-relaxed max-w-sm">
+                        {/* Content */}
+                        <div className="relative z-10 mb-16">
+                            <h2 className="text-3xl font-black text-text-main mb-3 tracking-tight">Calendar<br/><span className="text-ballys-red">Management</span></h2>
+                            <p className="text-text-muted font-medium text-base leading-relaxed max-w-sm border-l-2 border-ballys-red/20 pl-4">
                                 Manage daily events, promotions, and property schedules. The central hub for day-to-day operations.
                             </p>
                         </div>
 
-                        <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-300 flex items-center gap-2 text-ballys-red font-bold text-sm bg-ballys-red/5 px-4 py-2 rounded-full">
-                            Access Dashboard <span className="text-lg">→</span>
+                        {/* Action Indicator - Always Visible */}
+                        <div className="absolute bottom-10 right-10 flex items-center gap-3 opacity-100">
+                            <span className="text-xs font-bold uppercase tracking-widest text-ballys-red">Open Dashboard</span>
+                            <div className="w-10 h-10 rounded-full bg-ballys-red text-white flex items-center justify-center shadow-lg shadow-red-500/20">
+                                <ArrowRight className="w-5 h-5" />
+                            </div>
                         </div>
                     </motion.button>
 
                     {/* Drop Sheet Option */}
                     <motion.button
-                        whileHover={{ scale: 1.02, y: -5 }}
+                        variants={itemVariants}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => onSelect('dropsheet')}
-                        className="group relative h-80 bg-surface/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-blue-500/10 transition-all overflow-hidden text-left"
+                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-xl transition-shadow overflow-hidden text-left"
                     >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl -mr-16 -mt-16 opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
-                        
-                        <div className="p-5 bg-white dark:bg-white/5 border border-black/5 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300 origin-top-left shadow-sm">
-                            <Truck className="w-8 h-8 text-blue-600" />
+                        {/* Static Background Gradients */}
+                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full blur-[80px] -mr-20 -mt-20 opacity-60 mix-blend-overlay" />
+
+                        {/* Icon */}
+                        <div className="relative z-10 mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                <PackageCheck className="w-8 h-8 text-blue-600" />
+                            </div>
                         </div>
 
-                        <div className="relative z-10">
-                            <h2 className="text-3xl font-bold text-text-main mb-3 group-hover:text-blue-600 transition-colors">Marketing Logistics</h2>
-                            <p className="text-text-muted text-base leading-relaxed max-w-sm">
+                        {/* Content */}
+                        <div className="relative z-10 mb-16">
+                            <h2 className="text-3xl font-black text-text-main mb-3 tracking-tight">Marketing<br/><span className="text-blue-600">Logistics</span></h2>
+                            <p className="text-text-muted font-medium text-base leading-relaxed max-w-sm border-l-2 border-blue-500/20 pl-4">
                                 Track direct mail campaigns, manage production milestones, and monitor delivery schedules.
                             </p>
                         </div>
 
-                        <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-300 flex items-center gap-2 text-blue-600 font-bold text-sm bg-blue-500/5 px-4 py-2 rounded-full">
-                            Launch Module <span className="text-lg">→</span>
+                        {/* Action Indicator - Always Visible */}
+                        <div className="absolute bottom-10 right-10 flex items-center gap-3 opacity-100">
+                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Launch Module</span>
+                            <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <ArrowRight className="w-5 h-5" />
+                            </div>
                         </div>
                     </motion.button>
                 </div>
-            </div>
+                
+                {/* Footer/Version */}
+                <motion.div 
+                    variants={itemVariants}
+                    className="mt-12"
+                >
+                    <Footer onPrivacyClick={onPrivacyClick} />
+                </motion.div>
+            </motion.div>
         </div>
     );
 }

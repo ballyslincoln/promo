@@ -5,6 +5,7 @@ import AdminPanel from './AdminPanel';
 import AnnouncementBanner from './components/AnnouncementBanner';
 import MenuPage from './components/MenuPage';
 import DropSheet from './components/DropSheet/DropSheet';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { getActiveAnnouncement, initAnnouncementTable } from './services/announcementService';
 import { eventService } from './services/eventService';
 import { userService } from './services/userService';
@@ -31,6 +32,7 @@ function App() {
   
   const [adminView, setAdminView] = useState<AdminView>('none');
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // Initialize user session immediately
   useEffect(() => {
@@ -106,6 +108,10 @@ function App() {
   };
 
   const renderContent = () => {
+    if (showPrivacy) {
+        return <PrivacyPolicy onBack={() => setShowPrivacy(false)} />;
+    }
+
     if (adminView === 'menu') {
         return (
             <MenuPage 
@@ -114,6 +120,7 @@ function App() {
                     setIsAuthenticated(false);
                     setAdminView('none');
                 }} 
+                onPrivacyClick={() => setShowPrivacy(true)}
             />
         );
     }
@@ -134,16 +141,22 @@ function App() {
             localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
           }}
           onAdminLogin={handleAdminLogin}
+          onPrivacyClick={() => setShowPrivacy(true)}
         />
       );
     }
 
-    return <Dashboard onAdminOpen={() => setAdminView('menu')} />;
+    return (
+        <Dashboard 
+            onAdminOpen={() => setAdminView('menu')} 
+            onPrivacyClick={() => setShowPrivacy(true)}
+        />
+    );
   };
 
   return (
     <>
-      {announcement && (
+      {announcement && !showPrivacy && (
         <AnnouncementBanner
           announcement={announcement}
           onDismiss={handleDismissAnnouncement}

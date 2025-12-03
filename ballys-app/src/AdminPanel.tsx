@@ -494,15 +494,15 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-border px-4 py-3 shadow-sm pt-safe-top">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-ballys-red/10 p-2 rounded-lg shrink-0">
-                 <Settings className="w-5 h-5 text-ballys-red" />
+      <header className="sticky top-0 z-20 bg-surface/80 backdrop-blur-2xl border-b border-border/50 px-6 py-4 shadow-lg shadow-black/5 pt-safe-top transition-all">
+        <div className="flex items-center justify-between gap-4 max-w-[1920px] mx-auto">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="bg-gradient-to-br from-ballys-red to-red-600 p-2.5 rounded-xl shadow-lg shadow-red-500/20 shrink-0 text-white ring-1 ring-white/20">
+                 <Settings className="w-6 h-6" />
             </div>
-            <div className="truncate">
-              <h1 className="text-lg font-bold text-text-main truncate">Admin</h1>
-              <p className="text-[10px] text-text-muted uppercase tracking-wider truncate">Manage Content</p>
+            <div className="truncate flex flex-col">
+              <h1 className="text-xl font-bold text-text-main truncate tracking-tight">Admin Portal</h1>
+              <p className="text-[11px] text-text-muted uppercase tracking-widest font-semibold truncate">Content Management System</p>
             </div>
           </div>
           
@@ -510,35 +510,43 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           <div className="hidden md:flex items-center gap-3">
                <button
                 onClick={handleExport}
-                className="px-3 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
+                className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border/50 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl text-sm font-bold flex items-center gap-2.5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm group"
                 title="Export Backup"
               >
-                <Download className="w-4 h-4" /> 
+                <div className="bg-gray-100 dark:bg-slate-700 p-1 rounded-lg group-hover:bg-gray-200 dark:group-hover:bg-slate-600 transition-colors">
+                    <Download className="w-3.5 h-3.5" /> 
+                </div>
                 <span className="hidden lg:inline">Export</span>
               </button>
 
               <button
                 onClick={() => setShowPreview(true)}
-                className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm"
+                className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border/50 hover:border-gray-300 dark:hover:border-gray-600 rounded-xl text-sm font-bold flex items-center gap-2.5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm group"
               >
-                <Eye className="w-4 h-4" /> Preview
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-1 rounded-lg text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
+                    <Eye className="w-3.5 h-3.5" />
+                </div>
+                <span>Preview</span>
               </button>
+              
+              <div className="h-8 w-px bg-border/50 mx-1" />
               
                <button
                 onClick={handlePublishAll}
-                className={`px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-sm ${
+                className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2.5 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm border ${
                   hasUnsavedChanges()
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-gray-100 dark:bg-slate-800 text-text-muted border border-border'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-green-900/20 border-transparent ring-2 ring-green-500/20'
+                    : 'bg-surface text-text-muted border-border hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-text-main'
                 }`}
               >
-                <Globe className="w-4 h-4" />
-                {hasUnsavedChanges() ? 'Publish All' : 'Published'}
+                {hasUnsavedChanges() ? <Globe className="w-4 h-4 animate-pulse" /> : <Check className="w-4 h-4" />}
+                {hasUnsavedChanges() ? 'Publish Changes' : 'Published'}
               </button>
 
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                className="ml-2 p-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-text-muted hover:text-red-600 rounded-xl transition-all duration-300 hover:rotate-90 active:scale-90 border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
+                title="Close Admin"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -602,49 +610,49 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
             ${showList ? 'block' : 'hidden md:block'}
         `}>
             {/* View Toggle Tabs */}
-             <div className="p-4 pb-0">
-                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-lg border border-border overflow-x-auto no-scrollbar">
+             <div className="p-4 pb-0 sticky top-0 z-10 bg-surface/95 backdrop-blur-xl border-b border-border/50">
+                <div className="flex bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl border border-border/50 overflow-x-auto no-scrollbar backdrop-blur-md gap-1">
                   <button
                     onClick={() => setActiveView('events')}
-                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'events'
-                      ? 'bg-surface text-text-main shadow-sm'
-                      : 'text-text-muted hover:text-text-main'
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-1.5 ${activeView === 'events'
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     Events
                   </button>
                   <button
                     onClick={() => setActiveView('schedules')}
-                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'schedules'
-                      ? 'bg-surface text-text-main shadow-sm'
-                      : 'text-text-muted hover:text-text-main'
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-1.5 ${activeView === 'schedules'
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     Schedules
                   </button>
                   <button
                     onClick={() => setActiveView('announcements')}
-                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'announcements'
-                      ? 'bg-surface text-text-main shadow-sm'
-                      : 'text-text-muted hover:text-text-main'
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-1.5 ${activeView === 'announcements'
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     Alerts
                   </button>
                   <button
                     onClick={() => setActiveView('archive')}
-                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'archive'
-                      ? 'bg-surface text-text-main shadow-sm'
-                      : 'text-text-muted hover:text-text-main'
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-1.5 ${activeView === 'archive'
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     Archive
                   </button>
                   <button
                     onClick={() => setActiveView('templates')}
-                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${activeView === 'templates'
-                      ? 'bg-surface text-text-main shadow-sm'
-                      : 'text-text-muted hover:text-text-main'
+                    className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap flex items-center justify-center gap-1.5 ${activeView === 'templates'
+                      ? 'bg-surface text-text-main shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                      : 'text-text-muted hover:text-text-main hover:bg-white/50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     Templates
@@ -712,13 +720,16 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2">
                 <button
                   onClick={() => handleAdd()}
-                  className="flex-1 px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                  className="px-4 py-2.5 bg-surface border border-border hover:border-ballys-red/50 hover:bg-ballys-red/5 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-200 text-text-main hover:text-ballys-red shadow-sm hover:shadow-md group"
                 >
-                  <Plus className="w-4 h-4" />
-                  {activeView === 'templates' ? 'New Template' : 'Add Event'}
+                  <div className="bg-gray-100 dark:bg-slate-700 p-1 rounded-lg group-hover:bg-ballys-red/10 group-hover:text-ballys-red transition-colors">
+                      <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" />
+                  </div>
+                  <span className="hidden sm:inline">{activeView === 'templates' ? 'New Template' : 'Add Event'}</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
                 {activeView === 'events' && (
                     <button
@@ -748,7 +759,7 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                                 showToast(`Selected ${duplicates.length} duplicates. Review and click Delete.`);
                             }
                         }}
-                        className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                        className="px-3 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border hover:border-gray-300 dark:hover:border-gray-600 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-text-muted hover:text-text-main shadow-sm"
                         title="Find Duplicates"
                     >
                         <span className="font-mono font-bold text-xs">DUP</span>
@@ -760,9 +771,10 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     setShowAddForm(false);
                     setEditingId(null);
                   }}
-                  className="px-4 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border rounded-lg flex items-center gap-2 text-sm transition-colors text-text-main"
+                  className="px-3 py-2.5 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border hover:border-gray-300 dark:hover:border-gray-600 rounded-xl flex items-center justify-center gap-2 transition-all duration-200 text-text-muted hover:text-text-main shadow-sm group"
+                  title="Bulk Upload JSON"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform duration-200" />
                 </button>
               </div>
 
@@ -791,9 +803,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     return (
                       <div
                         key={event.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all relative overflow-hidden active:scale-[0.99] group ${editingId === event.id
-                          ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-sm'
-                          : 'bg-surface border-border hover:bg-gray-50 dark:hover:bg-slate-800'
+                        className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 relative overflow-hidden group ${editingId === event.id
+                          ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800 shadow-md scale-[1.01]'
+                          : 'bg-surface border-border hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:-translate-y-0.5 hover:border-gray-300 dark:hover:border-gray-600'
                           }`}
                         onClick={() => handleEdit(event.id)}
                       >
@@ -990,9 +1002,9 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                       </div>
                       <button
                           onClick={() => handleAdd()}
-                          className="px-4 py-2.5 bg-ballys-red hover:bg-ballys-darkRed rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors text-white shadow-md"
+                          className="px-4 py-2.5 bg-ballys-red hover:bg-red-700 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all duration-200 text-white shadow-lg shadow-red-900/20 hover:shadow-red-900/30 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm group"
                       >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                           New Event
                       </button>
                   </div>
@@ -1174,7 +1186,7 @@ function ScheduleForm({
           <div className="flex gap-2 self-end md:self-auto">
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-ballys-red/10 hover:bg-ballys-red/20 border border-ballys-red/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors text-ballys-red"
+              className="px-4 py-2 bg-ballys-red/10 hover:bg-ballys-red/20 border border-ballys-red/20 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 text-ballys-red hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0"
             >
               <Check className="w-4 h-4" />
               Save Draft
@@ -1209,9 +1221,9 @@ function ScheduleForm({
           ))}
           <button
             onClick={addItem}
-            className="w-full px-4 py-3 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border border-dashed rounded-lg flex items-center justify-center gap-2 text-sm transition-colors text-text-muted hover:text-text-main"
+            className="w-full px-4 py-3 bg-surface hover:bg-gray-50 dark:hover:bg-slate-800 border border-border border-dashed rounded-lg flex items-center justify-center gap-2 text-sm transition-all duration-200 text-text-muted hover:text-text-main hover:border-gray-400 hover:shadow-sm group"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
             Add Item
           </button>
         </div>
@@ -1467,22 +1479,22 @@ function EventForm({
               </h2>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
              {/* Mobile: Just save icon. Desktop: Full button */}
              <button
               onClick={() => onSave(formData, false)}
-              className="px-3 md:px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-700 border border-border rounded-lg text-sm font-medium transition-colors text-text-main shadow-sm"
+              className="px-4 py-2 bg-surface hover:bg-gray-50 dark:hover:bg-slate-700 border border-border hover:border-gray-300 dark:hover:border-gray-600 rounded-full text-sm font-bold transition-all duration-300 text-text-main shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm flex items-center gap-2"
               title="Save Draft"
             >
-              <span className="md:hidden"><Check className="w-4 h-4" /></span>
-              <span className="hidden md:inline">Draft</span>
+              <Check className="w-4 h-4" />
+              <span className="hidden md:inline">Save Draft</span>
             </button>
             <button
               onClick={() => onSave(formData, true)}
-              className="px-3 md:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-md"
+              className="px-5 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300 shadow-lg shadow-green-900/20 hover:shadow-green-900/30 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm ring-1 ring-white/20"
             >
                <Globe className="w-4 h-4" />
-              <span className="hidden md:inline">Publish</span>
+              <span className="hidden md:inline">Publish Live</span>
             </button>
           </div>
         </div>

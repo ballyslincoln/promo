@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, Check, ChevronRight, ChevronLeft } from 'lucide-react';
-import { format, subBusinessDays, setDate, parseISO, addMonths } from 'date-fns';
+import { format, setDate, parseISO, addMonths } from 'date-fns';
 import { JOB_TEMPLATES } from './jobTemplates';
 import type { JobTemplate } from './jobTemplates';
 import type { MailJob } from '../../services/dropSheetService';
+import PostageSelector from './PostageSelector';
+import { subtractBusinessDays } from './dateUtils';
 
 interface AddJobModalProps {
     isOpen: boolean;
@@ -20,6 +22,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
     
     // Form state
     const [campaignName, setCampaignName] = useState('');
+    const [jobNumber, setJobNumber] = useState('');
     const [mailType, setMailType] = useState('Core/Newsletter');
     const [postage, setPostage] = useState('Standard');
     const [quantity, setQuantity] = useState(0);
@@ -41,6 +44,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
             setTargetMonth(currentMonth);
             setSelectedTemplate(null);
             setCampaignName('');
+            setJobNumber('');
             setMailType('Core/Newsletter');
             setPostage('Standard');
             setQuantity(0);
@@ -78,11 +82,11 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
         setInHomeDate(inHomeStr);
 
         // Mail Drop Date = In-Home Date - 10 Business Days
-        const dropDate = subBusinessDays(targetDate, 10);
+        const dropDate = subtractBusinessDays(targetDate, 10);
         setVendorMailDate(format(dropDate, 'yyyy-MM-dd'));
 
         // Art Due = Mail Drop Date - 5 Business Days
-        const artDate = subBusinessDays(dropDate, 5);
+        const artDate = subtractBusinessDays(dropDate, 5);
         setArtDueDate(format(artDate, 'yyyy-MM-dd'));
     };
 
@@ -103,6 +107,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
         const newJob: MailJob = {
             id: crypto.randomUUID(),
             campaign_name: campaignName,
+            job_number: jobNumber,
             mail_type: mailType,
             property: property,
             job_submitted: false,
@@ -179,8 +184,8 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                             {categories.map(category => (
                                 <div key={category} className="mb-2">
                                     <div 
-                                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-text-muted sticky top-0 bg-surface/95 backdrop-blur-sm border-y border-transparent ${
-                                            activeCategory === category ? 'text-text-main bg-gray-50 dark:bg-slate-800/50' : ''
+                                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider text-text-muted sticky top-0 bg-surface border-y border-transparent z-10 ${
+                                            activeCategory === category ? 'text-text-main bg-gray-50 dark:bg-slate-800' : ''
                                         }`}
                                     >
                                         {category}
@@ -190,7 +195,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                                             <button
                                                 key={idx}
                                                 onClick={() => handleTemplateSelect(template)}
-                                                className={`w-full text-left p-3 rounded-lg mb-1 transition-all group relative ${
+                                                className={`w-full text-left p-2 rounded-lg mb-1 transition-all group relative ${
                                                     selectedTemplate === template 
                                                     ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800' 
                                                     : 'hover:bg-gray-50 dark:hover:bg-slate-800 border border-transparent'
@@ -219,7 +224,7 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                     {/* Right Content - Form */}
                     <div className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-slate-900/50 p-8">
                         {selectedTemplate ? (
-                            <div className="space-y-6 max-w-lg mx-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="space-y-6 max-w-lg mx-auto">
                                 
                                 {/* Summary Card */}
                                 <div className="bg-surface p-6 rounded-xl border border-border shadow-sm">
@@ -249,14 +254,26 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                                     </div>
                                     
                                     <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs font-medium text-text-muted mb-1">Campaign Name</label>
-                                            <input 
-                                                type="text" 
-                                                value={campaignName}
-                                                onChange={(e) => setCampaignName(e.target.value)}
-                                                className="w-full p-2 bg-background border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
-                                            />
+                                        <div className="grid grid-cols-4 gap-4">
+                                            <div className="col-span-1">
+                                                <label className="block text-xs font-medium text-text-muted mb-1">Job #</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={jobNumber}
+                                                    onChange={(e) => setJobNumber(e.target.value)}
+                                                    className="w-full p-2 bg-background border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    placeholder="#"
+                                                />
+                                            </div>
+                                            <div className="col-span-3">
+                                                <label className="block text-xs font-medium text-text-muted mb-1">Campaign Name</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={campaignName}
+                                                    onChange={(e) => setCampaignName(e.target.value)}
+                                                    className="w-full p-2 bg-background border border-border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+                                                />
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
@@ -274,27 +291,21 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-text-muted mb-1">Postage Class</label>
-                                                <select 
-                                                    value={postage}
-                                                    onChange={(e) => setPostage(e.target.value)}
+                                                 <label className="block text-xs font-medium text-text-muted mb-1">Quantity</label>
+                                                 <input 
+                                                    type="number"
+                                                    value={quantity}
+                                                    onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
                                                     className="w-full p-2 bg-background border border-border rounded-lg text-sm outline-none"
-                                                >
-                                                    <option value="Standard">Standard</option>
-                                                    <option value="First Class">First Class</option>
-                                                </select>
+                                                />
                                             </div>
                                         </div>
-                                        
-                                        <div>
-                                             <label className="block text-xs font-medium text-text-muted mb-1">Quantity</label>
-                                             <input 
-                                                type="number"
-                                                value={quantity}
-                                                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-                                                className="w-full p-2 bg-background border border-border rounded-lg text-sm outline-none"
-                                            />
-                                        </div>
+
+                                        <PostageSelector 
+                                            postage={postage} 
+                                            quantity={quantity} 
+                                            onChange={setPostage} 
+                                        />
                                     </div>
                                 </div>
 

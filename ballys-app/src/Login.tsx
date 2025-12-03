@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Settings, Share, PlusSquare, X } from 'lucide-react';
+import Footer from './components/Footer';
 
-export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; onAdminLogin: () => void }) {
+export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLogin: () => void; onAdminLogin: () => void; onPrivacyClick?: () => void }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -39,7 +40,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
     }, []);
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
+        <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
             {/* Ambient Background Effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
@@ -250,9 +251,7 @@ export default function Login({ onLogin, onAdminLogin }: { onLogin: () => void; 
                 )}
             </AnimatePresence>
 
-            <div className="absolute bottom-8 text-text-muted/30 text-[10px] tracking-[0.2em] font-light">
-                SECURE ACCESS SYSTEM v2.0
-            </div>
+            <Footer onPrivacyClick={onPrivacyClick} />
         </div>
     );
 }
