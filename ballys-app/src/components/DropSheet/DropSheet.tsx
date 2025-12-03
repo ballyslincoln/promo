@@ -6,9 +6,8 @@ import AddJobModal from './AddJobModal';
 import ImportJsonModal from './ImportJsonModal';
 import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
-import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
+import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
-import { SEED_JOBS } from '../../services/seedData';
 
 interface DropSheetProps {
     onBack: () => void;
@@ -62,22 +61,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
             console.error("Failed to delete job", e);
             loadJobs();
         }
-    };
-
-    const handleSeedData = async () => {
-        if (!confirm('This will add historical and future test data. Continue?')) return;
-        setIsLoading(true);
-        for (const job of SEED_JOBS) {
-            try {
-                if (!jobs.find(j => j.id === job.id)) {
-                    await dropSheetService.createJob(job);
-                }
-            } catch {
-                console.warn('Seed job might already exist:', job.id);
-            }
-        }
-        await loadJobs();
-        setIsLoading(false);
     };
 
     const handleToggleSelect = (id: string, selected: boolean) => {
@@ -152,7 +135,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const handleImportJobs = async (newJobs: MailJob[]) => {
         setIsLoading(true);
         let successCount = 0;
-        let errorCount = 0;
+        const errors: string[] = [];
         
         for (const job of newJobs) {
             try {
@@ -162,15 +145,16 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                 successCount++;
             } catch (error) {
                 console.error(`Failed to import job ${job.id}:`, error);
-                errorCount++;
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                errors.push(`Job "${job.campaign_name}": ${errorMessage}`);
             }
         }
         
         await loadJobs();
         setIsLoading(false);
         
-        if (errorCount > 0) {
-            alert(`Imported ${successCount} jobs successfully. ${errorCount} job(s) failed to import.`);
+        if (errors.length > 0) {
+            alert(`Imported ${successCount} jobs successfully.\n\n${errors.length} job(s) failed to import:\n${errors.slice(0, 10).join('\n')}${errors.length > 10 ? '\n...and more' : ''}`);
         } else {
             alert(`Successfully imported ${successCount} job(s)`);
         }
@@ -457,16 +441,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                             <span className="text-sm font-medium text-text-main">Import JSON</span>
                         </button>
                         
-                        {/* Seed Data Button */}
-                        <button 
-                            onClick={handleSeedData}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
-                            title="Load Test Data"
-                        >
-                            <Database className="w-4 h-4 text-text-muted" />
-                            <span className="text-sm font-medium text-text-main">Seed Data</span>
-                        </button>
-
                         {/* Shortcuts Help Button */}
                         <button 
                             onClick={() => setIsShortcutsOpen(true)}
