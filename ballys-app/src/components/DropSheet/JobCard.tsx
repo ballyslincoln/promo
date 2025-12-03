@@ -362,6 +362,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                         milestones={job.milestones} 
                         inHomeDate={job.in_home_date}
                         vendorMailDate={job.vendor_mail_date}
+                        mailType={job.mail_type}
                         onMilestoneClick={handleMilestoneClick}
                     />
                 )}

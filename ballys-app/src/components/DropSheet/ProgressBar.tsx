@@ -41,19 +41,37 @@ const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>
     sent_to_vendor: []
 };
 
-export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, onMilestoneClick }: ProgressBarProps) {
-    const { mailDropDate, artDueDate } = calculateMilestoneDates(inHomeDate);
+export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, mailType, onMilestoneClick }: ProgressBarProps & { mailType: string }) {
+    const { mailDropDate, artDueDate, artSubmissionDueDate } = calculateMilestoneDates(inHomeDate, mailType);
     const today = new Date();
 
     // Check for late status (Mailed Date vs Target Drop Date)
     let isLate = false;
     let lagDays = 0;
     
+    // Only calculate late status if:
+    // 1. We have a target mail drop date (calculated from in-home date)
+    // 2. The job is actually mailed (vendorMailDate exists)
     if (vendorMailDate && mailDropDate) {
          const mailed = parseISO(vendorMailDate);
-         if (isValid(mailed) && mailed > mailDropDate) {
+         // Compare start of day to ignore time components
+         const mailedDay = new Date(mailed.getFullYear(), mailed.getMonth(), mailed.getDate());
+         const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
+         
+         if (isValid(mailed) && mailedDay > targetDay) {
              isLate = true;
-             lagDays = getLagDays(mailDropDate, mailed);
+             lagDays = getLagDays(targetDay, mailedDay);
+         }
+    }
+    // ALSO check if we are late but haven't mailed yet
+    // If today > mailDropDate AND not mailed yet -> Late
+    else if (!vendorMailDate && mailDropDate) {
+         const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+         const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
+         
+         if (todayDay > targetDay) {
+             isLate = true;
+             lagDays = getLagDays(targetDay, todayDay);
          }
     }
 
@@ -131,14 +149,24 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, on
             
             {/* Dates Context & Status Indicators */}
             <div className="flex justify-between items-center text-[10px] text-text-muted px-1 mt-1 bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/50">
-                 <div className="flex gap-4">
-                    <div className="flex flex-col">
-                        <span className="uppercase tracking-wider text-[9px] font-bold">Art Due</span>
+                 <div className="flex gap-4 items-center">
+                    {/* Art Submission Due (New, Highlighted) */}
+                    <div className="flex flex-col bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded border border-purple-100 dark:border-purple-800/50">
+                        <span className="uppercase tracking-wider text-[9px] font-bold text-purple-600 dark:text-purple-400">Submit Art</span>
+                        <span className="font-mono font-bold text-purple-700 dark:text-purple-300">
+                            {artSubmissionDueDate ? format(artSubmissionDueDate, 'MMM d') : '-'}
+                        </span>
+                    </div>
+
+                    <div className="h-6 w-px bg-border/50" />
+
+                    <div className="flex flex-col opacity-75">
+                        <span className="uppercase tracking-wider text-[9px] font-bold">Vendor Art</span>
                         <span className="font-mono text-text-main">
                             {artDueDate ? format(artDueDate, 'MMM d') : '-'}
                         </span>
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col opacity-75">
                         <span className="uppercase tracking-wider text-[9px] font-bold">Drop Goal</span>
                         <span className="font-mono text-text-main">
                             {mailDropDate ? format(mailDropDate, 'MMM d') : '-'}

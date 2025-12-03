@@ -17,18 +17,30 @@ export function subtractBusinessDays(date: Date, days: number): Date {
     return current;
 }
 
-export function calculateMilestoneDates(inHomeDateStr: string) {
-    if (!inHomeDateStr) return { mailDropDate: null, artDueDate: null };
+export function calculateMilestoneDates(inHomeDateStr: string, mailType: string = '') {
+    if (!inHomeDateStr) return { mailDropDate: null, artDueDate: null, artSubmissionDueDate: null };
     
     const inHome = parseISO(inHomeDateStr);
-    if (!isValid(inHome)) return { mailDropDate: null, artDueDate: null };
+    if (!isValid(inHome)) return { mailDropDate: null, artDueDate: null, artSubmissionDueDate: null };
 
     const mailDropDate = subtractBusinessDays(inHome, BUSINESS_DAYS_TO_DROP);
+    
+    // New Logic: Art Submission Due Date relative to MAIL DROP DATE
+    // Core/Newsletter: 35 days before Mail Drop
+    // Postcards (and others): 28 days before Mail Drop
+    const isCore = mailType.toLowerCase().includes('core') || mailType.toLowerCase().includes('newsletter');
+    const submissionLeadTime = isCore ? 35 : 28;
+    
+    // Using calendar days for long lead times
+    const artSubmissionDueDate = subDays(mailDropDate, submissionLeadTime);
+
+    // Existing Art Due Date (Vendor Handover)
     const artDueDate = subtractBusinessDays(mailDropDate, BUSINESS_DAYS_TO_ART);
 
     return {
         mailDropDate,
-        artDueDate
+        artDueDate, // Vendor Handover
+        artSubmissionDueDate // New "Art Submission" deadline
     };
 }
 
