@@ -330,6 +330,7 @@ export const eventService = {
           mail_type TEXT,
           property TEXT,
           job_submitted BOOLEAN DEFAULT FALSE,
+          submitted_date TEXT,
           postage TEXT,
           quantity INTEGER,
           in_home_date TEXT,
@@ -339,6 +340,11 @@ export const eventService = {
           created_at TEXT NOT NULL
         );
       `;
+
+      // Attempt to add submitted_date column if it doesn't exist (migration)
+      try {
+        await sql`ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS submitted_date TEXT;`;
+      } catch (e) {}
 
       console.log('Database initialized successfully');
     } catch (e) {

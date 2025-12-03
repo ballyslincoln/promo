@@ -70,11 +70,26 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
     const handleToggleSubmitted = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
+        // If checking the box: set date to today. If unchecking: set to null.
+        const newDate = isChecked ? new Date().toISOString().split('T')[0] : undefined;
+        
         if (isEditing) {
             handleChange('job_submitted', isChecked);
+            handleChange('submitted_date', newDate);
         } else {
-            onUpdate({ ...job, job_submitted: isChecked });
+            onUpdate({ 
+                ...job, 
+                job_submitted: isChecked,
+                submitted_date: newDate
+            });
         }
+    };
+    
+    const handleSubmittedDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateVal = e.target.value;
+        handleChange('submitted_date', dateVal);
+        // If date is cleared, uncheck. If date is set, check.
+        handleChange('job_submitted', !!dateVal);
     };
 
     const handleSave = () => {
@@ -156,12 +171,30 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
                     <div className="flex flex-col items-start">
                          <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold">Submitted</label>
-                         <input 
-                            type="checkbox" 
-                            checked={isEditing ? editedJob.job_submitted : job.job_submitted}
-                            onChange={handleToggleSubmitted}
-                            className="mt-1 w-4 h-4 accent-ballys-red cursor-pointer"
-                         />
+                         {isEditing ? (
+                            <div className="relative">
+                                <input 
+                                    type="date" 
+                                    value={editedJob.submitted_date || ''} 
+                                    onChange={handleSubmittedDateChange}
+                                    className="bg-background border border-border rounded px-2 py-1 text-sm w-32"
+                                />
+                            </div>
+                         ) : (
+                            <div className="flex items-center gap-2">
+                                <input 
+                                    type="checkbox" 
+                                    checked={!!job.submitted_date || job.job_submitted}
+                                    onChange={handleToggleSubmitted}
+                                    className="mt-0.5 w-4 h-4 accent-ballys-red cursor-pointer"
+                                />
+                                {(job.submitted_date) && (
+                                    <span className="text-xs text-text-muted font-medium whitespace-nowrap">
+                                        {format(parseISO(job.submitted_date), 'M/d')}
+                                    </span>
+                                )}
+                            </div>
+                         )}
                     </div>
 
                     <div className="flex flex-col">

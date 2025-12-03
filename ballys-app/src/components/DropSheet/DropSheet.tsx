@@ -3,7 +3,8 @@ import { dropSheetService } from '../../services/dropSheetService';
 import type { MailJob } from '../../services/dropSheetService';
 import JobCard from './JobCard';
 import AddJobModal from './AddJobModal';
-import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X } from 'lucide-react';
+import ShortcutsHelp from './ShortcutsHelp';
+import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { SEED_JOBS } from '../../services/seedData';
 
@@ -17,6 +18,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date()); // Default to today (which will be Jan 2026 or current real time)
     const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+    const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
     // Mass Selection & Delete
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -32,6 +34,75 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         loadJobs();
     }, []);
 
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore shortcuts if user is typing in an input or textarea
+            if (
+                document.activeElement instanceof HTMLInputElement ||
+                document.activeElement instanceof HTMLTextAreaElement
+            ) {
+                return;
+            }
+
+            // Ignore if modal is open (except Escape)
+            if (isAddJobModalOpen) {
+                if (e.key === 'Escape') setIsAddJobModalOpen(false);
+                return;
+            }
+
+            // Special handling for Delete/Backspace to allow duplication logic (D) to work separately
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (isSelectionMode && selectedJobIds.size > 0) {
+                    handleMassDelete();
+                }
+                return;
+            }
+
+            switch (e.key.toLowerCase()) {
+                case 'n':
+                    e.preventDefault();
+                    setIsAddJobModalOpen(true);
+                    break;
+                case 's':
+                    e.preventDefault();
+                    setIsSelectionMode(prev => !prev);
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    handleAnalyzeDuplicates();
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    handleExportJSON();
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    document.getElementById('json-import-input')?.click();
+                    break;
+                case '?':
+                case '/':
+                    e.preventDefault();
+                    setIsShortcutsOpen(prev => !prev);
+                    break;
+                case 'arrowleft':
+                    handlePrevMonth();
+                    break;
+                case 'arrowright':
+                    handleNextMonth();
+                    break;
+                case 'escape':
+                    if (isShortcutsOpen) setIsShortcutsOpen(false);
+                    else if (isSelectionMode) setIsSelectionMode(false);
+                    else onBack();
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isAddJobModalOpen, isSelectionMode, selectedJobIds, isShortcutsOpen, jobs, currentMonth]); // Added deps for closures
+
     const loadJobs = async () => {
         setIsLoading(true);
         const data = await dropSheetService.getJobs();
@@ -40,11 +111,13 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     };
 
     const handleUpdateJob = async (updatedJob: MailJob) => {
+        // Optimistic update
         setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
         try {
             await dropSheetService.updateJob(updatedJob);
         } catch (e) {
             console.error("Failed to update job", e);
+            // Revert on failure by reloading
             loadJobs();
         }
     };
@@ -234,6 +307,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     mail_type: cols[1] || 'Core/Newsletter',
                     property: (cols[2] === 'Lincoln' || cols[2] === 'Tiverton') ? cols[2] : 'Lincoln',
                     job_submitted: false,
+                    submitted_date: undefined,
                     postage: 'Standard',
                     quantity: parseInt(cols[3]) || 0,
                     in_home_date: cols[4] || '', 
@@ -296,57 +370,65 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         <div className="min-h-screen bg-background p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-                    <div className="flex items-center gap-4">
-                        <button onClick={onBack} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                            <ArrowLeft className="w-6 h-6 text-text-main" />
+                <header className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <button onClick={onBack} className="p-2 hover:bg-surface border border-transparent hover:border-border rounded-xl transition-all group">
+                            <ArrowLeft className="w-5 h-5 text-text-muted group-hover:text-text-main" />
                         </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-text-main">Marketing Logistics</h1>
-                            <p className="text-text-muted text-sm">Track and manage direct mail campaigns</p>
+                        
+                        <div className="h-8 w-px bg-border mx-2 hidden md:block" />
+
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-surface border border-border rounded-xl flex items-center justify-center shadow-sm">
+                                <img src="/ballyb.png" className="w-6 h-6 object-contain" alt="Logo" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-text-main tracking-tight">Marketing Logistics</h1>
+                                <p className="text-xs text-text-muted font-medium">Campaign Management</p>
+                            </div>
                         </div>
                     </div>
                     
-                    {/* Month Navigator */}
-                    <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm">
-                        <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                            <ChevronLeft className="w-5 h-5 text-text-muted" />
-                        </button>
-                        <div className="px-6 min-w-[160px] text-center">
-                            <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
-                                {format(currentMonth, 'MMMM yyyy')}
-                            </span>
+                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
+                        {/* Month Navigator */}
+                        <div className="flex items-center bg-surface border border-border rounded-xl shadow-sm">
+                            <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-l-xl transition-colors border-r border-border/50">
+                                <ChevronLeft className="w-4 h-4 text-text-muted" />
+                            </button>
+                            <div className="px-4 min-w-[140px] text-center">
+                                <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
+                                    {format(currentMonth, 'MMMM yyyy')}
+                                </span>
+                            </div>
+                            <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-r-xl transition-colors border-l border-border/50">
+                                <ChevronRight className="w-4 h-4 text-text-muted" />
+                            </button>
                         </div>
-                        <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                            <ChevronRight className="w-5 h-5 text-text-muted" />
-                        </button>
+                        
+                        {/* Property Toggle */}
+                        <div className="flex items-center gap-1 bg-surface border border-border rounded-xl p-1 shadow-sm">
+                             {(['Lincoln', 'Tiverton', 'All'] as const).map((prop) => (
+                                <button 
+                                    key={prop}
+                                    onClick={() => setPropertyFilter(prop)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                        propertyFilter === prop 
+                                            ? prop === 'Lincoln' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                                            : prop === 'Tiverton' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                                            : 'bg-gray-800 text-white shadow-md'
+                                            : 'text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                    {prop}
+                                </button>
+                             ))}
+                        </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3 bg-surface p-1 rounded-lg border border-border shadow-sm">
-                        <button 
-                            onClick={() => setPropertyFilter('Lincoln')}
-                            className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${propertyFilter === 'Lincoln' ? 'bg-blue-500 text-white' : 'text-text-muted hover:text-text-main'}`}
-                        >
-                            Lincoln
-                        </button>
-                        <button 
-                            onClick={() => setPropertyFilter('Tiverton')}
-                            className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${propertyFilter === 'Tiverton' ? 'bg-orange-500 text-white' : 'text-text-muted hover:text-text-main'}`}
-                        >
-                            Tiverton
-                        </button>
-                        <button 
-                            onClick={() => setPropertyFilter('All')}
-                            className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${propertyFilter === 'All' ? 'bg-gray-800 text-white' : 'text-text-muted hover:text-text-main'}`}
-                        >
-                            All
-                        </button>
-                    </div>
-                </div>
+                </header>
 
                 {/* Toolbar */}
-                <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                    <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-surface/30 p-4 rounded-2xl border border-border/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
                         {/* Selection Controls */}
                         {isSelectionMode ? (
                             <>
@@ -390,7 +472,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         {/* Sort */}
                         <button 
                             onClick={toggleSort}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
                             title={`Sort by ${sortConfig.field === 'in_home_date' ? 'In-Home Date' : 'Vendor Mail Date'} (${sortConfig.direction})`}
                         >
                             <ArrowUpDown className={`w-4 h-4 text-text-muted transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
@@ -399,41 +481,50 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                             </span>
                         </button>
 
-                        <div className="h-6 w-px bg-border mx-2 hidden md:block" />
+                        <div className="h-6 w-px bg-border mx-2 hidden md:block opacity-50" />
 
                         {/* Export JSON */}
                         <button 
                             onClick={handleExportJSON}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm group"
                             title="Export all jobs to JSON"
                         >
-                            <Upload className="w-4 h-4 text-text-muted rotate-180" />
+                            <Upload className="w-4 h-4 text-text-muted rotate-180 group-hover:-translate-y-0.5 transition-transform" />
                             <span className="text-sm font-medium text-text-main">Export</span>
                         </button>
 
                         {/* Import JSON */}
-                        <label className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                            <Plus className="w-4 h-4 text-text-muted" />
+                        <label className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm group">
+                            <Plus className="w-4 h-4 text-text-muted group-hover:rotate-90 transition-transform" />
                             <span className="text-sm font-medium text-text-main">Import JSON</span>
-                            <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+                            <input id="json-import-input" type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
                         </label>
                         
                         {/* Seed Data Button */}
                         <button 
                             onClick={handleSeedData}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
                             title="Load Test Data"
                         >
                             <Database className="w-4 h-4 text-text-muted" />
                             <span className="text-sm font-medium text-text-main">Seed Data</span>
                         </button>
+
+                        {/* Shortcuts Help Button */}
+                        <button 
+                            onClick={() => setIsShortcutsOpen(true)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-text-muted hover:text-text-main"
+                            title="Keyboard Shortcuts (?)"
+                        >
+                            <Keyboard className="w-5 h-5" />
+                        </button>
                     </div>
 
                     <button 
                         onClick={handleOpenAddJob}
-                        className="flex items-center gap-2 px-4 py-2 bg-ballys-red text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-ballys-red text-white rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20 group"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                         <span className="text-sm font-bold">New Job</span>
                     </button>
                 </div>
@@ -467,6 +558,11 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     onClose={() => setIsAddJobModalOpen(false)}
                     onAdd={handleCreateJob}
                     currentMonth={currentMonth}
+                />
+
+                <ShortcutsHelp 
+                    isOpen={isShortcutsOpen}
+                    onClose={() => setIsShortcutsOpen(false)}
                 />
             </div>
         </div>

@@ -383,6 +383,7 @@ function processPayload(): MailJob[] {
                 mail_type: item.mail_type,
                 property: group.property,
                 job_submitted: item.job_submitted,
+                submitted_date: item.job_submitted ? '2025-11-01' : undefined, // Default historical date for seeded data if true
                 postage: item.postage,
                 quantity: item.quantity,
                 in_home_date: item.in_home_date,
