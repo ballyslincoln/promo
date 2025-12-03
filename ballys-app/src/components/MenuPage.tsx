@@ -1,5 +1,5 @@
-import { Calendar, Truck, LogOut, ShieldCheck, ArrowRight, PackageCheck } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Calendar, LogOut, ShieldCheck, ArrowRight, PackageCheck } from 'lucide-react';
+import { motion, Variants } from 'framer-motion';
 import Footer from './Footer';
 
 interface MenuPageProps {
@@ -20,7 +20,7 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
         }
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
             opacity: 1,

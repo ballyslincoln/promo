@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function PrivacyPolicy({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen bg-background text-text-main pb-safe-bottom font-sans">

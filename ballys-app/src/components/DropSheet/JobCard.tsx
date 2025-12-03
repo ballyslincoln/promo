@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
-import { Calendar, Save, Trash2, X, CheckCircle, Edit2 } from 'lucide-react';
+import { Calendar, Save, Trash2, CheckCircle, Edit2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 interface JobCardProps {

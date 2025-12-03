@@ -1,4 +1,3 @@
-import React from 'react';
 import { Check, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface PostageSelectorProps {
