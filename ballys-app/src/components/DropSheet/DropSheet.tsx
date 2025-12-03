@@ -278,54 +278,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         linkElement.click();
     };
 
-    // Renamed from handleFileUpload but kept for legacy CSV support if needed, 
-    // or we can remove if user meant "fix import csv" by replacing it.
-    // User said "fix import csv i want an export button... and upload button to import new json"
-    // So I will keep CSV for now but add JSON as primary or side-by-side.
-    const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const text = event.target?.result as string;
-            const lines = text.split('\n');
-            
-            const newJobs: MailJob[] = [];
-            
-            // Skip header
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const cols = line.split(',').map(s => s.trim());
-                if (cols.length < 5) continue;
-
-                const job: MailJob = {
-                    id: crypto.randomUUID(),
-                    campaign_name: cols[0] || 'Untitled Campaign',
-                    mail_type: cols[1] || 'Core/Newsletter',
-                    property: (cols[2] === 'Lincoln' || cols[2] === 'Tiverton') ? cols[2] : 'Lincoln',
-                    job_submitted: false,
-                    submitted_date: undefined,
-                    postage: 'Standard',
-                    quantity: parseInt(cols[3]) || 0,
-                    in_home_date: cols[4] || '', 
-                    first_valid_date: '',
-                    vendor_mail_date: '',
-                    milestones: {},
-                    created_at: new Date().toISOString()
-                };
-                newJobs.push(job);
-            }
-
-            for (const job of newJobs) {
-                await dropSheetService.createJob(job);
-            }
-            loadJobs();
-        };
-        reader.readAsText(file);
-    };
 
     const handleOpenAddJob = () => {
         setIsAddJobModalOpen(true);
