@@ -256,13 +256,23 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isAddJobModalOpen, isImportModalOpen, isExportModalOpen, isSelectionMode, selectedJobIds, isShortcutsOpen, jobs, currentMonth, onBack, handleMassDelete, handleAnalyzeDuplicates, handlePrevMonth, handleNextMonth]); // Added deps for closures
 
-    // Filter jobs by property AND month (using In-Home Date as anchor)
+    // Filter jobs by property AND month (using campaign name month or In-Home Date as fallback)
     const filteredJobs = jobs.filter(job => {
         const matchesProperty = propertyFilter === 'All' || job.property === propertyFilter;
         
-        // Parse in_home_date to check month
+        // Check if job belongs to current month
+        // 1. Try to match campaign name first (e.g. "January Newsletter")
+        // 2. Fallback to in_home_date
         let matchesMonth = false;
-        if (job.in_home_date) {
+        
+        const monthName = format(currentMonth, 'MMMM').toLowerCase();
+        const campaignName = job.campaign_name?.toLowerCase() || '';
+        
+        if (campaignName.includes(monthName)) {
+            // If campaign name explicitly contains the month name, include it
+            matchesMonth = true;
+        } else if (job.in_home_date) {
+            // Fallback to in-home date logic if name doesn't match
             const jobDate = parseISO(job.in_home_date);
             if (isValid(jobDate)) {
                 matchesMonth = isSameMonth(jobDate, currentMonth);
