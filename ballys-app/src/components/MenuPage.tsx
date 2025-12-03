@@ -1,5 +1,6 @@
 import { Calendar, LogOut, ShieldCheck, ArrowRight, PackageCheck } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import Footer from './Footer';
 
 interface MenuPageProps {
