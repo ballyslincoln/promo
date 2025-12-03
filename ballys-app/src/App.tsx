@@ -3,10 +3,14 @@ import Login from './Login';
 import Dashboard from './Dashboard';
 import AdminPanel from './AdminPanel';
 import AnnouncementBanner from './components/AnnouncementBanner';
+import MenuPage from './components/MenuPage';
+import DropSheet from './components/DropSheet/DropSheet';
 import { getActiveAnnouncement, initAnnouncementTable } from './services/announcementService';
 import { eventService } from './services/eventService';
 import { userService } from './services/userService';
 import type { Announcement } from './types';
+
+type AdminView = 'none' | 'menu' | 'calendar' | 'dropsheet';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -24,7 +28,8 @@ function App() {
     }
     return false;
   });
-  const [showAdmin, setShowAdmin] = useState(false);
+  
+  const [adminView, setAdminView] = useState<AdminView>('none');
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
 
   // Initialize user session immediately
@@ -48,10 +53,10 @@ function App() {
 
   // Refetch announcement when admin panel is closed to update any changes
   useEffect(() => {
-    if (!showAdmin) {
+    if (adminView === 'none') {
       fetchAnnouncement();
     }
-  }, [showAdmin]);
+  }, [adminView]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -74,13 +79,13 @@ function App() {
       // Ctrl+Shift+A or Cmd+Shift+A (Mac) to open admin
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
-        setShowAdmin(true);
+        setAdminView('menu'); // Default to menu
       }
       // Escape to logout
       if (e.key === 'Escape') {
         e.preventDefault();
         setIsAuthenticated(false);
-        setShowAdmin(false);
+        setAdminView('none');
       }
     };
 
@@ -94,9 +99,31 @@ function App() {
     setAnnouncement(null);
   };
 
+  const handleAdminLogin = () => {
+    setAdminView('menu');
+    setIsAuthenticated(true);
+    localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
+  };
+
   const renderContent = () => {
-    if (showAdmin) {
-      return <AdminPanel onClose={() => setShowAdmin(false)} />;
+    if (adminView === 'menu') {
+        return (
+            <MenuPage 
+                onSelect={(view) => setAdminView(view)} 
+                onLogout={() => {
+                    setIsAuthenticated(false);
+                    setAdminView('none');
+                }} 
+            />
+        );
+    }
+
+    if (adminView === 'calendar') {
+      return <AdminPanel onClose={() => setAdminView('menu')} />;
+    }
+
+    if (adminView === 'dropsheet') {
+        return <DropSheet onBack={() => setAdminView('menu')} />;
     }
 
     if (!isAuthenticated) {
@@ -106,17 +133,12 @@ function App() {
             setIsAuthenticated(true);
             localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
           }}
-          onAdminLogin={() => {
-            setShowAdmin(true);
-            // If logging in via admin shortcut, also authenticate
-            setIsAuthenticated(true);
-            localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
-          }}
+          onAdminLogin={handleAdminLogin}
         />
       );
     }
 
-    return <Dashboard onAdminOpen={() => setShowAdmin(true)} />;
+    return <Dashboard onAdminOpen={() => setAdminView('menu')} />;
   };
 
   return (

@@ -323,6 +323,23 @@ export const eventService = {
         );
       `;
 
+      await sql`
+        CREATE TABLE IF NOT EXISTS mail_jobs (
+          id TEXT PRIMARY KEY,
+          campaign_name TEXT NOT NULL,
+          mail_type TEXT,
+          property TEXT,
+          job_submitted BOOLEAN DEFAULT FALSE,
+          postage TEXT,
+          quantity INTEGER,
+          in_home_date TEXT,
+          first_valid_date TEXT,
+          vendor_mail_date TEXT,
+          milestones JSONB,
+          created_at TEXT NOT NULL
+        );
+      `;
+
       console.log('Database initialized successfully');
     } catch (e) {
       console.error('Failed to initialize database:', e);

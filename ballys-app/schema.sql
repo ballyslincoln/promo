@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS events (
   "daysOfWeek" JSONB,
   "isRecurring" BOOLEAN DEFAULT FALSE,
   property TEXT DEFAULT 'Both',
-  "lastUpdated" TEXT
+  "lastUpdated" TEXT,
+  "isArchived" BOOLEAN DEFAULT FALSE,
+  "isTemplate" BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS schedules (
@@ -49,5 +51,20 @@ CREATE TABLE IF NOT EXISTS interactions (
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type TEXT NOT NULL, -- 'aura' or 'comment'
   content TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS mail_jobs (
+  id TEXT PRIMARY KEY,
+  campaign_name TEXT NOT NULL,
+  mail_type TEXT,
+  property TEXT,
+  job_submitted BOOLEAN DEFAULT FALSE,
+  postage TEXT,
+  quantity INTEGER,
+  in_home_date TEXT,
+  first_valid_date TEXT,
+  vendor_mail_date TEXT,
+  milestones JSONB,
   created_at TEXT NOT NULL
 );
