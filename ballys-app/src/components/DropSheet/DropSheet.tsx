@@ -8,6 +8,7 @@ import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
 import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
+import { calculateMilestoneDates } from './dateUtils';
 
 interface DropSheetProps {
     onBack: () => void;
@@ -28,7 +29,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
 
     // Sort Configuration
-    const [sortConfig, setSortConfig] = useState<{ field: 'in_home_date' | 'vendor_mail_date', direction: 'asc' | 'desc' }>({
+    const [sortConfig, setSortConfig] = useState<{ field: 'in_home_date' | 'vendor_mail_date' | 'art_submission_due', direction: 'asc' | 'desc' }>({
         field: 'in_home_date',
         direction: 'asc'
     });
@@ -126,10 +127,21 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     }, [jobs]);
     
     const toggleSort = () => {
-        setSortConfig(prev => ({
-            ...prev,
-            direction: prev.direction === 'asc' ? 'desc' : 'asc'
-        }));
+        setSortConfig(prev => {
+            const states = [
+                { field: 'in_home_date', direction: 'asc' },
+                { field: 'in_home_date', direction: 'desc' },
+                { field: 'vendor_mail_date', direction: 'asc' },
+                { field: 'vendor_mail_date', direction: 'desc' },
+                { field: 'art_submission_due', direction: 'asc' },
+                { field: 'art_submission_due', direction: 'desc' }
+            ] as const;
+
+            const currentIndex = states.findIndex(s => s.field === prev.field && s.direction === prev.direction);
+            const nextIndex = (currentIndex + 1) % states.length;
+            
+            return states[nextIndex];
+        });
     };
 
     const handleImportJobs = async (newJobs: MailJob[]) => {
@@ -283,8 +295,18 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     });
 
     const sortedFilteredJobs = [...filteredJobs].sort((a, b) => {
-        const dateA = a[sortConfig.field] ? new Date(a[sortConfig.field]).getTime() : 0;
-        const dateB = b[sortConfig.field] ? new Date(b[sortConfig.field]).getTime() : 0;
+        let dateA = 0;
+        let dateB = 0;
+
+        if (sortConfig.field === 'art_submission_due') {
+            const datesA = calculateMilestoneDates(a.in_home_date, a.mail_type);
+            const datesB = calculateMilestoneDates(b.in_home_date, b.mail_type);
+            dateA = datesA.artSubmissionDueDate ? datesA.artSubmissionDueDate.getTime() : 0;
+            dateB = datesB.artSubmissionDueDate ? datesB.artSubmissionDueDate.getTime() : 0;
+        } else {
+            dateA = a[sortConfig.field] ? new Date(a[sortConfig.field]).getTime() : 0;
+            dateB = b[sortConfig.field] ? new Date(b[sortConfig.field]).getTime() : 0;
+        }
         
         if (sortConfig.direction === 'asc') {
             return dateA - dateB;
@@ -420,12 +442,13 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         {/* Sort */}
                         <button 
                             onClick={toggleSort}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
-                            title={`Sort by ${sortConfig.field === 'in_home_date' ? 'In-Home Date' : 'Vendor Mail Date'} (${sortConfig.direction})`}
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm min-w-[140px] justify-center"
+                            title={`Sort by ${sortConfig.field.replace(/_/g, ' ')} (${sortConfig.direction})`}
                         >
                             <ArrowUpDown className={`w-4 h-4 text-text-muted transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
                             <span className="text-sm font-medium text-text-main">
-                                {sortConfig.field === 'in_home_date' ? 'Due Date' : 'Mail Date'}
+                                {sortConfig.field === 'in_home_date' ? 'Due Date' : 
+                                 sortConfig.field === 'vendor_mail_date' ? 'Mail Date' : 'Art Due'}
                             </span>
                         </button>
 

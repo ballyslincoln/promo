@@ -45,40 +45,51 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, ma
     const { mailDropDate, artDueDate, artSubmissionDueDate } = calculateMilestoneDates(inHomeDate, mailType);
     const today = new Date();
 
-    // Check for late status (Mailed Date vs Target Drop Date)
+    // Check for late status
     let isLate = false;
     let lagDays = 0;
     
-    // Only calculate late status if:
-    // 1. We have a target mail drop date (calculated from in-home date)
-    // 2. The job is actually mailed (vendorMailDate exists)
-    if (vendorMailDate && mailDropDate) {
-         const mailed = parseISO(vendorMailDate);
-         // Compare start of day to ignore time components
-         const mailedDay = new Date(mailed.getFullYear(), mailed.getMonth(), mailed.getDate());
-         const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
-         
-         if (isValid(mailed) && mailedDay > targetDay) {
-             isLate = true;
-             lagDays = getLagDays(targetDay, mailedDay);
-         }
-    }
-    // ALSO check if we are late but haven't mailed yet
-    // If today > mailDropDate AND not mailed yet -> Late
-    else if (!vendorMailDate && mailDropDate) {
-         const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-         const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
-         
-         if (todayDay > targetDay) {
-             isLate = true;
-             lagDays = getLagDays(targetDay, todayDay);
-         }
+    if (mailDropDate) {
+        // Normalize dates to start of day
+        const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
+
+        if (vendorMailDate) {
+             // Job is done, check if it WAS late
+             const mailed = parseISO(vendorMailDate);
+             if (isValid(mailed)) {
+                 const mailedDay = new Date(mailed.getFullYear(), mailed.getMonth(), mailed.getDate());
+                 if (mailedDay > targetDay) {
+                     isLate = true;
+                     lagDays = getLagDays(targetDay, mailedDay);
+                 }
+             }
+        } else {
+             // Job is active, check if it IS late
+             const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+             
+             if (todayDay > targetDay) {
+                 isLate = true;
+                 lagDays = getLagDays(targetDay, todayDay);
+             }
+        }
     }
 
-    // Check for "Behind Schedule" status (Data/Art Handover logic)
-    // Prompt: If Today > Target Vendor Handover AND "Data Approved" is unchecked → Status = BEHIND.
-    // "Target Vendor Handover" = Art Due Date in my calc? Yes (Drop - 5 days).
-    const isBehind = isBehindSchedule(milestones, artDueDate, today);
+    // Check for "Behind Schedule" status (Art Submission Logic)
+    // "Behind Schedule" means we missed the internal Art Submission deadline
+    // If Today > Art Submission Due Date AND (Creative Approved is NOT complete) -> Behind.
+    let isBehind = false;
+    if (artSubmissionDueDate && !milestones.creative_approved) {
+        const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const artDueDay = new Date(artSubmissionDueDate.getFullYear(), artSubmissionDueDate.getMonth(), artSubmissionDueDate.getDate());
+        
+        if (todayDay > artDueDay) {
+            isBehind = true;
+        }
+    }
+    // Fallback to old logic if needed (though artSubmissionDueDate should always exist now)
+    else {
+        isBehind = isBehindSchedule(milestones, artDueDate, today);
+    }
 
     return (
         <div className="w-full flex flex-col gap-2">
