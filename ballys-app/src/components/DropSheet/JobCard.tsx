@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
-import { Calendar, Save, Trash2, X, Check } from 'lucide-react';
-import { format, parseISO, isValid } from 'date-fns';
+import { Calendar, Save, Trash2, X } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 
 interface JobCardProps {
     job: MailJob;
@@ -10,7 +10,7 @@ interface JobCardProps {
     onDelete: (id: string) => void;
 }
 
-const DEPENDENCIES: Record<keyof JobMilestones, (keyof JobMilestones)[]> = {
+const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>> = {
     outline_given: [],
     data_received: [], // Independent
     data_approved: ['data_received'],
@@ -30,7 +30,7 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
         
         // Determine status key
         const statusKey = `${key}_status` as keyof JobMilestones;
-        const currentStatus = newMilestones[statusKey] || 'pending';
+        const currentStatus = (newMilestones[statusKey] as 'pending' | 'in_progress' | 'completed' | undefined) || 'pending';
 
         if (currentStatus === 'completed') {
              // Reset to pending
@@ -38,8 +38,11 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
              delete newMilestones[statusKey];
         } else if (currentStatus === 'in_progress') {
              // Move to completed
-             newMilestones[key] = new Date().toISOString();
-             newMilestones[statusKey] = 'completed';
+             (newMilestones as any)[key] = new Date().toISOString();
+             // We know statusKey corresponds to a status field which is a string union type
+             // TypeScript inference on indexed access of a wide type like JobMilestones can be tricky
+             // We cast to any to bypass the strict index signature check for this dynamic assignment
+             (newMilestones as any)[statusKey] = 'completed';
         } else {
             // Move to in_progress
             // Ensure required previous steps are completed
@@ -57,7 +60,7 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
                 }
             }
             
-            newMilestones[statusKey] = 'in_progress';
+            (newMilestones as any)[statusKey] = 'in_progress';
         }
         onUpdate({ ...job, milestones: newMilestones });
     };
@@ -86,7 +89,7 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
             // Create date at noon to avoid timezone shifting to previous day
             const d = new Date(dateStr);
             d.setHours(12, 0, 0, 0);
-            newMilestones[key] = d.toISOString();
+            (newMilestones as any)[key] = d.toISOString();
         } else {
             delete newMilestones[key];
         }
@@ -211,8 +214,10 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
                             { key: 'creative_approved', label: 'Creative App.' },
                             { key: 'mailed', label: 'Mailed' }
                         ].map((step) => {
-                            const val = editedJob.milestones[step.key as keyof JobMilestones];
-                            const dateVal = val ? format(parseISO(val), 'yyyy-MM-dd') : '';
+                            // Type assertion since we are mapping a list of keys known to be in JobMilestones
+                            const key = step.key as keyof JobMilestones;
+                            const val = editedJob.milestones[key];
+                            const dateVal = val && typeof val === 'string' ? format(parseISO(val), 'yyyy-MM-dd') : '';
                             
                             return (
                                 <div key={step.key} className="flex flex-col">
@@ -221,7 +226,7 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
                                         <input 
                                             type="date"
                                             value={dateVal}
-                                            onChange={(e) => handleMilestoneDateChange(step.key as keyof JobMilestones, e.target.value)}
+                                            onChange={(e) => handleMilestoneDateChange(key, e.target.value)}
                                             className="bg-white dark:bg-slate-800 border border-border rounded px-2 py-1 text-xs w-full cursor-pointer"
                                             onClick={(e) => (e.target as HTMLInputElement).showPicker()}
                                         />

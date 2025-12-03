@@ -31,7 +31,7 @@ const STEPS: { key: keyof JobMilestones; label: string; description: string }[] 
 const VISIBLE_STEPS = STEPS.filter(s => s.key !== 'sent_to_vendor');
 
 // Milestone Dependencies logic (Mirrors JobCard logic)
-const DEPENDENCIES: Record<keyof JobMilestones, (keyof JobMilestones)[]> = {
+const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>> = {
     outline_given: [],
     data_received: [], // Independent
     data_approved: ['data_received'],
@@ -65,7 +65,7 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, on
     return (
         <div className="w-full flex flex-col gap-2">
             <div className="flex items-center justify-between w-full gap-1">
-                {VISIBLE_STEPS.map((step, idx) => {
+                {VISIBLE_STEPS.map((step) => {
                     const dateVal = milestones[step.key];
                     const statusKey = `${step.key}_status` as keyof JobMilestones;
                     const status = milestones[statusKey] || (dateVal ? 'completed' : 'pending');
