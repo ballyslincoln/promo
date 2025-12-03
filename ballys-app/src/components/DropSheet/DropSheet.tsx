@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { dropSheetService } from '../../services/dropSheetService';
 import type { MailJob } from '../../services/dropSheetService';
 import JobCard from './JobCard';
-import { Plus, Upload, ArrowLeft, Database } from 'lucide-react';
-import { format } from 'date-fns';
+import AddJobModal from './AddJobModal';
+import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { SEED_JOBS } from '../../services/seedData';
 
 interface DropSheetProps {
@@ -14,6 +15,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [jobs, setJobs] = useState<MailJob[]>([]);
     const [propertyFilter, setPropertyFilter] = useState<'All' | 'Lincoln' | 'Tiverton'>('All');
     const [isLoading, setIsLoading] = useState(true);
+    const [currentMonth, setCurrentMonth] = useState(new Date()); // Default to today (which will be Jan 2026 or current real time)
+    const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
 
     useEffect(() => {
         loadJobs();
@@ -51,10 +54,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         if (!confirm('This will add historical and future test data. Continue?')) return;
         setIsLoading(true);
         for (const job of SEED_JOBS) {
-            // Check if exists (simple client side check or just try create)
-            // DB insert uses ON CONFLICT normally if configured, but here we just blindly insert or catch error
             try {
-                // Check if ID exists in current list to avoid dupes visually before refresh
                 if (!jobs.find(j => j.id === job.id)) {
                     await dropSheetService.createJob(job);
                 }
@@ -66,7 +66,71 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         setIsLoading(false);
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const text = event.target?.result as string;
+                const importedJobs = JSON.parse(text);
+                
+                if (!Array.isArray(importedJobs)) {
+                    alert('Invalid JSON format: Expected an array of jobs');
+                    return;
+                }
+
+                const newJobs: MailJob[] = [];
+                for (const job of importedJobs) {
+                    if (job.campaign_name && job.property) {
+                         // Avoid collision if ID exists, or use ID from JSON if safe
+                         // We'll check against existing 'jobs' state to verify duplication
+                         const exists = jobs.find(j => j.id === job.id);
+                         const cleanJob: MailJob = {
+                            ...job,
+                            id: exists ? crypto.randomUUID() : (job.id || crypto.randomUUID()),
+                            created_at: job.created_at || new Date().toISOString()
+                        };
+                        newJobs.push(cleanJob);
+                    }
+                }
+
+                setIsLoading(true);
+                for (const job of newJobs) {
+                    await dropSheetService.createJob(job);
+                }
+                await loadJobs();
+                setIsLoading(false);
+                alert(`Successfully imported ${newJobs.length} jobs`);
+                
+                // Reset input
+                e.target.value = '';
+            } catch (error) {
+                console.error('Import failed:', error);
+                alert('Failed to import JSON file');
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const handleExportJSON = () => {
+        const dataStr = JSON.stringify(jobs, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `marketing_jobs_${format(new Date(), 'yyyy-MM-dd')}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    };
+
+    // Renamed from handleFileUpload but kept for legacy CSV support if needed, 
+    // or we can remove if user meant "fix import csv" by replacing it.
+    // User said "fix import csv i want an export button... and upload button to import new json"
+    // So I will keep CSV for now but add JSON as primary or side-by-side.
+    const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -110,27 +174,33 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         reader.readAsText(file);
     };
 
-    const handleAddJob = async () => {
-        const newJob: MailJob = {
-            id: crypto.randomUUID(),
-            campaign_name: 'New Campaign',
-            mail_type: 'Core/Newsletter',
-            property: propertyFilter === 'All' ? 'Lincoln' : propertyFilter,
-            job_submitted: false,
-            postage: 'Standard',
-            quantity: 0,
-            in_home_date: format(new Date(), 'yyyy-MM-dd'),
-            first_valid_date: '',
-            vendor_mail_date: '',
-            milestones: {},
-            created_at: new Date().toISOString()
-        };
-        
+    const handleOpenAddJob = () => {
+        setIsAddJobModalOpen(true);
+    };
+
+    const handleCreateJob = async (newJob: MailJob) => {
         setJobs(prev => [...prev, newJob]);
         await dropSheetService.createJob(newJob);
     };
 
-    const filteredJobs = jobs.filter(job => propertyFilter === 'All' || job.property === propertyFilter);
+    const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
+    const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+
+    // Filter jobs by property AND month (using In-Home Date as anchor)
+    const filteredJobs = jobs.filter(job => {
+        const matchesProperty = propertyFilter === 'All' || job.property === propertyFilter;
+        
+        // Parse in_home_date to check month
+        let matchesMonth = false;
+        if (job.in_home_date) {
+            const jobDate = parseISO(job.in_home_date);
+            if (isValid(jobDate)) {
+                matchesMonth = isSameMonth(jobDate, currentMonth);
+            }
+        }
+        
+        return matchesProperty && matchesMonth;
+    });
 
     return (
         <div className="min-h-screen bg-background p-6">
@@ -145,6 +215,21 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                             <h1 className="text-2xl font-bold text-text-main">Marketing Logistics</h1>
                             <p className="text-text-muted text-sm">Track and manage direct mail campaigns</p>
                         </div>
+                    </div>
+                    
+                    {/* Month Navigator */}
+                    <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm">
+                        <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <ChevronLeft className="w-5 h-5 text-text-muted" />
+                        </button>
+                        <div className="px-6 min-w-[160px] text-center">
+                            <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
+                                {format(currentMonth, 'MMMM yyyy')}
+                            </span>
+                        </div>
+                        <button onClick={handleNextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <ChevronRight className="w-5 h-5 text-text-muted" />
+                        </button>
                     </div>
                     
                     <div className="flex items-center gap-3 bg-surface p-1 rounded-lg border border-border shadow-sm">
@@ -172,13 +257,31 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                 {/* Toolbar */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
+                        {/* Export JSON */}
+                        <button 
+                            onClick={handleExportJSON}
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                            title="Export all jobs to JSON"
+                        >
+                            <Upload className="w-4 h-4 text-text-muted rotate-180" />
+                            <span className="text-sm font-medium text-text-main">Export</span>
+                        </button>
+
+                        {/* Import JSON */}
                         <label className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                            <Plus className="w-4 h-4 text-text-muted" />
+                            <span className="text-sm font-medium text-text-main">Import JSON</span>
+                            <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+                        </label>
+
+                         {/* Import CSV (Hidden or secondary? Keeping it for now as requested 'fix import csv') */}
+                        <label className="hidden flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                             <Upload className="w-4 h-4 text-text-muted" />
                             <span className="text-sm font-medium text-text-main">Import CSV</span>
-                            <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                            <input type="file" accept=".csv" onChange={handleImportCSV} className="hidden" />
                         </label>
                         
-                        {/* Seed Data Button (Hidden in Prod usually, but good for testing) */}
+                        {/* Seed Data Button */}
                         <button 
                             onClick={handleSeedData}
                             className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
@@ -190,7 +293,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     </div>
 
                     <button 
-                        onClick={handleAddJob}
+                        onClick={handleOpenAddJob}
                         className="flex items-center gap-2 px-4 py-2 bg-ballys-red text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20"
                     >
                         <Plus className="w-4 h-4" />
@@ -204,8 +307,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         <div className="text-center py-20 text-text-muted">Loading campaigns...</div>
                     ) : filteredJobs.length === 0 ? (
                         <div className="text-center py-20 bg-surface border border-dashed border-border rounded-xl">
-                            <p className="text-text-muted mb-2">No active campaigns found</p>
-                            <p className="text-xs text-text-light">Upload a CSV or create a new job to get started</p>
+                            <p className="text-text-muted mb-2">No active campaigns found for {format(currentMonth, 'MMMM yyyy')}</p>
+                            <p className="text-xs text-text-light">Change the month or add a new job to get started</p>
                         </div>
                     ) : (
                         filteredJobs.map(job => (
@@ -218,6 +321,13 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         ))
                     )}
                 </div>
+
+                <AddJobModal 
+                    isOpen={isAddJobModalOpen}
+                    onClose={() => setIsAddJobModalOpen(false)}
+                    onAdd={handleCreateJob}
+                    currentMonth={currentMonth}
+                />
             </div>
         </div>
     );

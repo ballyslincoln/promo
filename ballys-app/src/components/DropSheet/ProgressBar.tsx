@@ -1,7 +1,7 @@
 import type { JobMilestones } from '../../services/dropSheetService';
 import { calculateMilestoneDates, isBehindSchedule, getLagDays } from './dateUtils';
 import { format, parseISO, isValid } from 'date-fns';
-import { Check, AlertCircle, Clock } from 'lucide-react';
+import { Check, AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProgressBarProps {
@@ -30,6 +30,17 @@ const STEPS: { key: keyof JobMilestones; label: string; description: string }[] 
 // Filtered steps based on prompt
 const VISIBLE_STEPS = STEPS.filter(s => s.key !== 'sent_to_vendor');
 
+// Milestone Dependencies logic (Mirrors JobCard logic)
+const DEPENDENCIES: Record<keyof JobMilestones, (keyof JobMilestones)[]> = {
+    outline_given: [],
+    data_received: [], // Independent
+    data_approved: ['data_received'],
+    creative_received: [], // Independent
+    creative_approved: ['creative_received'],
+    mailed: ['outline_given', 'data_approved', 'creative_approved'],
+    sent_to_vendor: []
+};
+
 export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, onMilestoneClick }: ProgressBarProps) {
     const { mailDropDate, artDueDate } = calculateMilestoneDates(inHomeDate);
     const today = new Date();
@@ -55,10 +66,20 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, on
         <div className="w-full flex flex-col gap-2">
             <div className="flex items-center justify-between w-full gap-1">
                 {VISIBLE_STEPS.map((step, idx) => {
-                    const isCompleted = !!milestones[step.key];
-                    // Logic for previous steps being completed
-                    const isPreviousCompleted = idx === 0 || !!milestones[VISIBLE_STEPS[idx - 1].key];
-                    const canToggle = isPreviousCompleted; 
+                    const dateVal = milestones[step.key];
+                    const statusKey = `${step.key}_status` as keyof JobMilestones;
+                    const status = milestones[statusKey] || (dateVal ? 'completed' : 'pending');
+                    const isCompleted = status === 'completed';
+                    const isInProgress = status === 'in_progress';
+                    
+                    // Check if enabled based on dependencies
+                    const requiredSteps = DEPENDENCIES[step.key];
+                    const isEnabled = !requiredSteps || requiredSteps.every(reqStep => {
+                         const reqStatus = milestones[`${reqStep}_status` as keyof JobMilestones];
+                         return !!milestones[reqStep] || reqStatus === 'completed';
+                    });
+                    
+                    const canToggle = isEnabled; 
 
                     return (
                         <div key={step.key} className="flex flex-col items-center flex-1 group relative">
@@ -67,16 +88,31 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, on
                                 whileTap={canToggle ? { scale: 0.95 } : {}}
                                 onClick={() => canToggle && onMilestoneClick(step.key)}
                                 className={`
-                                    w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold uppercase tracking-wide transition-colors border
+                                    w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold uppercase tracking-wide transition-all border shadow-sm overflow-hidden relative
                                     ${isCompleted 
-                                        ? 'bg-green-500/20 text-green-600 border-green-500/30 hover:bg-green-500/30' 
-                                        : canToggle 
-                                            ? 'bg-white dark:bg-slate-800 text-text-muted border-border hover:border-ballys-red/50 hover:text-ballys-red' 
-                                            : 'bg-gray-100 dark:bg-slate-900 text-gray-300 dark:text-slate-700 border-transparent cursor-not-allowed'}
+                                        ? 'bg-green-500 text-white border-green-600 shadow-green-900/20' 
+                                        : isInProgress
+                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800'
+                                            : canToggle 
+                                                ? 'bg-white dark:bg-slate-800 text-text-muted border-border hover:border-blue-400 hover:text-blue-500 hover:shadow-md' 
+                                                : 'bg-gray-50 dark:bg-slate-900 text-gray-300 dark:text-slate-700 border-transparent cursor-not-allowed opacity-60'}
                                 `}
-                                title={`${step.description}\n${milestones[step.key] ? `Completed: ${format(parseISO(milestones[step.key]!), 'MMM d')}` : ''}`}
+                                title={`${step.description}\nStatus: ${status}`}
                             >
-                                {isCompleted ? <Check className="w-3.5 h-3.5" /> : step.label}
+                                {isInProgress && (
+                                    <motion.div 
+                                        className="absolute inset-0 bg-blue-500/10"
+                                        initial={{ x: '-100%' }}
+                                        animate={{ x: '100%' }}
+                                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                    />
+                                )}
+                                
+                                <span className="relative z-10 flex items-center gap-1">
+                                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : 
+                                     isInProgress ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                    {isInProgress ? 'Working' : step.label}
+                                </span>
                             </motion.button>
                             {isCompleted && milestones[step.key] && (
                                 <span className="text-[9px] text-text-muted mt-1">

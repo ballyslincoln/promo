@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
-import { Calendar, Save, Trash2, X } from 'lucide-react';
+import { Calendar, Save, Trash2, X, Check } from 'lucide-react';
+import { format, parseISO, isValid } from 'date-fns';
 
 interface JobCardProps {
     job: MailJob;
@@ -9,19 +10,65 @@ interface JobCardProps {
     onDelete: (id: string) => void;
 }
 
+const DEPENDENCIES: Record<keyof JobMilestones, (keyof JobMilestones)[]> = {
+    outline_given: [],
+    data_received: [], // Independent
+    data_approved: ['data_received'],
+    creative_received: [], // Independent
+    creative_approved: ['creative_received'],
+    mailed: ['outline_given', 'data_approved', 'creative_approved'],
+    // sent_to_vendor is hidden/ignored in UI for now
+    sent_to_vendor: []
+};
+
 export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editedJob, setEditedJob] = useState<MailJob>(job);
 
     const handleMilestoneClick = (key: keyof JobMilestones) => {
         const newMilestones = { ...job.milestones };
-        if (newMilestones[key]) {
-            // Toggle off? Requirement says "timestamps it as Complete". Usually unclicking clears it.
-            delete newMilestones[key];
+        
+        // Determine status key
+        const statusKey = `${key}_status` as keyof JobMilestones;
+        const currentStatus = newMilestones[statusKey] || 'pending';
+
+        if (currentStatus === 'completed') {
+             // Reset to pending
+             delete newMilestones[key];
+             delete newMilestones[statusKey];
+        } else if (currentStatus === 'in_progress') {
+             // Move to completed
+             newMilestones[key] = new Date().toISOString();
+             newMilestones[statusKey] = 'completed';
         } else {
-            newMilestones[key] = new Date().toISOString();
+            // Move to in_progress
+            // Ensure required previous steps are completed
+            const requiredSteps = DEPENDENCIES[key];
+            if (requiredSteps && requiredSteps.length > 0) {
+                const missingStep = requiredSteps.find(step => {
+                    // Check if step is missing OR status is not completed
+                    const stepStatus = newMilestones[`${step}_status` as keyof JobMilestones];
+                    return !newMilestones[step] && stepStatus !== 'completed';
+                });
+
+                if (missingStep) {
+                    alert(`Please complete '${missingStep.replace('_', ' ')}' first.`);
+                    return;
+                }
+            }
+            
+            newMilestones[statusKey] = 'in_progress';
         }
         onUpdate({ ...job, milestones: newMilestones });
+    };
+
+    const handleToggleSubmitted = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        if (isEditing) {
+            handleChange('job_submitted', isChecked);
+        } else {
+            onUpdate({ ...job, job_submitted: isChecked });
+        }
     };
 
     const handleSave = () => {
@@ -31,6 +78,19 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
 
     const handleChange = (field: keyof MailJob, value: any) => {
         setEditedJob(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleMilestoneDateChange = (key: keyof JobMilestones, dateStr: string) => {
+        const newMilestones = { ...editedJob.milestones };
+        if (dateStr) {
+            // Create date at noon to avoid timezone shifting to previous day
+            const d = new Date(dateStr);
+            d.setHours(12, 0, 0, 0);
+            newMilestones[key] = d.toISOString();
+        } else {
+            delete newMilestones[key];
+        }
+        setEditedJob(prev => ({ ...prev, milestones: newMilestones }));
     };
 
     return (
@@ -77,8 +137,7 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
                          <input 
                             type="checkbox" 
                             checked={isEditing ? editedJob.job_submitted : job.job_submitted}
-                            disabled={!isEditing}
-                            onChange={e => handleChange('job_submitted', e.target.checked)}
+                            onChange={handleToggleSubmitted}
                             className="mt-1 w-4 h-4 accent-ballys-red cursor-pointer"
                          />
                     </div>
@@ -139,12 +198,47 @@ export default function JobCard({ job, onUpdate, onDelete }: JobCardProps) {
 
             {/* Progress Bar Section */}
             <div className="pt-2 border-t border-border/50">
-                <ProgressBar 
-                    milestones={job.milestones} 
-                    inHomeDate={job.in_home_date}
-                    vendorMailDate={job.vendor_mail_date}
-                    onMilestoneClick={handleMilestoneClick}
-                />
+                {isEditing ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-2 bg-gray-50 dark:bg-slate-900/50 rounded-lg">
+                        <div className="col-span-full text-xs font-bold text-text-muted uppercase tracking-wider mb-1">
+                            Edit Milestone Dates
+                        </div>
+                        {[
+                            { key: 'outline_given', label: 'Outline' },
+                            { key: 'data_received', label: 'Data Rec.' },
+                            { key: 'data_approved', label: 'Data App.' },
+                            { key: 'creative_received', label: 'Creative Rec.' },
+                            { key: 'creative_approved', label: 'Creative App.' },
+                            { key: 'mailed', label: 'Mailed' }
+                        ].map((step) => {
+                            const val = editedJob.milestones[step.key as keyof JobMilestones];
+                            const dateVal = val ? format(parseISO(val), 'yyyy-MM-dd') : '';
+                            
+                            return (
+                                <div key={step.key} className="flex flex-col">
+                                    <label className="text-[10px] font-medium text-text-muted mb-1">{step.label}</label>
+                                    <div className="relative">
+                                        <input 
+                                            type="date"
+                                            value={dateVal}
+                                            onChange={(e) => handleMilestoneDateChange(step.key as keyof JobMilestones, e.target.value)}
+                                            className="bg-white dark:bg-slate-800 border border-border rounded px-2 py-1 text-xs w-full cursor-pointer"
+                                            onClick={(e) => (e.target as HTMLInputElement).showPicker()}
+                                        />
+                                        <Calendar className="w-3 h-3 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <ProgressBar 
+                        milestones={job.milestones} 
+                        inHomeDate={job.in_home_date}
+                        vendorMailDate={job.vendor_mail_date}
+                        onMilestoneClick={handleMilestoneClick}
+                    />
+                )}
             </div>
         </div>
     );

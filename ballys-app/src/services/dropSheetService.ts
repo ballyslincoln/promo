@@ -2,12 +2,25 @@ import { sql } from '../db';
 
 export interface JobMilestones {
     outline_given?: string;
+    outline_given_status?: 'pending' | 'in_progress' | 'completed';
+    
     data_received?: string;
+    data_received_status?: 'pending' | 'in_progress' | 'completed';
+    
     data_approved?: string;
+    data_approved_status?: 'pending' | 'in_progress' | 'completed';
+    
     creative_received?: string;
+    creative_received_status?: 'pending' | 'in_progress' | 'completed';
+    
     creative_approved?: string;
+    creative_approved_status?: 'pending' | 'in_progress' | 'completed';
+    
     sent_to_vendor?: string;
+    sent_to_vendor_status?: 'pending' | 'in_progress' | 'completed';
+    
     mailed?: string;
+    mailed_status?: 'pending' | 'in_progress' | 'completed';
 }
 
 export interface MailJob {
