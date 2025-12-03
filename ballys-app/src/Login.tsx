@@ -40,7 +40,7 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
     }, []);
 
     return (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
+        <div className="min-h-screen w-full flex flex-col bg-background text-text-main relative overflow-hidden font-sans selection:bg-ballys-red/30">
             {/* Ambient Background Effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
@@ -64,12 +64,14 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
             {/* Grid Pattern Overlay */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="z-10 w-full max-w-md relative px-4"
-            >
+            {/* Centered Login Card */}
+            <div className="flex-1 flex items-center justify-center py-8">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="z-10 w-full max-w-md relative px-4"
+                >
                 {/* Glass Card */}
                 <div className="relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border border-white/40 dark:border-slate-700/40 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden group transform-gpu">
                     {/* Shine Effect */}
@@ -204,7 +206,8 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
                         </form>
                     </div>
                 </div>
-            </motion.div>
+                </motion.div>
+            </div>
 
             {/* Install Prompt - Bottom Sheet Style */}
             <AnimatePresence>
@@ -214,7 +217,8 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: '100%', opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="absolute bottom-0 left-0 right-0 z-50 p-4 flex justify-center"
+                        className="absolute bottom-0 left-0 right-0 z-50 p-4 flex justify-center pb-safe-bottom"
+                        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
                     >
                         <div className="bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-[340px] w-full p-4 relative overflow-hidden">
                             <button 
@@ -251,7 +255,10 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
                 )}
             </AnimatePresence>
 
-            <Footer onPrivacyClick={onPrivacyClick} />
+            {/* Footer - Positioned at bottom */}
+            <div className="relative z-40 mt-auto">
+                <Footer onPrivacyClick={onPrivacyClick} />
+            </div>
         </div>
     );
 }

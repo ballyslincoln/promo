@@ -15,33 +15,33 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.05,
-                delayChildren: 0.1
+                staggerChildren: 0.03,
+                delayChildren: 0.05
             }
         }
     };
 
     const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 0, y: 10 },
         visible: {
             opacity: 1,
             y: 0,
             transition: {
-                type: "spring",
-                stiffness: 200,
-                damping: 20
+                type: "tween",
+                duration: 0.3,
+                ease: "easeOut"
             }
         }
     };
 
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans selection:bg-ballys-red/30">
-            {/* Static Background */}
+            {/* Static Background - Optimized for Safari */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,0,0,0.1),rgba(0,0,0,0))]" />
-                <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gradient-to-br from-ballys-red/10 to-transparent rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-gradient-to-tl from-blue-600/10 to-transparent rounded-full blur-[120px]" />
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,0,0,0.08),rgba(0,0,0,0))]" />
+                <div className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gradient-to-br from-ballys-red/8 to-transparent rounded-full blur-[60px]" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-gradient-to-tl from-blue-600/8 to-transparent rounded-full blur-[60px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
             </div>
 
             <motion.div 
@@ -87,13 +87,13 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
                     {/* Calendar Option */}
                     <motion.button
                         variants={itemVariants}
-                        whileTap={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.99 }}
                         onClick={() => onSelect('calendar')}
-                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-xl transition-shadow overflow-hidden text-left"
+                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
                     >
-                        {/* Static Background Gradients */}
-                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] pointer-events-none" />
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-ballys-red/10 to-transparent rounded-full blur-[80px] -mr-20 -mt-20 opacity-60 mix-blend-overlay" />
+                        {/* Static Background Gradients - Reduced blur for Safari */}
+                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_50%,transparent_75%)] pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-ballys-red/8 to-transparent rounded-full blur-[40px] -mr-20 -mt-20 opacity-50" />
 
                         {/* Icon */}
                         <div className="relative z-10 mb-8">
@@ -122,13 +122,13 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
                     {/* Drop Sheet Option */}
                     <motion.button
                         variants={itemVariants}
-                        whileTap={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.99 }}
                         onClick={() => onSelect('dropsheet')}
-                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-2xl hover:shadow-xl transition-shadow overflow-hidden text-left"
+                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
                     >
-                        {/* Static Background Gradients */}
-                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.03)_50%,transparent_75%)] pointer-events-none" />
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full blur-[80px] -mr-20 -mt-20 opacity-60 mix-blend-overlay" />
+                        {/* Static Background Gradients - Reduced blur for Safari */}
+                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_50%,transparent_75%)] pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-blue-500/8 to-transparent rounded-full blur-[40px] -mr-20 -mt-20 opacity-50" />
 
                         {/* Icon */}
                         <div className="relative z-10 mb-8">
