@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { dropSheetService } from '../../services/dropSheetService';
 import type { MailJob } from '../../services/dropSheetService';
 import JobCard from './JobCard';
 import AddJobModal from './AddJobModal';
+import ImportJsonModal from './ImportJsonModal';
+import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
 import { Plus, Upload, ArrowLeft, Database, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
@@ -18,6 +20,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date()); // Default to today (which will be Jan 2026 or current real time)
     const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
     // Mass Selection & Delete
@@ -30,85 +34,12 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         direction: 'asc'
     });
 
-    useEffect(() => {
-        loadJobs();
-    }, []);
-
-    // Keyboard Shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            // Ignore shortcuts if user is typing in an input or textarea
-            if (
-                document.activeElement instanceof HTMLInputElement ||
-                document.activeElement instanceof HTMLTextAreaElement
-            ) {
-                return;
-            }
-
-            // Ignore if modal is open (except Escape)
-            if (isAddJobModalOpen) {
-                if (e.key === 'Escape') setIsAddJobModalOpen(false);
-                return;
-            }
-
-            // Special handling for Delete/Backspace to allow duplication logic (D) to work separately
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                if (isSelectionMode && selectedJobIds.size > 0) {
-                    handleMassDelete();
-                }
-                return;
-            }
-
-            switch (e.key.toLowerCase()) {
-                case 'n':
-                    e.preventDefault();
-                    setIsAddJobModalOpen(true);
-                    break;
-                case 's':
-                    e.preventDefault();
-                    setIsSelectionMode(prev => !prev);
-                    break;
-                case 'd':
-                    e.preventDefault();
-                    handleAnalyzeDuplicates();
-                    break;
-                case 'e':
-                    e.preventDefault();
-                    handleExportJSON();
-                    break;
-                case 'i':
-                    e.preventDefault();
-                    document.getElementById('json-import-input')?.click();
-                    break;
-                case '?':
-                case '/':
-                    e.preventDefault();
-                    setIsShortcutsOpen(prev => !prev);
-                    break;
-                case 'arrowleft':
-                    handlePrevMonth();
-                    break;
-                case 'arrowright':
-                    handleNextMonth();
-                    break;
-                case 'escape':
-                    if (isShortcutsOpen) setIsShortcutsOpen(false);
-                    else if (isSelectionMode) setIsSelectionMode(false);
-                    else onBack();
-                    break;
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isAddJobModalOpen, isSelectionMode, selectedJobIds, isShortcutsOpen, jobs, currentMonth]); // Added deps for closures
-
-    const loadJobs = async () => {
+    const loadJobs = useCallback(async () => {
         setIsLoading(true);
         const data = await dropSheetService.getJobs();
         setJobs(data);
         setIsLoading(false);
-    };
+    }, []);
 
     const handleUpdateJob = async (updatedJob: MailJob) => {
         // Optimistic update
@@ -141,7 +72,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                 if (!jobs.find(j => j.id === job.id)) {
                     await dropSheetService.createJob(job);
                 }
-            } catch (e) {
+            } catch {
                 console.warn('Seed job might already exist:', job.id);
             }
         }
@@ -159,7 +90,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         setSelectedJobIds(newSelected);
     };
 
-    const handleMassDelete = async () => {
+    const handleMassDelete = useCallback(async () => {
         if (!confirm(`Are you sure you want to delete ${selectedJobIds.size} jobs?`)) return;
         setIsLoading(true);
         
@@ -178,9 +109,9 @@ export default function DropSheet({ onBack }: DropSheetProps) {
             }
         }
         setIsLoading(false);
-    };
+    }, [selectedJobIds]);
 
-    const handleAnalyzeDuplicates = () => {
+    const handleAnalyzeDuplicates = useCallback(() => {
         const groups = new Map<string, MailJob[]>();
         
         // Group by Campaign Name + Property + In-Home Date
@@ -209,7 +140,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
             potentialDuplicates.forEach(j => ids.add(j.id));
             setSelectedJobIds(ids);
         }
-    };
+    }, [jobs]);
     
     const toggleSort = () => {
         setSortConfig(prev => ({
@@ -218,78 +149,128 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         }));
     };
 
-    const handleImportJSON = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (event) => {
+    const handleImportJobs = async (newJobs: MailJob[]) => {
+        setIsLoading(true);
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const job of newJobs) {
             try {
-                const text = event.target?.result as string;
-                const importedJobs = JSON.parse(text);
-                
-                if (!Array.isArray(importedJobs)) {
-                    alert('Invalid JSON format: Expected an array of jobs');
-                    return;
-                }
-
-                const newJobs: MailJob[] = [];
-                for (const job of importedJobs) {
-                    if (job.campaign_name && job.property) {
-                         // Avoid collision if ID exists, or use ID from JSON if safe
-                         // We'll check against existing 'jobs' state to verify duplication
-                         const exists = jobs.find(j => j.id === job.id);
-                         const cleanJob: MailJob = {
-                            ...job,
-                            id: exists ? crypto.randomUUID() : (job.id || crypto.randomUUID()),
-                            created_at: job.created_at || new Date().toISOString()
-                        };
-                        newJobs.push(cleanJob);
-                    }
-                }
-
-                setIsLoading(true);
-                for (const job of newJobs) {
-                    await dropSheetService.createJob(job);
-                }
-                await loadJobs();
-                setIsLoading(false);
-                alert(`Successfully imported ${newJobs.length} jobs`);
-                
-                // Reset input
-                e.target.value = '';
+                // Check existence locally before trying to create to be safe, although UUIDs should be unique
+                // The service might handle duplicates if logic exists there, but for now we blindly create
+                await dropSheetService.createJob(job);
+                successCount++;
             } catch (error) {
-                console.error('Import failed:', error);
-                alert('Failed to import JSON file');
+                console.error(`Failed to import job ${job.id}:`, error);
+                errorCount++;
             }
-        };
-        reader.readAsText(file);
-    };
-
-    const handleExportJSON = () => {
-        const dataStr = JSON.stringify(jobs, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        }
         
-        const exportFileDefaultName = `marketing_jobs_${format(new Date(), 'yyyy-MM-dd')}.json`;
+        await loadJobs();
+        setIsLoading(false);
         
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
+        if (errorCount > 0) {
+            alert(`Imported ${successCount} jobs successfully. ${errorCount} job(s) failed to import.`);
+        } else {
+            alert(`Successfully imported ${successCount} job(s)`);
+        }
     };
-
 
     const handleOpenAddJob = () => {
         setIsAddJobModalOpen(true);
     };
 
     const handleCreateJob = async (newJob: MailJob) => {
+        // Optimistic update
         setJobs(prev => [...prev, newJob]);
-        await dropSheetService.createJob(newJob);
+        try {
+            await dropSheetService.createJob(newJob);
+        } catch (e) {
+            console.error("Failed to create job", e);
+            // Revert on failure by reloading
+            loadJobs();
+        }
     };
 
-    const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
-    const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+    const handlePrevMonth = useCallback(() => setCurrentMonth(prev => subMonths(prev, 1)), []);
+    const handleNextMonth = useCallback(() => setCurrentMonth(prev => addMonths(prev, 1)), []);
+
+    useEffect(() => {
+        loadJobs();
+    }, [loadJobs]);
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore shortcuts if user is typing in an input or textarea
+            if (
+                document.activeElement instanceof HTMLInputElement ||
+                document.activeElement instanceof HTMLTextAreaElement
+            ) {
+                return;
+            }
+
+            // Ignore if modal is open (except Escape)
+            if (isAddJobModalOpen || isImportModalOpen || isExportModalOpen) {
+                if (e.key === 'Escape') {
+                     setIsAddJobModalOpen(false);
+                     setIsImportModalOpen(false);
+                     setIsExportModalOpen(false);
+                }
+                return;
+            }
+
+            // Special handling for Delete/Backspace to allow duplication logic (D) to work separately
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (isSelectionMode && selectedJobIds.size > 0) {
+                    handleMassDelete();
+                }
+                return;
+            }
+
+            switch (e.key.toLowerCase()) {
+                case 'n':
+                    e.preventDefault();
+                    setIsAddJobModalOpen(true);
+                    break;
+                case 's':
+                    e.preventDefault();
+                    setIsSelectionMode(prev => !prev);
+                    break;
+                case 'd':
+                    e.preventDefault();
+                    handleAnalyzeDuplicates();
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    setIsExportModalOpen(true);
+                    break;
+                case 'i':
+                    e.preventDefault();
+                    setIsImportModalOpen(true);
+                    break;
+                case '?':
+                case '/':
+                    e.preventDefault();
+                    setIsShortcutsOpen(prev => !prev);
+                    break;
+                case 'arrowleft':
+                    handlePrevMonth();
+                    break;
+                case 'arrowright':
+                    handleNextMonth();
+                    break;
+                case 'escape':
+                    if (isShortcutsOpen) setIsShortcutsOpen(false);
+                    else if (isSelectionMode) setIsSelectionMode(false);
+                    else onBack();
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isAddJobModalOpen, isImportModalOpen, isExportModalOpen, isSelectionMode, selectedJobIds, isShortcutsOpen, jobs, currentMonth, onBack, handleMassDelete, handleAnalyzeDuplicates, handlePrevMonth, handleNextMonth]); // Added deps for closures
 
     // Filter jobs by property AND month (using In-Home Date as anchor)
     const filteredJobs = jobs.filter(job => {
@@ -317,6 +298,17 @@ export default function DropSheet({ onBack }: DropSheetProps) {
             return dateB - dateA;
         }
     });
+
+    const handleSelectAll = () => {
+        if (selectedJobIds.size === sortedFilteredJobs.length && sortedFilteredJobs.length > 0) {
+            // Deselect all
+            setSelectedJobIds(new Set());
+        } else {
+            // Select all filtered jobs
+            const allIds = new Set(sortedFilteredJobs.map(job => job.id));
+            setSelectedJobIds(allIds);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background p-6">
@@ -365,9 +357,9 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                                     onClick={() => setPropertyFilter(prop)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                         propertyFilter === prop 
-                                            ? prop === 'Lincoln' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                                            ? (prop === 'Lincoln' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                                             : prop === 'Tiverton' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                                            : 'bg-gray-800 text-white shadow-md'
+                                            : 'bg-gray-800 text-white shadow-md')
                                             : 'text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800'
                                     }`}
                                 >
@@ -390,6 +382,16 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                                 >
                                     <X className="w-4 h-4 text-text-muted" />
                                     <span className="text-sm font-medium text-text-main">Cancel</span>
+                                </button>
+                                <button 
+                                    onClick={handleSelectAll}
+                                    className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                                    title={selectedJobIds.size === sortedFilteredJobs.length ? "Deselect All" : "Select All"}
+                                >
+                                    <ListChecks className="w-4 h-4 text-text-muted" />
+                                    <span className="text-sm font-medium text-text-main">
+                                        {selectedJobIds.size === sortedFilteredJobs.length ? 'Deselect All' : `Select All (${sortedFilteredJobs.length})`}
+                                    </span>
                                 </button>
                                 <button 
                                     onClick={handleMassDelete}
@@ -437,7 +439,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
 
                         {/* Export JSON */}
                         <button 
-                            onClick={handleExportJSON}
+                            onClick={() => setIsExportModalOpen(true)}
                             className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm group"
                             title="Export all jobs to JSON"
                         >
@@ -446,11 +448,14 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         </button>
 
                         {/* Import JSON */}
-                        <label className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm group">
+                        <button
+                            onClick={() => setIsImportModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm group"
+                            title="Import JSON jobs"
+                        >
                             <Plus className="w-4 h-4 text-text-muted group-hover:rotate-90 transition-transform" />
                             <span className="text-sm font-medium text-text-main">Import JSON</span>
-                            <input id="json-import-input" type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
-                        </label>
+                        </button>
                         
                         {/* Seed Data Button */}
                         <button 
@@ -510,6 +515,18 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     onClose={() => setIsAddJobModalOpen(false)}
                     onAdd={handleCreateJob}
                     currentMonth={currentMonth}
+                />
+
+                <ImportJsonModal
+                    isOpen={isImportModalOpen}
+                    onClose={() => setIsImportModalOpen(false)}
+                    onImport={handleImportJobs}
+                />
+
+                <ExportJsonModal
+                    isOpen={isExportModalOpen}
+                    onClose={() => setIsExportModalOpen(false)}
+                    jobs={jobs}
                 />
 
                 <ShortcutsHelp 
