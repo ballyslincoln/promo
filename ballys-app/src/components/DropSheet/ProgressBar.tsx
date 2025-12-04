@@ -1,6 +1,6 @@
 import type { JobMilestones } from '../../services/dropSheetService';
-import { calculateMilestoneDates, isBehindSchedule, getLagDays } from './dateUtils';
-import { format, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
+import { calculateMilestoneDates } from './dateUtils';
+import { format, parseISO, differenceInCalendarDays } from 'date-fns';
 import { Check, AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -41,7 +41,7 @@ const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>
     sent_to_vendor: []
 };
 
-export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, mailType, onMilestoneClick }: ProgressBarProps & { mailType: string }) {
+export default function ProgressBar({ milestones, inHomeDate, mailType, onMilestoneClick }: ProgressBarProps & { mailType: string }) {
     const { mailDropDate, artDueDate, artSubmissionDueDate } = calculateMilestoneDates(inHomeDate, mailType);
     const today = new Date();
 
