@@ -2,7 +2,7 @@ import { Calendar, LogOut, ShieldCheck, ArrowRight, PackageCheck, Users, Activit
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import Footer from './Footer';
-import { Admin } from '../types';
+import type { Admin } from '../types';
 
 interface MenuPageProps {
     onSelect: (view: 'calendar' | 'dropsheet' | 'users' | 'logs') => void;

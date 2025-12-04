@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Activity, ArrowLeft, Calendar, Search, Loader2 } from 'lucide-react';
-import { Admin, ActivityLog } from '../types';
+import type { Admin, ActivityLog } from '../types';
 import { adminService } from '../services/adminService';
 
 interface ActivityLogViewerProps {

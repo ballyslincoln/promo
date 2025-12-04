@@ -1,4 +1,4 @@
-import { Admin, ActivityLog } from '../types';
+import type { Admin, ActivityLog } from '../types';
 
 const API_URL = '/api/interactions'; // Netlify function base
 

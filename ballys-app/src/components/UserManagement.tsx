@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Trash2, Edit2, Plus, X, Save, ArrowLeft, Check, Loader2 } from 'lucide-react';
-import { Admin } from '../types';
+import { User, Shield, Trash2, Edit2, Plus, X, Save, ArrowLeft, Loader2 } from 'lucide-react';
+import type { Admin } from '../types';
 import { adminService } from '../services/adminService';
 
 interface UserManagementProps {
