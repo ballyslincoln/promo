@@ -6,12 +6,14 @@ import AnnouncementBanner from './components/AnnouncementBanner';
 import MenuPage from './components/MenuPage';
 import DropSheet from './components/DropSheet/DropSheet';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import UserManagement from './components/UserManagement';
+import ActivityLogViewer from './components/ActivityLogViewer';
 import { getActiveAnnouncement, initAnnouncementTable } from './services/announcementService';
 import { eventService } from './services/eventService';
 import { userService } from './services/userService';
-import type { Announcement } from './types';
+import type { Announcement, Admin } from './types';
 
-type AdminView = 'none' | 'menu' | 'calendar' | 'dropsheet';
+type AdminView = 'none' | 'menu' | 'calendar' | 'dropsheet' | 'users' | 'logs';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -30,6 +32,11 @@ function App() {
     return false;
   });
   
+  const [adminUser, setAdminUser] = useState<Admin | null>(() => {
+    const saved = localStorage.getItem('ballys_admin_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const [adminView, setAdminView] = useState<AdminView>('none');
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -70,6 +77,8 @@ function App() {
     } else {
       localStorage.removeItem('ballys_auth');
       localStorage.removeItem('ballys_auth_time');
+      localStorage.removeItem('ballys_admin_user');
+      setAdminUser(null);
     }
   }, [isAuthenticated]);
 
@@ -101,10 +110,14 @@ function App() {
     setAnnouncement(null);
   };
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = (user?: Admin) => {
     setAdminView('menu');
     setIsAuthenticated(true);
     localStorage.setItem('ballys_auth_time', new Date().getTime().toString());
+    if (user) {
+        setAdminUser(user);
+        localStorage.setItem('ballys_admin_user', JSON.stringify(user));
+    }
   };
 
   const renderContent = () => {
@@ -121,6 +134,7 @@ function App() {
                     setAdminView('none');
                 }} 
                 onPrivacyClick={() => setShowPrivacy(true)}
+                adminUser={adminUser}
             />
         );
     }
@@ -131,6 +145,14 @@ function App() {
 
     if (adminView === 'dropsheet') {
         return <DropSheet onBack={() => setAdminView('menu')} />;
+    }
+
+    if (adminView === 'users') {
+        return <UserManagement adminUser={adminUser} onBack={() => setAdminView('menu')} />;
+    }
+
+    if (adminView === 'logs') {
+        return <ActivityLogViewer adminUser={adminUser} onBack={() => setAdminView('menu')} />;
     }
 
     if (!isAuthenticated) {

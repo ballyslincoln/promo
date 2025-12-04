@@ -71,3 +71,22 @@ CREATE TABLE IF NOT EXISTS mail_jobs (
   milestones JSONB,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS admins (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  pin TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin',
+  created_at TEXT NOT NULL,
+  last_login TEXT
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id TEXT PRIMARY KEY,
+  admin_id TEXT,
+  admin_name TEXT,
+  action_type TEXT NOT NULL,
+  description TEXT,
+  timestamp TEXT NOT NULL,
+  metadata JSONB
+);

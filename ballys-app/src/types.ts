@@ -56,6 +56,25 @@ export interface User {
   created_at: string;
 }
 
+export interface Admin {
+  id: string;
+  username: string;
+  pin: string;
+  role: 'master' | 'admin';
+  created_at: string;
+  last_login?: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  admin_id: string;
+  admin_name: string;
+  action_type: string;
+  description: string;
+  timestamp: string;
+  metadata?: any;
+}
+
 export interface Interaction {
   id: string;
   event_id: string;

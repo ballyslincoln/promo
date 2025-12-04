@@ -42,6 +42,38 @@ const initDB = async (sql) => {
                 created_at TEXT NOT NULL
             );
         `;
+        await sql`
+            CREATE TABLE IF NOT EXISTS admins (
+                id TEXT PRIMARY KEY,
+                username TEXT NOT NULL UNIQUE,
+                pin TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'admin',
+                created_at TEXT NOT NULL,
+                last_login TEXT
+            );
+        `;
+        await sql`
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id TEXT PRIMARY KEY,
+                admin_id TEXT,
+                admin_name TEXT,
+                action_type TEXT NOT NULL,
+                description TEXT,
+                timestamp TEXT NOT NULL,
+                metadata JSONB
+            );
+        `;
+
+        // Seed Master Admin if no admins exist
+        const adminCount = await sql`SELECT COUNT(*) as count FROM admins`;
+        if (parseInt(adminCount[0].count) === 0) {
+            console.log('Seeding Master Admin...');
+            const masterId = generateId();
+            await sql`
+                INSERT INTO admins (id, username, pin, role, created_at)
+                VALUES (${masterId}, 'Master Admin', '91091', 'master', ${new Date().toISOString()})
+            `;
+        }
     } catch (e) {
         console.error('Failed to init DB tables in API:', e);
     }
@@ -73,6 +105,133 @@ export default async (req, context) => {
 
     try {
         await initDB(sql);
+
+        const url = new URL(req.url);
+        const action = url.searchParams.get('action');
+
+        // ---------------------------------------------------------
+        // ADMIN AUTH & MANAGEMENT
+        // ---------------------------------------------------------
+
+        if (req.method === 'POST' && action === 'admin_login') {
+            const body = await req.json();
+            const { pin } = body;
+            
+            const admins = await sql`SELECT * FROM admins WHERE pin = ${pin} LIMIT 1`;
+            
+            if (admins.length > 0) {
+                const admin = admins[0];
+                // Update last login
+                await sql`UPDATE admins SET last_login = ${new Date().toISOString()} WHERE id = ${admin.id}`;
+                
+                // Log activity
+                await sql`
+                    INSERT INTO activity_logs (id, admin_id, admin_name, action_type, description, timestamp)
+                    VALUES (${generateId()}, ${admin.id}, ${admin.username}, 'login', 'Admin logged in', ${new Date().toISOString()})
+                `;
+                
+                return new Response(JSON.stringify({ success: true, admin }), { status: 200, headers });
+            } else {
+                return new Response(JSON.stringify({ success: false, error: 'Invalid PIN' }), { status: 401, headers });
+            }
+        }
+
+        if (req.method === 'POST' && action === 'admin_manage_users') {
+            const body = await req.json();
+            const { requestAdminId, method, data } = body;
+            
+            // Verify requester is Master Admin
+            const requester = await sql`SELECT role FROM admins WHERE id = ${requestAdminId}`;
+            if (!requester.length || requester[0].role !== 'master') {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+            }
+
+            if (method === 'list') {
+                const allAdmins = await sql`SELECT id, username, role, created_at, last_login, pin FROM admins ORDER BY created_at DESC`;
+                return new Response(JSON.stringify({ admins: allAdmins }), { status: 200, headers });
+            }
+
+            if (method === 'create') {
+                const { username, pin, role } = data;
+                // Check duplicates
+                const existing = await sql`SELECT id FROM admins WHERE username = ${username} OR pin = ${pin}`;
+                if (existing.length > 0) {
+                    return new Response(JSON.stringify({ error: 'Username or PIN already exists' }), { status: 400, headers });
+                }
+                
+                const newId = generateId();
+                await sql`
+                    INSERT INTO admins (id, username, pin, role, created_at)
+                    VALUES (${newId}, ${username}, ${pin}, ${role || 'admin'}, ${new Date().toISOString()})
+                `;
+                
+                // Log it
+                await sql`
+                    INSERT INTO activity_logs (id, admin_id, admin_name, action_type, description, timestamp, metadata)
+                    VALUES (${generateId()}, ${requestAdminId}, 'Master Admin', 'create_user', ${`Created user ${username}`}, ${new Date().toISOString()}, ${JSON.stringify({ created_user: username, role })})
+                `;
+                
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            }
+
+            if (method === 'update') {
+                const { id, username, pin } = data;
+                
+                // Check if updating master (prevent role change/deletion via this simple API if needed, but update is fine)
+                 await sql`
+                    UPDATE admins 
+                    SET username = ${username}, pin = ${pin}
+                    WHERE id = ${id}
+                `;
+                 
+                 // Log it
+                await sql`
+                    INSERT INTO activity_logs (id, admin_id, admin_name, action_type, description, timestamp, metadata)
+                    VALUES (${generateId()}, ${requestAdminId}, 'Master Admin', 'update_user', ${`Updated user ${username}`}, ${new Date().toISOString()}, ${JSON.stringify({ updated_user_id: id })})
+                `;
+                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            }
+
+            if (method === 'delete') {
+                const { id } = data;
+                // Prevent deleting self or master (though master check handles self if unique)
+                if (id === requestAdminId) {
+                     return new Response(JSON.stringify({ error: 'Cannot delete yourself' }), { status: 400, headers });
+                }
+                
+                const target = await sql`SELECT role FROM admins WHERE id = ${id}`;
+                if (target.length && target[0].role === 'master') {
+                     return new Response(JSON.stringify({ error: 'Cannot delete Master Admin' }), { status: 400, headers });
+                }
+
+                await sql`DELETE FROM admins WHERE id = ${id}`;
+                
+                // Log it
+                await sql`
+                    INSERT INTO activity_logs (id, admin_id, admin_name, action_type, description, timestamp, metadata)
+                    VALUES (${generateId()}, ${requestAdminId}, 'Master Admin', 'delete_user', ${`Deleted user with ID ${id}`}, ${new Date().toISOString()}, ${JSON.stringify({ deleted_user_id: id })})
+                `;
+                
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            }
+        }
+        
+        if (req.method === 'GET' && action === 'admin_logs') {
+             const requestAdminId = url.searchParams.get('adminId');
+             
+             // Verify requester is Master Admin
+            const requester = await sql`SELECT role FROM admins WHERE id = ${requestAdminId}`;
+            if (!requester.length || requester[0].role !== 'master') {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+            }
+            
+            const logs = await sql`SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 100`;
+            return new Response(JSON.stringify({ logs }), { status: 200, headers });
+        }
+
+        // ---------------------------------------------------------
+        // STANDARD USER / INTERACTION LOGIC
+        // ---------------------------------------------------------
 
         // 1. Get or Create User based on IP
         let user;
@@ -107,8 +266,6 @@ export default async (req, context) => {
             user = { id: 'anon-' + generateId(), username: 'Guest', ip_address: 'unknown' };
         }
 
-        const url = new URL(req.url);
-
         // DELETE /api/interactions?id=xyz
         if (req.method === 'DELETE') {
             const id = url.searchParams.get('id');
@@ -123,8 +280,6 @@ export default async (req, context) => {
             }
 
             // Allow deletion if user owns it OR if user is admin (indicated by isAdmin param)
-            // Note: In a production app, isAdmin should be verified via a secure token, not a query param.
-            // Given the lightweight nature here, we'll trust the param but verify ownership as fallback.
             if (interaction[0].user_id !== user.id && !isAdmin) {
                  return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
             }

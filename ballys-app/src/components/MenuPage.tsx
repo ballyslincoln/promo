@@ -1,15 +1,17 @@
-import { Calendar, LogOut, ShieldCheck, ArrowRight, PackageCheck } from 'lucide-react';
+import { Calendar, LogOut, ShieldCheck, ArrowRight, PackageCheck, Users, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import Footer from './Footer';
+import { Admin } from '../types';
 
 interface MenuPageProps {
-    onSelect: (view: 'calendar' | 'dropsheet') => void;
+    onSelect: (view: 'calendar' | 'dropsheet' | 'users' | 'logs') => void;
     onLogout: () => void;
     onPrivacyClick?: () => void;
+    adminUser: Admin | null;
 }
 
-export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPageProps) {
+export default function MenuPage({ onSelect, onLogout, onPrivacyClick, adminUser }: MenuPageProps) {
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -66,7 +68,9 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
                             <h1 className="text-4xl font-black text-text-main tracking-tighter mb-1">Admin<span className="text-ballys-red">Portal</span></h1>
                             <div className="flex items-center gap-2 text-text-muted/80 bg-surface/50 w-fit px-3 py-1 rounded-full border border-black/5 backdrop-blur-sm">
                                 <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-                                <p className="text-[11px] font-bold uppercase tracking-widest">Secure Session Active</p>
+                                <p className="text-[11px] font-bold uppercase tracking-widest">
+                                    {adminUser ? `Welcome, ${adminUser.username}` : 'Secure Session Active'}
+                                </p>
                             </div>
                         </div>
                      </div>
@@ -89,32 +93,22 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
                         variants={itemVariants}
                         whileTap={{ scale: 0.99 }}
                         onClick={() => onSelect('calendar')}
-                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
+                        className="group relative min-h-[20rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
                     >
-                        {/* Static Background Gradients - Reduced blur for Safari */}
-                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_50%,transparent_75%)] pointer-events-none" />
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-ballys-red/8 to-transparent rounded-full blur-[40px] -mr-20 -mt-20 opacity-50" />
-
-                        {/* Icon */}
                         <div className="relative z-10 mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
-                                <Calendar className="w-8 h-8 text-ballys-red" />
+                            <div className="w-14 h-14 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                <Calendar className="w-7 h-7 text-ballys-red" />
                             </div>
                         </div>
-
-                        {/* Content */}
-                        <div className="relative z-10 mb-16">
-                            <h2 className="text-3xl font-black text-text-main mb-3 tracking-tight">Calendar<br/><span className="text-ballys-red">Management</span></h2>
-                            <p className="text-text-muted font-medium text-base leading-relaxed max-w-sm border-l-2 border-ballys-red/20 pl-4">
-                                Manage daily events, promotions, and property schedules. The central hub for day-to-day operations.
+                        <div className="relative z-10 mb-8">
+                            <h2 className="text-2xl font-black text-text-main mb-2 tracking-tight">Calendar<br/><span className="text-ballys-red">Management</span></h2>
+                            <p className="text-text-muted font-medium text-sm leading-relaxed max-w-sm">
+                                Manage daily events and property schedules.
                             </p>
                         </div>
-
-                        {/* Action Indicator - Always Visible */}
-                        <div className="absolute bottom-10 right-10 flex items-center gap-3 opacity-100">
-                            <span className="text-xs font-bold uppercase tracking-widest text-ballys-red">Open Dashboard</span>
-                            <div className="w-10 h-10 rounded-full bg-ballys-red text-white flex items-center justify-center shadow-lg shadow-red-500/20">
-                                <ArrowRight className="w-5 h-5" />
+                        <div className="absolute bottom-8 right-8 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-ballys-red text-white flex items-center justify-center shadow-lg shadow-red-500/20">
+                                <ArrowRight className="w-4 h-4" />
                             </div>
                         </div>
                     </motion.button>
@@ -124,35 +118,78 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick }: MenuPag
                         variants={itemVariants}
                         whileTap={{ scale: 0.99 }}
                         onClick={() => onSelect('dropsheet')}
-                        className="group relative min-h-[26rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
+                        className="group relative min-h-[20rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
                     >
-                        {/* Static Background Gradients - Reduced blur for Safari */}
-                        <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.02)_50%,transparent_75%)] pointer-events-none" />
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-blue-500/8 to-transparent rounded-full blur-[40px] -mr-20 -mt-20 opacity-50" />
-
-                        {/* Icon */}
                         <div className="relative z-10 mb-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
-                                <PackageCheck className="w-8 h-8 text-blue-600" />
+                            <div className="w-14 h-14 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                <PackageCheck className="w-7 h-7 text-blue-600" />
                             </div>
                         </div>
-
-                        {/* Content */}
-                        <div className="relative z-10 mb-16">
-                            <h2 className="text-3xl font-black text-text-main mb-3 tracking-tight">Marketing<br/><span className="text-blue-600">Logistics</span></h2>
-                            <p className="text-text-muted font-medium text-base leading-relaxed max-w-sm border-l-2 border-blue-500/20 pl-4">
-                                Track direct mail campaigns, manage production milestones, and monitor delivery schedules.
+                        <div className="relative z-10 mb-8">
+                            <h2 className="text-2xl font-black text-text-main mb-2 tracking-tight">Marketing<br/><span className="text-blue-600">Logistics</span></h2>
+                            <p className="text-text-muted font-medium text-sm leading-relaxed max-w-sm">
+                                Track direct mail campaigns and production.
                             </p>
                         </div>
-
-                        {/* Action Indicator - Always Visible */}
-                        <div className="absolute bottom-10 right-10 flex items-center gap-3 opacity-100">
-                            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Launch Module</span>
-                            <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <ArrowRight className="w-5 h-5" />
+                        <div className="absolute bottom-8 right-8 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <ArrowRight className="w-4 h-4" />
                             </div>
                         </div>
                     </motion.button>
+
+                    {/* Master Admin Options */}
+                    {adminUser?.role === 'master' && (
+                        <>
+                            <motion.button
+                                variants={itemVariants}
+                                whileTap={{ scale: 0.99 }}
+                                onClick={() => onSelect('users')}
+                                className="group relative min-h-[20rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
+                            >
+                                <div className="relative z-10 mb-8">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                        <Users className="w-7 h-7 text-purple-600" />
+                                    </div>
+                                </div>
+                                <div className="relative z-10 mb-8">
+                                    <h2 className="text-2xl font-black text-text-main mb-2 tracking-tight">User<br/><span className="text-purple-600">Management</span></h2>
+                                    <p className="text-text-muted font-medium text-sm leading-relaxed max-w-sm">
+                                        Manage admin access and set PINs.
+                                    </p>
+                                </div>
+                                <div className="absolute bottom-8 right-8 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-lg shadow-purple-500/20">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </motion.button>
+
+                            <motion.button
+                                variants={itemVariants}
+                                whileTap={{ scale: 0.99 }}
+                                onClick={() => onSelect('logs')}
+                                className="group relative min-h-[20rem] bg-surface/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col justify-between items-start shadow-xl hover:shadow-2xl transition-shadow overflow-hidden text-left"
+                            >
+                                <div className="relative z-10 mb-8">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-white to-gray-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl flex items-center justify-center shadow-lg border border-white/20">
+                                        <Activity className="w-7 h-7 text-green-600" />
+                                    </div>
+                                </div>
+                                <div className="relative z-10 mb-8">
+                                    <h2 className="text-2xl font-black text-text-main mb-2 tracking-tight">Activity<br/><span className="text-green-600">Logs</span></h2>
+                                    <p className="text-text-muted font-medium text-sm leading-relaxed max-w-sm">
+                                        View audit trails and login history.
+                                    </p>
+                                </div>
+                                <div className="absolute bottom-8 right-8 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg shadow-green-500/20">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </motion.button>
+                        </>
+                    )}
                 </div>
                 
                 {/* Footer/Version */}

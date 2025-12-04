@@ -1,27 +1,48 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Settings, Share, PlusSquare, X } from 'lucide-react';
+import { User, Settings, Share, PlusSquare, X, Loader2 } from 'lucide-react';
 import Footer from './components/Footer';
+import { adminService } from './services/adminService';
+import type { Admin } from './types';
 
-export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLogin: () => void; onAdminLogin: () => void; onPrivacyClick?: () => void }) {
+export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLogin: () => void; onAdminLogin: (user?: Admin) => void; onPrivacyClick?: () => void }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isAdminMode, setIsAdminMode] = useState(false);
     const [showInstallPrompt, setShowInstallPrompt] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e?: React.FormEvent) => {
+    const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (code === '12345') {
-            if (isAdminMode) {
-                onAdminLogin();
-            } else {
+        
+        if (!isAdminMode) {
+            // Frontend / Guest Access
+            if (code === '12345') {
                 onLogin();
+            } else {
+                setError(true);
+                setCode('');
+                setTimeout(() => setError(false), 1000);
             }
-        } else {
+            return;
+        }
+
+        // Admin / Employee Access
+        setIsLoading(true);
+        try {
+            const res = await adminService.login(code);
+            if (res.success && res.admin) {
+                onAdminLogin(res.admin);
+            } else {
+                setError(true);
+                setCode('');
+                setTimeout(() => setError(false), 1000);
+            }
+        } catch (err) {
             setError(true);
-            setCode('');
-            setTimeout(() => setError(false), 1000);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -173,13 +194,24 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
                                     onBlur={() => setIsFocused(false)}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer font-mono text-[16px] z-50"
                                     autoFocus
+                                    disabled={isLoading}
                                 />
                             </div>
 
                             {/* Status/Error Message */}
                             <div className="h-6 flex items-center justify-center">
                                 <AnimatePresence mode="wait">
-                                    {error ? (
+                                    {isLoading ? (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="flex items-center gap-2 text-text-muted text-xs uppercase tracking-widest"
+                                        >
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            <span>Verifying...</span>
+                                        </motion.div>
+                                    ) : error ? (
                                         <motion.span
                                             key="error"
                                             initial={{ opacity: 0, y: 10 }}
