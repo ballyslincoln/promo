@@ -28,6 +28,9 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
 
+    // View Mode
+    const [viewMode, setViewMode] = useState<'month' | 'all'>('month');
+
     // Sort Configuration
     const [sortConfig, setSortConfig] = useState<{ field: 'in_home_date' | 'vendor_mail_date' | 'art_submission_due', direction: 'asc' | 'desc' }>({
         field: 'in_home_date',
@@ -126,24 +129,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         }
     }, [jobs]);
     
-    const toggleSort = () => {
-        setSortConfig(prev => {
-            const states = [
-                { field: 'in_home_date', direction: 'asc' },
-                { field: 'in_home_date', direction: 'desc' },
-                { field: 'vendor_mail_date', direction: 'asc' },
-                { field: 'vendor_mail_date', direction: 'desc' },
-                { field: 'art_submission_due', direction: 'asc' },
-                { field: 'art_submission_due', direction: 'desc' }
-            ] as const;
-
-            const currentIndex = states.findIndex(s => s.field === prev.field && s.direction === prev.direction);
-            const nextIndex = (currentIndex + 1) % states.length;
-            
-            return states[nextIndex];
-        });
-    };
-
     const handleImportJobs = async (newJobs: MailJob[]) => {
         setIsLoading(true);
         let successCount = 0;
@@ -272,6 +257,10 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const filteredJobs = jobs.filter(job => {
         const matchesProperty = propertyFilter === 'All' || job.property === propertyFilter;
         
+        if (viewMode === 'all') {
+            return matchesProperty;
+        }
+
         // Check if job belongs to current month
         // 1. Try to match campaign name first (e.g. "January Newsletter")
         // 2. Fallback to in_home_date
@@ -350,20 +339,38 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     </div>
                     
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
-                        {/* Month Navigator */}
-                        <div className="flex items-center bg-surface border border-border rounded-xl shadow-sm">
-                            <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-l-xl transition-colors border-r border-border/50">
-                                <ChevronLeft className="w-4 h-4 text-text-muted" />
+                        {/* View Mode Toggle */}
+                        <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm">
+                            <button 
+                                onClick={() => setViewMode('month')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'month' ? 'bg-gray-800 text-white shadow-md' : 'text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                            >
+                                Month
                             </button>
-                            <div className="px-4 min-w-[140px] text-center">
-                                <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
-                                    {format(currentMonth, 'MMMM yyyy')}
-                                </span>
-                            </div>
-                            <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-r-xl transition-colors border-l border-border/50">
-                                <ChevronRight className="w-4 h-4 text-text-muted" />
+                            <button 
+                                onClick={() => setViewMode('all')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'all' ? 'bg-gray-800 text-white shadow-md' : 'text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800'}`}
+                            >
+                                All
                             </button>
                         </div>
+
+                        {/* Month Navigator */}
+                        {viewMode === 'month' && (
+                            <div className="flex items-center bg-surface border border-border rounded-xl shadow-sm">
+                                <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-l-xl transition-colors border-r border-border/50">
+                                    <ChevronLeft className="w-4 h-4 text-text-muted" />
+                                </button>
+                                <div className="px-4 min-w-[140px] text-center">
+                                    <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
+                                        {format(currentMonth, 'MMMM yyyy')}
+                                    </span>
+                                </div>
+                                <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-r-xl transition-colors border-l border-border/50">
+                                    <ChevronRight className="w-4 h-4 text-text-muted" />
+                                </button>
+                            </div>
+                        )}
                         
                         {/* Property Toggle */}
                         <div className="flex items-center gap-1 bg-surface border border-border rounded-xl p-1 shadow-sm">
@@ -440,17 +447,24 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         </button>
 
                         {/* Sort */}
-                        <button 
-                            onClick={toggleSort}
-                            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm min-w-[140px] justify-center"
-                            title={`Sort by ${sortConfig.field.replace(/_/g, ' ')} (${sortConfig.direction})`}
-                        >
-                            <ArrowUpDown className={`w-4 h-4 text-text-muted transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                            <span className="text-sm font-medium text-text-main">
-                                {sortConfig.field === 'in_home_date' ? 'Due Date' : 
-                                 sortConfig.field === 'vendor_mail_date' ? 'Mail Date' : 'Art Due'}
-                            </span>
-                        </button>
+                        <div className="relative">
+                            <select 
+                                value={`${sortConfig.field}-${sortConfig.direction}`}
+                                onChange={(e) => {
+                                    const [field, direction] = e.target.value.split('-');
+                                    setSortConfig({ field: field as any, direction: direction as any });
+                                }}
+                                className="appearance-none flex items-center h-[38px] pl-4 pr-10 bg-surface border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shadow-sm text-sm font-medium text-text-main cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            >
+                                <option value="in_home_date-asc">Due Date (Earliest)</option>
+                                <option value="in_home_date-desc">Due Date (Latest)</option>
+                                <option value="vendor_mail_date-asc">Mail Date (Earliest)</option>
+                                <option value="vendor_mail_date-desc">Mail Date (Latest)</option>
+                                <option value="art_submission_due-asc">Art Due (Earliest)</option>
+                                <option value="art_submission_due-desc">Art Due (Latest)</option>
+                            </select>
+                            <ArrowUpDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                        </div>
 
                         <div className="h-6 w-px bg-border mx-2 hidden md:block opacity-50" />
 

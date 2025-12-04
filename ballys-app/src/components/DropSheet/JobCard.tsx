@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
-import { Calendar, Save, Trash2, CheckCircle, Edit2 } from 'lucide-react';
+import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 interface JobCardProps {
@@ -29,6 +29,11 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
     const [isEditing, setIsEditing] = useState(false);
     const [editedJob, setEditedJob] = useState<MailJob>(job);
     const [showSaved, setShowSaved] = useState(false);
+    
+    // Minimize completed jobs logic
+    // Strictly check milestone status to avoid false positives from data import mapping errors
+    const isCompleted = !!job.milestones.mailed; 
+    const [isExpanded, setIsExpanded] = useState(!isCompleted);
 
     const handleMilestoneClick = (key: keyof JobMilestones) => {
         const newMilestones = { ...job.milestones };
@@ -119,11 +124,13 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
     };
 
     return (
-        <div className={`bg-surface border rounded-xl p-6 mb-4 shadow-sm hover:shadow-md transition-all relative overflow-visible group ${
+        <div className={`bg-surface border rounded-xl mb-4 shadow-sm hover:shadow-md transition-all relative overflow-visible group ${
+            isExpanded ? 'p-6' : 'p-3'
+        } ${
             job.mail_type.toLowerCase().includes('core') 
                 ? 'border-yellow-400 ring-1 ring-yellow-400/50 dark:border-yellow-500/50 bg-yellow-50/30 dark:bg-yellow-900/10' 
                 : 'border-border'
-        }`}>
+        } ${isCompleted && !isExpanded ? 'opacity-70' : ''}`}>
             {/* Saved Notification Popup */}
             {showSaved && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-2 text-xs font-bold shadow-lg animate-in fade-in slide-in-from-bottom-2 z-20">
@@ -132,7 +139,49 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                 </div>
             )}
 
-            <div className="flex flex-col gap-6">
+            {/* Minimized View */}
+            {!isExpanded ? (
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Status Strip */}
+                        <div className={`w-1.5 h-12 rounded-full flex-shrink-0 ${job.property === 'Lincoln' ? 'bg-blue-500' : 'bg-orange-500'}`} />
+                        
+                        {/* Key Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-xs font-mono text-text-muted">#{job.job_number || '---'}</span>
+                                {job.mail_type.toLowerCase().includes('core') && (
+                                    <span className="text-[9px] px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded font-bold uppercase">Core</span>
+                                )}
+                                {isCompleted && (
+                                    <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded font-bold uppercase">Complete</span>
+                                )}
+                            </div>
+                            <h3 className="text-sm font-bold text-text-main truncate">{job.campaign_name}</h3>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
+                                <span>{job.mail_type}</span>
+                                {job.in_home_date && (
+                                    <span className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {format(parseISO(job.in_home_date), 'MMM d')}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Toggle Button */}
+                    <button
+                        onClick={() => setIsExpanded(true)}
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-text-muted hover:text-text-main flex-shrink-0"
+                        title="Expand"
+                    >
+                        <ChevronDown className="w-4 h-4" />
+                    </button>
+                </div>
+            ) : (
+                /* Expanded View */
+                <div className="flex flex-col gap-6">
                 {/* Header Section: Selection + Job # + Campaign Name */}
                 <div className="flex items-start gap-4">
                     {/* Selection Checkbox */}
@@ -210,6 +259,13 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-1 opacity-100 transition-opacity duration-200">
+                                        <button 
+                                            onClick={() => setIsExpanded(false)}
+                                            className="p-2 text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors" 
+                                            title="Minimize"
+                                        >
+                                            <ChevronUp className="w-4 h-4" />
+                                        </button>
                                         <button onClick={() => setIsEditing(true)} className="p-2 text-text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Edit Job">
                                             <Edit2 className="w-4 h-4" />
                                         </button>
@@ -323,50 +379,51 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                         )}
                     </div>
                 </div>
-            </div>
 
-            {/* Progress Bar Section */}
-            <div className="mt-6 pt-4 border-t border-border/50">
-                {isEditing ? (
-                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-                        <div className="col-span-full text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
-                            Milestone Dates
+                {/* Progress Bar Section */}
+                <div className="mt-6 pt-4 border-t border-border/50">
+                    {isEditing ? (
+                        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                            <div className="col-span-full text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                                Milestone Dates
+                            </div>
+                            {[
+                                { key: 'outline_given', label: 'Outline' },
+                                { key: 'data_received', label: 'Data Rec.' },
+                                { key: 'data_approved', label: 'Data App.' },
+                                { key: 'creative_received', label: 'Creative Rec.' },
+                                { key: 'creative_approved', label: 'Creative App.' },
+                                { key: 'mailed', label: 'Mailed' }
+                            ].map((step) => {
+                                const key = step.key as keyof JobMilestones;
+                                const val = editedJob.milestones[key];
+                                const dateVal = val && typeof val === 'string' ? format(parseISO(val), 'yyyy-MM-dd') : '';
+                                
+                                return (
+                                    <div key={step.key} className="flex flex-col">
+                                        <label className="text-[10px] font-medium text-text-muted mb-1 truncate" title={step.label}>{step.label}</label>
+                                        <input 
+                                            type="date"
+                                            value={dateVal}
+                                            onChange={(e) => handleMilestoneDateChange(key, e.target.value)}
+                                            className="bg-white dark:bg-slate-800 border border-border rounded px-1 py-1 text-[10px] w-full"
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
-                        {[
-                            { key: 'outline_given', label: 'Outline' },
-                            { key: 'data_received', label: 'Data Rec.' },
-                            { key: 'data_approved', label: 'Data App.' },
-                            { key: 'creative_received', label: 'Creative Rec.' },
-                            { key: 'creative_approved', label: 'Creative App.' },
-                            { key: 'mailed', label: 'Mailed' }
-                        ].map((step) => {
-                            const key = step.key as keyof JobMilestones;
-                            const val = editedJob.milestones[key];
-                            const dateVal = val && typeof val === 'string' ? format(parseISO(val), 'yyyy-MM-dd') : '';
-                            
-                            return (
-                                <div key={step.key} className="flex flex-col">
-                                    <label className="text-[10px] font-medium text-text-muted mb-1 truncate" title={step.label}>{step.label}</label>
-                                    <input 
-                                        type="date"
-                                        value={dateVal}
-                                        onChange={(e) => handleMilestoneDateChange(key, e.target.value)}
-                                        className="bg-white dark:bg-slate-800 border border-border rounded px-1 py-1 text-[10px] w-full"
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <ProgressBar 
-                        milestones={job.milestones} 
-                        inHomeDate={job.in_home_date}
-                        vendorMailDate={job.vendor_mail_date}
-                        mailType={job.mail_type}
-                        onMilestoneClick={handleMilestoneClick}
-                    />
-                )}
-            </div>
+                    ) : (
+                        <ProgressBar 
+                            milestones={job.milestones} 
+                            inHomeDate={job.in_home_date}
+                            vendorMailDate={job.vendor_mail_date}
+                            mailType={job.mail_type}
+                            onMilestoneClick={handleMilestoneClick}
+                        />
+                    )}
+                </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import type { JobMilestones } from '../../services/dropSheetService';
 import { calculateMilestoneDates, isBehindSchedule, getLagDays } from './dateUtils';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, differenceInCalendarDays } from 'date-fns';
 import { Check, AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -45,50 +45,47 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, ma
     const { mailDropDate, artDueDate, artSubmissionDueDate } = calculateMilestoneDates(inHomeDate, mailType);
     const today = new Date();
 
-    // Check for late status
-    let isLate = false;
-    let lagDays = 0;
-    
-    if (mailDropDate) {
-        // Normalize dates to start of day
-        const targetDay = new Date(mailDropDate.getFullYear(), mailDropDate.getMonth(), mailDropDate.getDate());
+    // Calculate Progress Status Message
+    let statusMessage = '';
+    let statusColor: 'green' | 'yellow' | 'red' | 'blue' = 'green';
 
-        if (vendorMailDate) {
-             // Job is done, check if it WAS late
-             const mailed = parseISO(vendorMailDate);
-             if (isValid(mailed)) {
-                 const mailedDay = new Date(mailed.getFullYear(), mailed.getMonth(), mailed.getDate());
-                 if (mailedDay > targetDay) {
-                     isLate = true;
-                     lagDays = getLagDays(targetDay, mailedDay);
-                 }
-             }
+    if (isCompleted(milestones.mailed)) {
+        statusMessage = 'Completed';
+        statusColor = 'blue';
+    } else {
+        // Determine Next Critical Deadline
+        let nextDeadline: Date | null = null;
+        let deadlineLabel = '';
+
+        if (!milestones.creative_received && artSubmissionDueDate) {
+            nextDeadline = artSubmissionDueDate;
+            deadlineLabel = 'Submit Art';
+        } else if (mailDropDate) {
+            nextDeadline = mailDropDate;
+            deadlineLabel = 'Drop Mail';
+        }
+
+        if (nextDeadline) {
+            // Calculate days relative to TODAY (Signed: Negative = Past, Positive = Future)
+            const daysRemaining = differenceInCalendarDays(nextDeadline, today);
+            
+            if (daysRemaining < 0) {
+                statusMessage = `${deadlineLabel} Overdue (${Math.abs(daysRemaining)}d)`;
+                statusColor = 'red';
+            } else if (daysRemaining === 0) {
+                statusMessage = `${deadlineLabel} Due Today`;
+                statusColor = 'yellow';
+            } else if (daysRemaining <= 3) {
+                statusMessage = `${deadlineLabel} in ${daysRemaining} Days`;
+                statusColor = 'yellow';
+            } else {
+                statusMessage = `${deadlineLabel} in ${daysRemaining} Days`;
+                statusColor = 'green';
+            }
         } else {
-             // Job is active, check if it IS late
-             const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-             
-             if (todayDay > targetDay) {
-                 isLate = true;
-                 lagDays = getLagDays(targetDay, todayDay);
-             }
+            statusMessage = 'Pending Schedule';
+            statusColor = 'blue'; // Neutral
         }
-    }
-
-    // Check for "Behind Schedule" status (Art Submission Logic)
-    // "Behind Schedule" means we missed the internal Art Submission deadline
-    // If Today > Art Submission Due Date AND (Creative Approved is NOT complete) -> Behind.
-    let isBehind = false;
-    if (artSubmissionDueDate && !milestones.creative_approved) {
-        const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const artDueDay = new Date(artSubmissionDueDate.getFullYear(), artSubmissionDueDate.getMonth(), artSubmissionDueDate.getDate());
-        
-        if (todayDay > artDueDay) {
-            isBehind = true;
-        }
-    }
-    // Fallback to old logic if needed (though artSubmissionDueDate should always exist now)
-    else {
-        isBehind = isBehindSchedule(milestones, artDueDate, today);
     }
 
     return (
@@ -186,33 +183,18 @@ export default function ProgressBar({ milestones, inHomeDate, vendorMailDate, ma
                  </div>
 
                  <div className="flex items-center gap-3">
-                    {isBehind && !isCompleted(milestones.mailed) && (
-                        <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1 rounded border border-red-200 dark:border-red-800/50 animate-pulse">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span className="font-bold uppercase tracking-wider">Behind Schedule</span>
-                        </div>
-                    )}
-
-                    {isLate && (
-                         <div className="flex items-center gap-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1 rounded border border-red-200 dark:border-red-800/50">
-                             <Clock className="w-3.5 h-3.5" />
-                             <span className="font-bold uppercase tracking-wider">Late ({lagDays} Days)</span>
-                         </div>
-                    )}
-                    
-                    {!isBehind && !isLate && !isCompleted(milestones.mailed) && (
-                        <div className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 px-2 py-1 rounded border border-green-200 dark:border-green-800/50">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            <span className="font-bold uppercase tracking-wider">On Track</span>
-                        </div>
-                    )}
-
-                    {isCompleted(milestones.mailed) && (
-                        <div className="flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 px-2 py-1 rounded border border-blue-200 dark:border-blue-800/50">
-                            <Check className="w-3.5 h-3.5" />
-                            <span className="font-bold uppercase tracking-wider">Complete</span>
-                        </div>
-                    )}
+                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md border font-bold uppercase tracking-wider transition-colors ${
+                        statusColor === 'red' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:border-red-800' :
+                        statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800' :
+                        statusColor === 'green' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:border-green-800' :
+                        'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
+                    }`}>
+                        {statusColor === 'red' && <AlertCircle className="w-3.5 h-3.5" />}
+                        {statusColor === 'green' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+                        {statusColor === 'blue' && <Check className="w-3.5 h-3.5" />}
+                        {statusColor === 'yellow' && <Clock className="w-3.5 h-3.5" />}
+                        <span>{statusMessage}</span>
+                    </div>
                  </div>
             </div>
         </div>
