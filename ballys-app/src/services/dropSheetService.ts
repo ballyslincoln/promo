@@ -30,6 +30,7 @@ export interface MailJob {
     mail_type: string;
     property: string; // 'Lincoln' | 'Tiverton'
     property_review?: boolean;
+    property_review_start?: string; // ISO string
     job_submitted?: boolean; // Deprecated: kept for backward compatibility
     submitted_date?: string; // YYYY-MM-DD
     postage: string; // 'Standard' | 'First Class'
@@ -61,12 +62,12 @@ export const dropSheetService = {
         try {
             await sql`
                 INSERT INTO mail_jobs (
-                    id, job_number, campaign_name, mail_type, property, property_review,
+                    id, job_number, campaign_name, mail_type, property, property_review, property_review_start,
                     job_submitted, submitted_date,
                     postage, quantity, in_home_date, first_valid_date, 
                     vendor_mail_date, milestones, created_at
                 ) VALUES (
-                    ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, ${job.property_review ?? false},
+                    ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, ${job.property_review ?? false}, ${job.property_review_start ?? null},
                     ${job.job_submitted ?? false}, ${job.submitted_date ?? null},
                     ${job.postage ?? 'Standard'}, ${job.quantity ?? 0}, ${job.in_home_date ?? null}, ${job.first_valid_date ?? null},
                     ${job.vendor_mail_date ?? null}, ${JSON.stringify(job.milestones ?? {})}, ${job.created_at}
@@ -88,6 +89,7 @@ export const dropSheetService = {
                     mail_type = ${job.mail_type},
                     property = ${job.property},
                     property_review = ${job.property_review ?? false},
+                    property_review_start = ${job.property_review_start ?? null},
                     job_submitted = ${job.job_submitted ?? false},
                     submitted_date = ${job.submitted_date ?? null},
                     postage = ${job.postage ?? 'Standard'},

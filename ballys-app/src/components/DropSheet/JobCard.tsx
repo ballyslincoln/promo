@@ -3,7 +3,7 @@ import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
 import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInHours } from 'date-fns';
 
 interface JobCardProps {
     job: MailJob;
@@ -34,6 +34,13 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
     // Strictly check milestone status to avoid false positives from data import mapping errors
     const isCompleted = !!job.milestones.mailed; 
     const [isExpanded, setIsExpanded] = useState(!isCompleted);
+
+    const getReviewHours = (startStr?: string) => {
+        if (!startStr) return 0;
+        const start = parseISO(startStr);
+        const now = new Date();
+        return Math.max(0, differenceInHours(now, start));
+    };
 
     const handleMilestoneClick = (key: keyof JobMilestones) => {
         const newMilestones = { ...job.milestones };
@@ -101,10 +108,21 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
     const handlePropertyReviewToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked;
+        const now = new Date().toISOString();
+        
         if (isEditing) {
             handleChange('property_review', isChecked);
+            if (isChecked) {
+                handleChange('property_review_start', now);
+            } else {
+                handleChange('property_review_start', undefined);
+            }
         } else {
-            onUpdate({ ...job, property_review: isChecked });
+            onUpdate({ 
+                ...job, 
+                property_review: isChecked,
+                property_review_start: isChecked ? now : undefined
+            });
         }
     };
 
@@ -339,8 +357,15 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                             onChange={handlePropertyReviewToggle}
                                         />
                                         <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
-                                        <span className="ml-2 text-xs font-bold text-text-main">
-                                            {(isEditing ? editedJob.property_review : job.property_review) ? 'Reviewing' : 'Off'}
+                                        <span className="ml-2 text-xs font-bold text-text-main flex items-center gap-1">
+                                            {(isEditing ? editedJob.property_review : job.property_review) ? (
+                                                <>
+                                                    <span className="animate-pulse text-purple-600">Reviewing</span>
+                                                    <span className="text-[9px] text-text-muted font-mono bg-surface-highlight px-1 rounded border border-border/50">
+                                                        {getReviewHours(isEditing ? editedJob.property_review_start : job.property_review_start)}h
+                                                    </span>
+                                                </>
+                                            ) : 'Off'}
                                         </span>
                                     </label>
                                 </div>

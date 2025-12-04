@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS mail_jobs (
   mail_type TEXT,
   property TEXT,
   property_review BOOLEAN DEFAULT FALSE,
+  property_review_start TEXT, -- ISO string for when review started
   job_submitted BOOLEAN DEFAULT FALSE, -- DEPRECATED: Use submitted_date instead
   submitted_date TEXT, -- New field for tracking artwork submission date
   postage TEXT,
