@@ -29,6 +29,7 @@ export interface MailJob {
     campaign_name: string;
     mail_type: string;
     property: string; // 'Lincoln' | 'Tiverton'
+    property_review?: boolean;
     job_submitted?: boolean; // Deprecated: kept for backward compatibility
     submitted_date?: string; // YYYY-MM-DD
     postage: string; // 'Standard' | 'First Class'
@@ -60,12 +61,12 @@ export const dropSheetService = {
         try {
             await sql`
                 INSERT INTO mail_jobs (
-                    id, job_number, campaign_name, mail_type, property, 
+                    id, job_number, campaign_name, mail_type, property, property_review,
                     job_submitted, submitted_date,
                     postage, quantity, in_home_date, first_valid_date, 
                     vendor_mail_date, milestones, created_at
                 ) VALUES (
-                    ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, 
+                    ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, ${job.property_review ?? false},
                     ${job.job_submitted ?? false}, ${job.submitted_date ?? null},
                     ${job.postage ?? 'Standard'}, ${job.quantity ?? 0}, ${job.in_home_date ?? null}, ${job.first_valid_date ?? null},
                     ${job.vendor_mail_date ?? null}, ${JSON.stringify(job.milestones ?? {})}, ${job.created_at}
@@ -86,6 +87,7 @@ export const dropSheetService = {
                     campaign_name = ${job.campaign_name},
                     mail_type = ${job.mail_type},
                     property = ${job.property},
+                    property_review = ${job.property_review ?? false},
                     job_submitted = ${job.job_submitted ?? false},
                     submitted_date = ${job.submitted_date ?? null},
                     postage = ${job.postage ?? 'Standard'},

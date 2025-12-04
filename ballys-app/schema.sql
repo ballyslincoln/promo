@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS mail_jobs (
   campaign_name TEXT NOT NULL,
   mail_type TEXT,
   property TEXT,
+  property_review BOOLEAN DEFAULT FALSE,
   job_submitted BOOLEAN DEFAULT FALSE, -- DEPRECATED: Use submitted_date instead
   submitted_date TEXT, -- New field for tracking artwork submission date
   postage TEXT,

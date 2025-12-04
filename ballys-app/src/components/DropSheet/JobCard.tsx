@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
-import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 interface JobCardProps {
@@ -99,6 +99,15 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
         handleChange('job_submitted', !!dateVal);
     };
 
+    const handlePropertyReviewToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked;
+        if (isEditing) {
+            handleChange('property_review', isChecked);
+        } else {
+            onUpdate({ ...job, property_review: isChecked });
+        }
+    };
+
     const handleSave = async () => {
         await onUpdate(editedJob);
         setIsEditing(false);
@@ -127,9 +136,11 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
         <div className={`bg-surface border rounded-xl mb-4 shadow-sm hover:shadow-md transition-all relative overflow-visible group ${
             isExpanded ? 'p-6' : 'p-3'
         } ${
-            job.mail_type.toLowerCase().includes('core') 
-                ? 'border-yellow-400 ring-1 ring-yellow-400/50 dark:border-yellow-500/50 bg-yellow-50/30 dark:bg-yellow-900/10' 
-                : 'border-border'
+            job.property_review
+                ? 'border-purple-500 ring-1 ring-purple-400/50 dark:border-purple-400/50 bg-purple-50/50 dark:bg-purple-900/20'
+                : job.mail_type.toLowerCase().includes('core') 
+                    ? 'border-yellow-400 ring-1 ring-yellow-400/50 dark:border-yellow-500/50 bg-yellow-50/30 dark:bg-yellow-900/10' 
+                    : 'border-border'
         } ${isCompleted && !isExpanded ? 'opacity-70' : ''}`}>
             {/* Saved Notification Popup */}
             {showSaved && (
@@ -278,7 +289,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                         </div>
 
                         {/* Secondary Details Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-8 pt-2">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-y-4 gap-x-4 pt-2">
                             {/* Type */}
                             <div className="flex flex-col">
                                 <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold mb-1">Mail Type</label>
@@ -312,6 +323,27 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                 ) : (
                                     <span className="text-sm font-medium text-text-main">{job.quantity.toLocaleString()}</span>
                                 )}
+                            </div>
+
+                            {/* Property Review Switch */}
+                            <div className="flex flex-col">
+                                <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold mb-1 flex items-center gap-1">
+                                    Property Review <Send className="w-3 h-3" />
+                                </label>
+                                <div className="flex items-center h-6">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer"
+                                            checked={isEditing ? !!editedJob.property_review : !!job.property_review}
+                                            onChange={handlePropertyReviewToggle}
+                                        />
+                                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                                        <span className="ml-2 text-xs font-bold text-text-main">
+                                            {(isEditing ? editedJob.property_review : job.property_review) ? 'Reviewing' : 'Off'}
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Submitted Date */}
