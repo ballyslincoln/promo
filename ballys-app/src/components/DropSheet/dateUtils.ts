@@ -44,6 +44,27 @@ export function calculateMilestoneDates(inHomeDateStr: string, mailType: string 
     };
 }
 
+export function calculateDatesFromFirstValid(firstValidDateStr: string, mailType: string = '') {
+    if (!firstValidDateStr) return null;
+    
+    const firstValid = parseISO(firstValidDateStr);
+    if (!isValid(firstValid)) return null;
+
+    const isCore = mailType.toLowerCase().includes('core') || mailType.toLowerCase().includes('newsletter');
+    // "14 days before core and 10 days before a postcard" for In Home Target
+    const daysPrior = isCore ? 14 : 10;
+    
+    const inHomeDate = subDays(firstValid, daysPrior);
+    
+    // Calculate others based on inHomeDate
+    const milestones = calculateMilestoneDates(inHomeDate.toISOString(), mailType);
+    
+    return {
+        inHomeDate,
+        ...milestones
+    };
+}
+
 export function getLagDays(targetDate: Date, actualDate: Date): number {
     return differenceInCalendarDays(actualDate, targetDate);
 }

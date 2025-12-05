@@ -5,7 +5,7 @@ import { JOB_TEMPLATES } from './jobTemplates';
 import type { JobTemplate } from './jobTemplates';
 import type { MailJob } from '../../services/dropSheetService';
 import PostageSelector from './PostageSelector';
-import { subtractBusinessDays } from './dateUtils';
+import { subtractBusinessDays, calculateDatesFromFirstValid } from './dateUtils';
 
 interface AddJobModalProps {
     isOpen: boolean;
@@ -26,9 +26,11 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
     const [mailType, setMailType] = useState('Core/Newsletter');
     const [postage, setPostage] = useState('Standard');
     const [quantity, setQuantity] = useState(0);
+    const [firstValidDate, setFirstValidDate] = useState('');
     const [inHomeDate, setInHomeDate] = useState('');
     const [vendorMailDate, setVendorMailDate] = useState(''); // Drop Date
-    const [artDueDate, setArtDueDate] = useState(''); // Calculated but stored in milestones?
+    const [artDueDate, setArtDueDate] = useState(''); // Vendor Handover
+    const [artSubmissionDate, setArtSubmissionDate] = useState(''); // Submit Art
     // The prompt mentions "Art Due = Mail Drop Date - 5 Business Days" but MailJob interface doesn't have art_due_date.
     // It has milestones. I'll add it to milestones.
 
@@ -48,9 +50,11 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
             setMailType('Core/Newsletter');
             setPostage('Standard');
             setQuantity(0);
+            setFirstValidDate('');
             setInHomeDate('');
             setVendorMailDate('');
             setArtDueDate('');
+            setArtSubmissionDate('');
         }
     }, [isOpen, property]); // Reset when property changes too
 
@@ -103,6 +107,27 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
         }
     };
 
+    const handleFirstValidDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateVal = e.target.value;
+        setFirstValidDate(dateVal);
+
+        if (dateVal) {
+            const calculated = calculateDatesFromFirstValid(dateVal, mailType);
+            if (calculated) {
+                setInHomeDate(format(calculated.inHomeDate, 'yyyy-MM-dd'));
+                if (calculated.mailDropDate) {
+                    setVendorMailDate(format(calculated.mailDropDate, 'yyyy-MM-dd'));
+                }
+                if (calculated.artSubmissionDueDate) {
+                     setArtSubmissionDate(format(calculated.artSubmissionDueDate, 'yyyy-MM-dd'));
+                }
+                if (calculated.artDueDate) {
+                    setArtDueDate(format(calculated.artDueDate, 'yyyy-MM-dd'));
+                }
+            }
+        }
+    };
+
     const handleSubmit = () => {
         const newJob: MailJob = {
             id: crypto.randomUUID(),
@@ -114,17 +139,11 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
             postage: postage,
             quantity: quantity,
             in_home_date: inHomeDate,
-            first_valid_date: '', // Not specified in calculation, leave empty or default?
+            first_valid_date: firstValidDate,
             vendor_mail_date: vendorMailDate,
             milestones: {
-                creative_approved: artDueDate // Using creative_approved as proxy for Art Due or maybe we should add a custom field?
-                // The interface has `creative_received`, `creative_approved`. 
-                // "Art Due" usually means when creative needs to be ready. 
-                // I'll map it to `creative_received` as a target date? 
-                // Or just leave it out of the top-level object if there's no field.
-                // The prompt says "Deliverables: ... Update the AddJobModal".
-                // I'll store it in milestones.data_approved for now or just not store it if not needed by backend.
-                // Let's assume `creative_approved` is the deadline for Art.
+                creative_received: artSubmissionDate, // Submit Art
+                creative_approved: artDueDate // Vendor Art
             },
             created_at: new Date().toISOString()
         };
@@ -318,6 +337,17 @@ export default function AddJobModal({ isOpen, onClose, onAdd, currentMonth }: Ad
                                     </h3>
                                     
                                     <div className="space-y-4">
+                                        <div className="p-3 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-800">
+                                            <label className="block text-xs font-medium text-purple-800 dark:text-purple-300 mb-1">First Valid Date ✨</label>
+                                            <input 
+                                                type="date" 
+                                                value={firstValidDate}
+                                                onChange={handleFirstValidDateChange}
+                                                className="w-full bg-transparent text-sm font-bold text-purple-900 dark:text-purple-100 outline-none"
+                                            />
+                                            <div className="text-[10px] text-purple-600/70 mt-1">Auto-calculates schedule</div>
+                                        </div>
+
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800">
                                                 <label className="block text-xs font-medium text-blue-800 dark:text-blue-300 mb-1">In-Home Target</label>

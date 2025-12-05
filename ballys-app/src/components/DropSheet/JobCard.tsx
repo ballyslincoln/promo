@@ -4,6 +4,7 @@ import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
 import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send, Hourglass, Loader, FileSearch, UserCheck, Pause, AlertCircle, Plus, X, Tag, Truck } from 'lucide-react';
 import { format, parseISO, differenceInHours } from 'date-fns';
+import { calculateDatesFromFirstValid } from './dateUtils';
 
 interface JobCardProps {
     job: MailJob;
@@ -145,6 +146,40 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                 property_review: isChecked,
                 property_review_start: isChecked ? now : undefined
             });
+        }
+    };
+
+    const handleFirstValidDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateVal = e.target.value;
+        handleChange('first_valid_date', dateVal);
+        
+        if (dateVal) {
+            // Magic calculation
+            const calculated = calculateDatesFromFirstValid(dateVal, editedJob.mail_type);
+            if (calculated) {
+                handleChange('in_home_date', format(calculated.inHomeDate, 'yyyy-MM-dd'));
+                if (calculated.mailDropDate) {
+                    handleChange('vendor_mail_date', format(calculated.mailDropDate, 'yyyy-MM-dd'));
+                }
+                
+                // Update Milestones for "Submit Art" and "Vendor Art"
+                const newMilestones = { ...editedJob.milestones };
+                
+                if (calculated.artSubmissionDueDate) {
+                     // Set to noon to avoid TZ issues
+                    const d = new Date(calculated.artSubmissionDueDate);
+                    d.setHours(12, 0, 0, 0);
+                    newMilestones.creative_received = d.toISOString();
+                }
+                
+                if (calculated.artDueDate) {
+                    const d = new Date(calculated.artDueDate);
+                    d.setHours(12, 0, 0, 0);
+                    newMilestones.creative_approved = d.toISOString();
+                }
+                
+                handleChange('milestones', newMilestones);
+            }
         }
     };
 
@@ -449,6 +484,24 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                                 <span className="text-xs text-text-muted italic">Pending</span>
                                             )}
                                         </div>
+                                    )}
+                                </div>
+
+                                {/* First Valid Date - The Magic Field */}
+                                <div className="flex flex-col">
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold mb-1 text-purple-600 dark:text-purple-400">First Valid Date ✨</label>
+                                    {isEditing ? (
+                                        <input
+                                            type="date"
+                                            value={editedJob.first_valid_date || ''}
+                                            onChange={handleFirstValidDateChange}
+                                            className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded px-2 py-1 text-sm w-full outline-none focus:ring-2 focus:ring-purple-500"
+                                        />
+                                    ) : (
+                                        <span className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            {job.first_valid_date ? format(parseISO(job.first_valid_date), 'MMM d, yyyy') : 'Not Set'}
+                                        </span>
                                     )}
                                 </div>
 
