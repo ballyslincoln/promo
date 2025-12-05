@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, Zap, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, Gift, Utensils, Star, Calendar as CalendarIcon, Clock, List, Home, Music, FileText, Edit2, Plus, Keyboard, X, Zap, MessageSquare, Users } from 'lucide-react';
 import { PHONE_NUMBERS } from './data';
 import type { Event, AdminEvent, ScheduleItem } from './types';
 import { eventService, shouldShowEvent } from './services/eventService';
 import { interactionService } from './services/interactionService';
+import { analyticsService } from './services/analyticsService';
 import BigCalendar from './components/Calendar/BigCalendar';
 import EventDetailsModal from './components/EventDetailsModal';
 import { ThemeToggle } from './components/ThemeToggle';
@@ -100,6 +101,19 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<AdminEvent | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeUsers, setActiveUsers] = useState(1);
+
+    // Active User Tracking
+    useEffect(() => {
+        const heartbeat = async () => {
+            const { total } = await analyticsService.sendHeartbeat();
+            if (total) setActiveUsers(total);
+        };
+        
+        heartbeat();
+        const interval = setInterval(heartbeat, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Load initial data
     const loadData = async () => {
@@ -321,6 +335,17 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
 
                         {/* Right Aligned Controls */}
                         <div className="flex items-center justify-end gap-1.5 md:gap-2 shrink-0 ml-2">
+                            
+                            {/* Live Users Indicator */}
+                            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface border border-border rounded-lg shadow-sm mr-1 md:mr-2" title="Active Users">
+                                <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
+                                </span>
+                                <Users className="w-3 h-3 md:w-3.5 md:h-3.5 text-text-muted" />
+                                <span className="text-[10px] md:text-xs font-bold text-text-main">{activeUsers}</span>
+                            </div>
+
                             <div className="scale-90 md:scale-100 origin-right">
                                 <ThemeToggle />
                             </div>
@@ -550,7 +575,13 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
                                             return 0; // Keep original order otherwise
                                         });
 
-                                        return sortedSections.map(section => (
+                                        return sortedSections.map(section => {
+                                            // Hide Dining if empty
+                                            if (section.id === 'Dining' && section.events.length === 0 && !onAddEvent) {
+                                                return null;
+                                            }
+
+                                            return (
                                             <Section
                                                 key={section.id}
                                                 title={section.title}
@@ -582,7 +613,7 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
                                                     />
                                                 )}
                                             </Section>
-                                        ));
+                                        )});
                                     })()}
 
                                     {/* Important Numbers (Internal) */}
