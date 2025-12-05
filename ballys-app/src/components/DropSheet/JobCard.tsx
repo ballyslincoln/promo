@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
-import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send, Hourglass, Ban, Loader, PieChart, FileSearch, UserCheck, Pause, Hand, AlertCircle, Plus, X, Tag, Truck } from 'lucide-react';
+import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send, Hourglass, Loader, FileSearch, UserCheck, Pause, AlertCircle, Plus, X, Tag, Truck } from 'lucide-react';
 import { format, parseISO, differenceInHours } from 'date-fns';
 
 interface JobCardProps {
@@ -184,7 +184,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
     const handleRemoveTag = (tagToRemove: string) => {
         const currentTags = editedJob.tags || [];
-        handleChange('tags', currentTags.filter(t => t !== tagToRemove));
+        handleChange('tags', currentTags.filter((t: string) => t !== tagToRemove));
     };
 
     return (
@@ -223,7 +223,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                 {/* Minimized Tags Preview */}
                                 {(job.tags && job.tags.length > 0) && (
                                     <div className="flex items-center gap-1 ml-2">
-                                        {job.tags.slice(0, 3).map((tag, idx) => {
+                                        {job.tags.slice(0, 3).map((tag: string, idx: number) => {
                                             const style = TAG_CONFIG[tag] || DEFAULT_TAG_STYLE;
                                             return (
                                                 <div key={idx} className={`w-2 h-2 rounded-full ${style.bg.split(' ')[0].replace('bg-', 'bg-').replace('100', '400')}`} title={tag} />
@@ -472,7 +472,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                     <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold">Status Tags</span>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2">
-                                    {((isEditing ? editedJob.tags : job.tags) || []).map((tag, index) => {
+                                    {((isEditing ? editedJob.tags : job.tags) || []).map((tag: string, index: number) => {
                                         const style = TAG_CONFIG[tag] || DEFAULT_TAG_STYLE;
                                         const Icon = style.icon;
                                         return (

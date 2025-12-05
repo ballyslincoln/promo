@@ -3,22 +3,22 @@ import { sql } from '../db';
 export interface JobMilestones {
     outline_given?: string;
     outline_given_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     data_received?: string;
     data_received_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     data_approved?: string;
     data_approved_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     creative_received?: string;
     creative_received_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     creative_approved?: string;
     creative_approved_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     sent_to_vendor?: string;
     sent_to_vendor_status?: 'pending' | 'in_progress' | 'completed';
-    
+
     mailed?: string;
     mailed_status?: 'pending' | 'in_progress' | 'completed';
 }
@@ -39,6 +39,7 @@ export interface MailJob {
     first_valid_date: string; // YYYY-MM-DD
     vendor_mail_date: string; // YYYY-MM-DD
     milestones: JobMilestones;
+    tags?: string[];
     created_at: string;
 }
 
@@ -65,12 +66,12 @@ export const dropSheetService = {
                     id, job_number, campaign_name, mail_type, property, property_review, property_review_start,
                     job_submitted, submitted_date,
                     postage, quantity, in_home_date, first_valid_date, 
-                    vendor_mail_date, milestones, created_at
+                    vendor_mail_date, milestones, tags, created_at
                 ) VALUES (
                     ${job.id}, ${job.job_number || null}, ${job.campaign_name}, ${job.mail_type}, ${job.property}, ${job.property_review ?? false}, ${job.property_review_start ?? null},
                     ${job.job_submitted ?? false}, ${job.submitted_date ?? null},
                     ${job.postage ?? 'Standard'}, ${job.quantity ?? 0}, ${job.in_home_date ?? null}, ${job.first_valid_date ?? null},
-                    ${job.vendor_mail_date ?? null}, ${JSON.stringify(job.milestones ?? {})}, ${job.created_at}
+                    ${job.vendor_mail_date ?? null}, ${JSON.stringify(job.milestones ?? {})}, ${JSON.stringify(job.tags ?? [])}, ${job.created_at}
                 )
             `;
         } catch (e) {
@@ -97,7 +98,8 @@ export const dropSheetService = {
                     in_home_date = ${job.in_home_date ?? null},
                     first_valid_date = ${job.first_valid_date ?? null},
                     vendor_mail_date = ${job.vendor_mail_date ?? null},
-                    milestones = ${JSON.stringify(job.milestones ?? {})}
+                    milestones = ${JSON.stringify(job.milestones ?? {})},
+                    tags = ${JSON.stringify(job.tags ?? [])}
                 WHERE id = ${job.id}
             `;
         } catch (e) {
