@@ -46,9 +46,22 @@ CREATE TABLE IF NOT EXISTS interactions (
   id TEXT PRIMARY KEY,
   event_id TEXT NOT NULL,
   user_id TEXT NOT NULL REFERENCES users(id),
-  type TEXT NOT NULL CHECK (type IN ('aura', 'comment')),
+  type TEXT NOT NULL CHECK (type IN ('aura', 'comment', 'like', 'reaction')),
   content TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Active Sessions Table (For live user count)
+CREATE TABLE IF NOT EXISTS active_sessions (
+  id TEXT PRIMARY KEY,
+  last_seen TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Promotion Views Table
+CREATE TABLE IF NOT EXISTS promotion_views (
+  promotion_id TEXT PRIMARY KEY,
+  count INTEGER DEFAULT 0,
+  last_viewed TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Indexes for performance

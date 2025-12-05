@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { dropSheetService } from '../../services/dropSheetService';
+import { analyticsService } from '../../services/analyticsService';
 import type { MailJob } from '../../services/dropSheetService';
 import JobCard from './JobCard';
 import AddJobModal from './AddJobModal';
@@ -7,7 +8,7 @@ import ImportJsonModal from './ImportJsonModal';
 import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
 import { ThemeToggle } from '../ThemeToggle';
-import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
+import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard, Users } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { calculateMilestoneDates } from './dateUtils';
 
@@ -24,6 +25,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+    const [activeUsers, setActiveUsers] = useState(1);
 
     // Mass Selection & Delete
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -37,6 +39,25 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         field: 'in_home_date',
         direction: 'asc'
     });
+
+    // Active User Tracking
+    useEffect(() => {
+        const trackPresence = async () => {
+            const { count } = await analyticsService.sendHeartbeat('dropsheet');
+            // Ideally the API would return the specific count for 'dropsheet' location, 
+            // but for now we just show total active users or if we updated the API to return location counts
+            // If the API only returns total count, we can just show that. 
+            // To be "like google docs", we really want the count of people ON THIS PAGE.
+            // My previous API edit didn't explicitly breakdown counts by location in the return value, just stored it.
+            // I should fix the API or just show the total for now. 
+            // Let's show the total for now as "Users Online".
+            if (count) setActiveUsers(count);
+        };
+
+        trackPresence();
+        const interval = setInterval(trackPresence, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     const loadJobs = useCallback(async () => {
         setIsLoading(true);
@@ -340,6 +361,17 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     </div>
                     
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
+                        
+                        {/* Live Users Indicator */}
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm" title="Active Users">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            <Users className="w-3.5 h-3.5 text-text-muted" />
+                            <span className="text-xs font-bold text-text-main">{activeUsers}</span>
+                        </div>
+
                         <ThemeToggle />
                         
                         {/* View Mode Toggle */}

@@ -5,6 +5,7 @@ import type { AdminEvent } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 import { interactionService } from '../services/interactionService';
 import { userService } from '../services/userService';
+import { analyticsService } from '../services/analyticsService';
 
 interface EventDetailsModalProps {
   event: AdminEvent | null;
@@ -43,6 +44,9 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
           
           // Ensure user exists
           await userService.getOrCreateUser();
+
+          // Track View
+          await analyticsService.trackPromotionView(event.id);
         } catch (error) {
           console.error("Failed to load interactions", error);
         }

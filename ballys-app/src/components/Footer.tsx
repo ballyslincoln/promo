@@ -1,4 +1,6 @@
-import { MessageSquarePlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { MessageSquarePlus, Eye } from 'lucide-react';
+import { analyticsService } from '../services/analyticsService';
 
 interface FooterProps {
   onAdminOpen?: () => void;
@@ -6,9 +8,28 @@ interface FooterProps {
 }
 
 export default function Footer({ onAdminOpen, onPrivacyClick }: FooterProps) {
+  const [activeUsers, setActiveUsers] = useState(1);
+
+  useEffect(() => {
+    const heartbeat = async () => {
+        const { count } = await analyticsService.sendHeartbeat();
+        if (count) setActiveUsers(count);
+    };
+    
+    heartbeat();
+    const interval = setInterval(heartbeat, 30000); // Every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm pb-safe-bottom">
         <div className="max-w-3xl mx-auto text-center space-y-3">
+            {/* Active Users Counter */}
+            <div className="flex items-center justify-center gap-2 text-text-muted mb-2">
+                <Eye className="w-3.5 h-3.5" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">{activeUsers} Viewing Now</span>
+            </div>
+
             <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
                 Created by Regional Advertising Manager Jackson Kelly
             </p>

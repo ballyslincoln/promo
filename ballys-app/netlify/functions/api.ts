@@ -63,6 +63,19 @@ const initDB = async (sql) => {
                 metadata JSONB
             );
         `;
+        await sql`
+            CREATE TABLE IF NOT EXISTS active_sessions (
+                id TEXT PRIMARY KEY,
+                last_seen TIMESTAMPTZ DEFAULT NOW()
+            );
+        `;
+        await sql`
+            CREATE TABLE IF NOT EXISTS promotion_views (
+                promotion_id TEXT PRIMARY KEY,
+                count INTEGER DEFAULT 0,
+                last_viewed TIMESTAMPTZ DEFAULT NOW()
+            );
+        `;
 
         // Seed Master Admin if no admins exist
         const adminCount = await sql`SELECT COUNT(*) as count FROM admins`;
@@ -264,6 +277,45 @@ export default async (req, context) => {
             }
         } else {
             user = { id: 'anon-' + generateId(), username: 'Guest', ip_address: 'unknown' };
+        }
+
+        // ---------------------------------------------------------
+        // ANALYTICS (Active Users & Promotion Views)
+        // ---------------------------------------------------------
+        
+        if (action === 'heartbeat') {
+             // 1. Update or Insert Session
+             await sql`
+                INSERT INTO active_sessions (id, last_seen)
+                VALUES (${user.id}, NOW())
+                ON CONFLICT (id) DO UPDATE SET last_seen = NOW()
+             `;
+             
+             // 2. Cleanup Old Sessions (> 60 seconds)
+             await sql`
+                DELETE FROM active_sessions WHERE last_seen < NOW() - INTERVAL '60 seconds'
+             `;
+             
+             // 3. Get Count
+             const countResult = await sql`SELECT COUNT(*) as count FROM active_sessions`;
+             return new Response(JSON.stringify({ count: parseInt(countResult[0].count) }), { status: 200, headers });
+        }
+        
+        if (req.method === 'POST' && action === 'view_promotion') {
+            const body = await req.json();
+            const { promotionId } = body;
+            
+            if (!promotionId) return new Response(JSON.stringify({ error: 'Missing promotionId' }), { status: 400, headers });
+            
+            await sql`
+                INSERT INTO promotion_views (promotion_id, count, last_viewed)
+                VALUES (${promotionId}, 1, NOW())
+                ON CONFLICT (promotion_id) DO UPDATE SET 
+                    count = promotion_views.count + 1,
+                    last_viewed = NOW()
+            `;
+            
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         // DELETE /api/interactions?id=xyz
