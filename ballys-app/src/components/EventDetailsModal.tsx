@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, MessageSquare, Send, ThumbsUp, Trash2 } from 'lucide-react';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, Send, Trash2 } from 'lucide-react';
 import type { AdminEvent, Interaction, User } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 import { interactionService } from '../services/interactionService';
@@ -13,47 +13,51 @@ interface EventDetailsModalProps {
   onEdit?: (event: AdminEvent) => void;
 }
 
+const REACTIONS = [
+  { emoji: '👍', label: 'Like' },
+  { emoji: '❤️', label: 'Love' },
+  { emoji: '😂', label: 'Haha' },
+  { emoji: '😮', label: 'Wow' },
+  { emoji: '😢', label: 'Sad' },
+  { emoji: '😡', label: 'Angry' }
+];
+
 export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: EventDetailsModalProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   // Interaction State
   const [auraCount, setAuraCount] = useState(0);
   const [hasAura, setHasAura] = useState(false);
-  const [comments, setComments] = useState<Interaction[]>([]);
-  const [commentText, setCommentText] = useState('');
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
+  const [userReaction, setUserReaction] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  // const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen && event) {
-      // setIsLoading(true);
       const loadInteractions = async () => {
         try {
           const data = await interactionService.getEventInteractions(event.id);
           setAuraCount(data.auraCount);
           setHasAura(data.hasUserAura);
-          setComments(data.comments);
+          setReactionCounts(data.reactions || {});
+          setUserReaction(data.userReaction);
+          
           if (data.currentUser) {
             setCurrentUser(data.currentUser);
           } else {
-            // Force refresh user if not in response (fallback)
             const user = await userService.getOrCreateUser();
             setCurrentUser(user);
           }
         } catch (error) {
           console.error("Failed to load interactions", error);
-        } finally {
-          // setIsLoading(false);
         }
       };
       loadInteractions();
     } else {
-      // Reset state
       setAuraCount(0);
       setHasAura(false);
-      setComments([]);
-      setCommentText('');
-      // setIsLoading(false);
+      setReactionCounts({});
+      setUserReaction(null);
     }
   }, [isOpen, event]);
 
@@ -72,73 +76,36 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
     }
   };
 
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!event || !commentText.trim()) return;
+  const handleReaction = async (emoji: string) => {
+    if (!event) return;
 
-    const text = commentText.trim();
-    setCommentText(''); // Clear immediately
+    const prevReaction = userReaction;
+    const prevCounts = { ...reactionCounts };
 
     // Optimistic Update
-    const tempId = 'temp-' + Date.now();
-    const optimisticComment: Interaction = {
-      id: tempId,
-      event_id: event.id,
-      user_id: currentUser?.id || 'temp',
-      type: 'comment',
-      content: text,
-      created_at: new Date().toISOString(),
-      username: currentUser?.username || 'Guest',
-      likes: 0,
-      hasLiked: false
-    };
+    let newCounts = { ...prevCounts };
+    let newReaction = emoji;
 
-    setComments(prev => [optimisticComment, ...prev]);
-
-    try {
-      const newComment = await interactionService.addComment(event.id, text);
-      if (newComment) {
-        // Replace optimistic comment with real one
-        setComments(prev => prev.map(c => c.id === tempId ? newComment : c));
-      } else {
-        // Failed, remove optimistic comment and restore text
-        setComments(prev => prev.filter(c => c.id !== tempId));
-        setCommentText(text);
+    if (prevReaction === emoji) {
+      // Toggle off
+      newReaction = null;
+      newCounts[emoji] = Math.max(0, (newCounts[emoji] || 0) - 1);
+    } else {
+      // Change reaction
+      if (prevReaction) {
+        newCounts[prevReaction] = Math.max(0, (newCounts[prevReaction] || 0) - 1);
       }
-    } catch (error) {
-      // Error, remove optimistic comment and restore text
-      setComments(prev => prev.filter(c => c.id !== tempId));
-      setCommentText(text);
+      newCounts[emoji] = (newCounts[emoji] || 0) + 1;
     }
-  };
 
-  const handleDeleteComment = async (commentId: string) => {
-    // Optimistic update
-    const prevComments = [...comments];
-    setComments(prev => prev.filter(c => c.id !== commentId));
+    setUserReaction(newReaction as string | null);
+    setReactionCounts(newCounts);
 
-    const success = await interactionService.deleteInteraction(commentId);
-    if (!success) {
+    const res = await interactionService.toggleReaction(event.id, emoji);
+    if (!res.success) {
       // Revert
-      setComments(prevComments);
-      alert("Failed to delete comment");
-    }
-  };
-
-  const handleToggleLike = async (commentId: string) => {
-    // Find comment
-    const comment = comments.find(c => c.id === commentId);
-    if (!comment) return;
-
-    // Optimistic update
-    const newHasLiked = !comment.hasLiked;
-    const newLikes = newHasLiked ? (comment.likes || 0) + 1 : (comment.likes || 0) - 1;
-
-    setComments(prev => prev.map(c => c.id === commentId ? { ...c, hasLiked: newHasLiked, likes: newLikes } : c));
-
-    const success = await interactionService.toggleLike(commentId);
-    if (!success) {
-      setComments(prev => prev.map(c => c.id === commentId ? { ...c, hasLiked: !newHasLiked, likes: comment.likes } : c));
+      setUserReaction(prevReaction);
+      setReactionCounts(prevCounts);
     }
   };
 
@@ -147,19 +114,19 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center px-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full relative overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full relative overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col z-[2001]"
           >
             {/* Header */}
             <div className="relative h-32 md:h-40 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 shrink-0">
@@ -374,115 +341,36 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
                   </div>
                 )}
 
-                {/* Comments Section */}
+                {/* Reactions Section (Replaces Comments) */}
                 <div className="pt-8 mt-8 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-2 mb-6">
-                    <MessageSquare className="w-4 h-4 text-slate-400" />
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">Discussion</h3>
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">React to this event</h3>
                   </div>
 
-                  {/* Comment Input */}
-                  <form onSubmit={handleAddComment} className="mb-8 relative">
-                    <div className="flex items-end gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ballys-red to-purple-600 flex items-center justify-center shrink-0 text-white text-xs font-bold border-2 border-white dark:border-slate-900 shadow-md z-10">
-                        {currentUser?.username?.charAt(0).toUpperCase() || 'G'}
-                      </div>
-                      <div className="flex-1 relative">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder={currentUser?.username ? `Comment as ${currentUser.username}...` : 'Loading user...'}
-                          className="w-full bg-slate-100 dark:bg-slate-800/80 border-0 rounded-2xl px-5 py-3.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-ballys-red/20 transition-all shadow-inner"
-                        />
-                        <AnimatePresence>
-                          {commentText.trim() && (
-                            <motion.button
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              type="submit"
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-ballys-red text-white shadow-lg hover:bg-ballys-darkRed transition-colors"
-                            >
-                              <Send className="w-4 h-4 ml-0.5" />
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </div>
-                  </form>
-
-                  {/* Comments List */}
-                  <div className="space-y-4">
-                    {/* Removed AnimatePresence to prevent layout thrashing during rapid updates, kept simpler transitions */}
-                    {comments.length === 0 ? (
-                      <p className="text-center text-sm text-slate-400 italic py-8">
-                        No vibes yet. Start the conversation!
-                      </p>
-                    ) : (
-                      comments.map((comment) => {
-                        const isMe = currentUser && (currentUser.id === comment.user_id || currentUser.username === 'Admin');
-                        return (
-                        <div 
-                          key={comment.id} 
-                          className={`flex gap-3 group/comment ${isMe ? 'flex-row-reverse' : ''}`}
-                        >
-                          {!isMe && (
-                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 text-xs font-bold border border-slate-200 dark:border-slate-700 mt-auto">
-                              {comment.username ? comment.username.charAt(0).toUpperCase() : '?'}
-                            </div>
-                          )}
-                          
-                          <div className={`flex flex-col max-w-[85%] ${isMe ? 'items-end' : 'items-start'}`}>
-                            <div className={`flex items-center gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{comment.username || 'Anonymous'}</span>
-                            </div>
-                            
-                            <div className={`relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                              isMe 
-                                ? 'bg-ballys-red text-white rounded-br-none' 
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-bl-none'
-                            }`}>
-                              {comment.content}
-                            </div>
-
-                            {/* Actions Row */}
-                            <div className={`flex items-center gap-3 mt-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                              <button
-                                onClick={() => handleToggleLike(comment.id)}
-                                className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                                  comment.hasLiked 
-                                    ? 'text-blue-500 scale-105' 
-                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                                }`}
-                              >
-                                <ThumbsUp className={`w-3 h-3 ${comment.hasLiked ? 'fill-current' : ''}`} />
-                                <span>{comment.likes || 0}</span>
-                              </button>
-                              
-                              <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
-                              
-                              <span className="text-[10px] text-slate-400">
-                                {new Date(comment.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                              </span>
-
-                              {(isMe || (currentUser && currentUser.username === 'Admin')) && (
-                                <>
-                                  <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
-                                  <button
-                                    onClick={() => handleDeleteComment(comment.id)}
-                                    className="text-slate-400 hover:text-red-500 transition-colors"
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
+                  <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+                    {REACTIONS.map((reaction) => (
+                      <button
+                        key={reaction.emoji}
+                        onClick={() => handleReaction(reaction.emoji)}
+                        className={`group relative p-3 rounded-2xl transition-all hover:scale-110 active:scale-95 flex flex-col items-center gap-1 min-w-[60px] ${
+                          userReaction === reaction.emoji
+                            ? 'bg-ballys-red/10 border-ballys-red/30 scale-110 shadow-sm border'
+                            : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent'
+                        }`}
+                      >
+                        <span className="text-2xl filter drop-shadow-sm">{reaction.emoji}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                          userReaction === reaction.emoji ? 'text-ballys-red' : 'text-slate-400'
+                        }`}>
+                          {reactionCounts[reaction.emoji] || 0}
+                        </span>
+                        
+                        {/* Tooltip */}
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                          {reaction.label}
                         </div>
-                      )})
-                    )}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

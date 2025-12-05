@@ -79,10 +79,12 @@ export interface Interaction {
   id: string;
   event_id: string;
   user_id: string;
-  type: 'aura' | 'comment' | 'like';
+  type: 'aura' | 'comment' | 'like' | 'reaction';
   content?: string;
   created_at: string;
   username?: string; // Joined field
   likes?: number;
   hasLiked?: boolean;
+  reactions?: Record<string, number>;
+  userReaction?: string;
 }

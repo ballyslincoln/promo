@@ -302,19 +302,21 @@ export default async (req, context) => {
                 if (ids.length === 0) return new Response(JSON.stringify({}), { status: 200, headers });
 
                 const rows = await sql`
-                    SELECT event_id, type, COUNT(*) as count 
+                    SELECT event_id, type, content, COUNT(*) as count 
                     FROM interactions 
                     WHERE event_id = ANY(${ids})
-                    GROUP BY event_id, type
+                    GROUP BY event_id, type, content
                 `;
 
                 const stats = {};
                 ids.forEach(id => {
                     const auraRow = rows.find(r => r.event_id === id && r.type === 'aura');
-                    const commentRow = rows.find(r => r.event_id === id && r.type === 'comment');
+                    const reactionRows = rows.filter(r => r.event_id === id && r.type === 'reaction');
+                    const reactionCount = reactionRows.reduce((acc, r) => acc + parseInt(r.count), 0);
+                    
                     stats[id] = {
                         aura: auraRow ? parseInt(auraRow.count) : 0,
-                        comments: commentRow ? parseInt(commentRow.count) : 0
+                        reactions: reactionCount
                     };
                 });
 
@@ -338,53 +340,36 @@ export default async (req, context) => {
                     hasUserAura = userAura.length > 0;
                 }
 
-                const commentsResult = await sql`
-                    SELECT i.*, u.username 
-                    FROM interactions i
-                    LEFT JOIN users u ON i.user_id = u.id
-                    WHERE i.event_id = ${eventId} AND i.type = 'comment'
-                    ORDER BY i.created_at DESC
+                // Fetch Reactions
+                const reactionsResult = await sql`
+                    SELECT content, COUNT(*) as count 
+                    FROM interactions 
+                    WHERE event_id = ${eventId} AND type = 'reaction'
+                    GROUP BY content
                 `;
+                
+                const reactions = {};
+                reactionsResult.forEach(r => {
+                    reactions[r.content] = parseInt(r.count);
+                });
 
-                // Fetch likes for comments
-                const commentIds = commentsResult.map(c => c.id);
-                let likesMap = {};
-                let userLikesMap = {};
-
-                if (commentIds.length > 0) {
-                    const likesResult = await sql`
-                        SELECT event_id, COUNT(*) as count 
-                        FROM interactions 
-                        WHERE type = 'like' AND event_id = ANY(${commentIds})
-                        GROUP BY event_id
+                let userReaction = null;
+                if (user.id && !user.id.startsWith('anon-')) {
+                    const userReactionResult = await sql`
+                        SELECT content FROM interactions 
+                        WHERE event_id = ${eventId} AND user_id = ${user.id} AND type = 'reaction'
                     `;
-                    likesResult.forEach(r => likesMap[r.event_id] = parseInt(r.count));
-
-                    if (user.id && !user.id.startsWith('anon-')) {
-                        const userLikesResult = await sql`
-                            SELECT event_id FROM interactions 
-                            WHERE type = 'like' AND user_id = ${user.id} AND event_id = ANY(${commentIds})
-                        `;
-                        userLikesResult.forEach(r => userLikesMap[r.event_id] = true);
+                    if (userReactionResult.length > 0) {
+                        userReaction = userReactionResult[0].content;
                     }
                 }
-
-                const comments = commentsResult.map(r => ({
-                    id: r.id,
-                    event_id: r.event_id,
-                    user_id: r.user_id,
-                    type: r.type,
-                    content: r.content,
-                    created_at: r.created_at,
-                    username: r.username,
-                    likes: likesMap[r.id] || 0,
-                    hasLiked: !!userLikesMap[r.id]
-                }));
 
                 return new Response(JSON.stringify({
                     auraCount,
                     hasUserAura,
-                    comments,
+                    comments: [],
+                    reactions,
+                    userReaction,
                     currentUser: user
                 }), { status: 200, headers });
             }
@@ -422,6 +407,43 @@ export default async (req, context) => {
                 `;
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            }
+
+            // Reaction
+            if (type === 'reaction') {
+                if (!content) {
+                     return new Response(JSON.stringify({ error: 'Reaction content required' }), { status: 400, headers });
+                }
+                
+                // Check if user already reacted
+                const existing = await sql`
+                    SELECT id, content FROM interactions 
+                    WHERE event_id = ${eventId} AND user_id = ${user.id} AND type = 'reaction'
+                `;
+
+                if (existing && existing.length > 0) {
+                    if (existing[0].content === content) {
+                        // Same reaction -> remove it (toggle off)
+                        await sql`DELETE FROM interactions WHERE id = ${existing[0].id}`;
+                        return new Response(JSON.stringify({ success: true, action: 'removed' }), { status: 200, headers });
+                    } else {
+                        // Different reaction -> update it
+                        await sql`
+                            UPDATE interactions 
+                            SET content = ${content}, created_at = ${new Date().toISOString()}
+                            WHERE id = ${existing[0].id}
+                        `;
+                        return new Response(JSON.stringify({ success: true, action: 'updated' }), { status: 200, headers });
+                    }
+                } else {
+                    // New reaction
+                    const id = generateId();
+                    await sql`
+                        INSERT INTO interactions (id, event_id, user_id, type, content, created_at)
+                        VALUES (${id}, ${eventId}, ${user.id}, 'reaction', ${content}, ${new Date().toISOString()})
+                    `;
+                    return new Response(JSON.stringify({ success: true, action: 'added' }), { status: 200, headers });
+                }
             }
 
             // Like (Comment)

@@ -258,6 +258,16 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
         }
     };
 
+    const handleHomeClick = () => {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        
+        setSelectedDate(today);
+        setViewMode('list');
+        setActiveTab('events');
+        setDirection(0);
+    };
+
     const variants = {
         enter: (direction: number) => ({
             x: direction > 0 ? 20 : -20,
@@ -293,14 +303,18 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
                     <div className="w-full relative flex items-center justify-between min-h-[40px]">
 
                         {/* Logo & Title Area */}
-                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                            <div className="relative">
+                        <div 
+                            className="flex items-center gap-2 md:gap-3 flex-1 min-w-0 cursor-pointer group"
+                            onClick={handleHomeClick}
+                            title="Go to Today"
+                        >
+                            <div className="relative group-hover:scale-105 transition-transform duration-200">
                                 <img src="/logo.png" alt="Logo" className="h-5 md:h-8 object-contain drop-shadow-sm shrink-0" />
                                 <span className="absolute -top-2 -right-3 bg-ballys-gold text-[8px] font-bold px-1.5 py-0.5 rounded text-black uppercase tracking-wider border border-white/20 shadow-sm rotate-12">Beta</span>
                             </div>
                             <div className="h-3 md:h-4 w-[1px] bg-border shrink-0" />
                             <div className="flex flex-col justify-center overflow-hidden">
-                                <span className="text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-semibold text-text-muted truncate">Day At A Glance</span>
+                                <span className="text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-semibold text-text-muted truncate group-hover:text-text-main transition-colors">Day At A Glance</span>
                                 <ClockHeader />
                             </div>
                         </div>
@@ -518,150 +532,58 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
                                     key={`events-${selectedDate.toISOString()}`}
                                     className="space-y-8"
                                 >
-                                    {/* Invited Guest Events */}
-                                    <Section
-                                        title="Invited Guest Events"
-                                        icon={<Star className="w-4 h-4 text-ballys-gold" />}
-                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined}
-                                    >
-                                        <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Invited').map((event) => (
-                                                <EventCard
-                                                    key={event.id}
-                                                    event={event}
-                                                    stats={stats[event.id]}
-                                                    onEdit={onEditEvent}
-                                                    onClick={(e) => {
-                                                        const eventWithDate = {
-                                                            ...e,
-                                                            startDate: selectedDate.toISOString().split('T')[0]
-                                                        };
-                                                        setSelectedEvent(eventWithDate);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        {events.filter(e => e.category === 'Invited').length === 0 && (
-                                            <EmptyState message="No invited guest events scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Invited') : undefined} />
-                                        )}
-                                    </Section>
+                                    {/* Dynamic Sections */}
+                                    {(() => {
+                                        const sections = [
+                                            { id: 'Invited', title: 'Invited Guest Events', icon: <Star className="w-4 h-4 text-ballys-gold" />, events: events.filter(e => e.category === 'Invited') },
+                                            { id: 'Open', title: 'Open To All Guests', icon: <Gift className="w-4 h-4 text-ballys-red" />, events: events.filter(e => e.category === 'Open') },
+                                            { id: 'Dining', title: 'Dining & Happy Hours', icon: <Utensils className="w-4 h-4 text-ballys-blue" />, events: events.filter(e => e.category === 'Dining') },
+                                            { id: 'Promo', title: 'Promotions', icon: <Gift className="w-4 h-4 text-purple-500" />, events: events.filter(e => e.category === 'Promo') },
+                                            { id: 'Entertainment', title: 'Entertainment', icon: <Music className="w-4 h-4 text-pink-500" />, events: events.filter(e => e.category === 'Entertainment') }
+                                        ];
 
-                                    {/* Open To All */}
-                                    <Section
-                                        title="Open To All Guests"
-                                        icon={<Gift className="w-4 h-4 text-ballys-red" />}
-                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined}
-                                    >
-                                        <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Open').map((event) => (
-                                                <EventCard
-                                                    key={event.id}
-                                                    event={event}
-                                                    stats={stats[event.id]}
-                                                    onEdit={onEditEvent}
-                                                    onClick={(e) => {
-                                                        const eventWithDate = {
-                                                            ...e,
-                                                            startDate: selectedDate.toISOString().split('T')[0]
-                                                        };
-                                                        setSelectedEvent(eventWithDate);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        {events.filter(e => e.category === 'Open').length === 0 && (
-                                            <EmptyState message="No open events scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Open') : undefined} />
-                                        )}
-                                    </Section>
+                                        // Sort sections: 
+                                        // If 'Open' has no events, move it to the end (before important numbers)
+                                        const sortedSections = [...sections].sort((a, b) => {
+                                            if (a.id === 'Open' && a.events.length === 0) return 1;
+                                            if (b.id === 'Open' && b.events.length === 0) return -1;
+                                            return 0; // Keep original order otherwise
+                                        });
 
-                                    {/* Dining Offers */}
-                                    <Section
-                                        title="Dining & Happy Hours"
-                                        icon={<Utensils className="w-4 h-4 text-ballys-blue" />}
-                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined}
-                                    >
-                                        <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Dining').map((event) => (
-                                                <EventCard
-                                                    key={event.id}
-                                                    event={event}
-                                                    stats={stats[event.id]}
-                                                    onEdit={onEditEvent}
-                                                    onClick={(e) => {
-                                                        const eventWithDate = {
-                                                            ...e,
-                                                            startDate: selectedDate.toISOString().split('T')[0]
-                                                        };
-                                                        setSelectedEvent(eventWithDate);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        {events.filter(e => e.category === 'Dining').length === 0 && (
-                                            <EmptyState message="No dining specials scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Dining') : undefined} />
-                                        )}
-                                    </Section>
-
-                                    {/* Promo Events */}
-                                    <Section
-                                        title="Promotions"
-                                        icon={<Gift className="w-4 h-4 text-purple-500" />}
-                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined}
-                                    >
-                                        <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Promo').map((event) => (
-                                                <EventCard
-                                                    key={event.id}
-                                                    event={event}
-                                                    stats={stats[event.id]}
-                                                    onEdit={onEditEvent}
-                                                    onClick={(e) => {
-                                                        const eventWithDate = {
-                                                            ...e,
-                                                            startDate: selectedDate.toISOString().split('T')[0]
-                                                        };
-                                                        setSelectedEvent(eventWithDate);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        {events.filter(e => e.category === 'Promo').length === 0 && (
-                                            <EmptyState message="No promotions scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Promo') : undefined} />
-                                        )}
-                                    </Section>
-
-                                    {/* Entertainment */}
-                                    <Section
-                                        title="Entertainment"
-                                        icon={<Music className="w-4 h-4 text-pink-500" />}
-                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined}
-                                    >
-                                        <div className="space-y-4">
-                                            {events.filter(e => e.category === 'Entertainment').map((event) => (
-                                                <EventCard
-                                                    key={event.id}
-                                                    event={event}
-                                                    stats={stats[event.id]}
-                                                    onEdit={onEditEvent}
-                                                    onClick={(e) => {
-                                                        const eventWithDate = {
-                                                            ...e,
-                                                            startDate: selectedDate.toISOString().split('T')[0]
-                                                        };
-                                                        setSelectedEvent(eventWithDate);
-                                                        setIsModalOpen(true);
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        {events.filter(e => e.category === 'Entertainment').length === 0 && (
-                                            <EmptyState message="No entertainment scheduled." onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, 'Entertainment') : undefined} />
-                                        )}
-                                    </Section>
+                                        return sortedSections.map(section => (
+                                            <Section
+                                                key={section.id}
+                                                title={section.title}
+                                                icon={section.icon}
+                                                onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, section.id) : undefined}
+                                            >
+                                                <div className="space-y-4">
+                                                    {section.events.map((event) => (
+                                                        <EventCard
+                                                            key={event.id}
+                                                            event={event}
+                                                            stats={stats[event.id]}
+                                                            onEdit={onEditEvent}
+                                                            onClick={(e) => {
+                                                                const eventWithDate = {
+                                                                    ...e,
+                                                                    startDate: selectedDate.toISOString().split('T')[0]
+                                                                };
+                                                                setSelectedEvent(eventWithDate);
+                                                                setIsModalOpen(true);
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                {section.events.length === 0 && (
+                                                    <EmptyState 
+                                                        message={`No ${section.title.toLowerCase()} scheduled.`} 
+                                                        onAddEvent={onAddEvent ? () => onAddEvent(selectedDate, section.id) : undefined} 
+                                                    />
+                                                )}
+                                            </Section>
+                                        ));
+                                    })()}
 
                                     {/* Important Numbers (Internal) */}
                                     <div className="glass-card rounded-2xl overflow-hidden mt-8">

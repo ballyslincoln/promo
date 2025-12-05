@@ -59,11 +59,17 @@ async function run() {
 
     for (const command of commands) {
       // console.log("Executing:", command.substring(0, 50) + "...");
-      await sql(command);
+      try {
+        await sql(command); // specific implementation might change, reverting to basic execution
+      } catch (err) {
+        // Fallback for newer neon driver versions that enforce tagged template usage
+        // We construct a fake TemplateStringsArray-like object or just pass array
+        await sql([command]);
+      }
     }
-    
+
     console.log("Schema applied successfully.");
-    
+
     const tables = await sql`
       SELECT table_name 
       FROM information_schema.tables 

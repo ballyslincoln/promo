@@ -1,7 +1,7 @@
 import type { JobMilestones } from '../../services/dropSheetService';
 import { calculateMilestoneDates } from './dateUtils';
-import { format, parseISO, differenceInCalendarDays } from 'date-fns';
-import { Check, AlertCircle, Clock, Loader2, Truck } from 'lucide-react';
+import { format, parseISO, differenceInCalendarDays, isAfter } from 'date-fns';
+import { Check, AlertCircle, Clock, Loader2, Truck, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProgressBarProps {
@@ -108,25 +108,45 @@ export default function ProgressBar({ milestones, inHomeDate, mailType, onMilest
                     const isCompleted = status === 'completed';
                     const isInProgress = status === 'in_progress'; 
 
+                    // Custom Logic for "Mailed" status (On Way vs In Homes)
+                    let isMailed = false;
+                    let isInHomes = false;
+
+                    if (step.key === 'mailed' && isCompleted) {
+                        isMailed = true;
+                        const mailedDate = dateVal ? parseISO(dateVal) : null;
+                        const inHomeTarget = inHomeDate ? parseISO(inHomeDate) : null;
+                        
+                        // If today is past the in-home date, assume it's "In Homes"
+                        if (mailedDate && inHomeTarget && isAfter(new Date(), inHomeTarget)) {
+                            isInHomes = true;
+                        }
+                    }
+
                     return (
                         <div key={step.key} className="flex flex-col items-center flex-1 group relative">
                             <motion.button
                                 type="button"
-                                whileHover={canToggle ? { scale: 1.05 } : {}}
-                                whileTap={canToggle ? { scale: 0.95 } : {}}
+                                whileHover={canToggle && !isCompleted ? { scale: 1.05 } : {}}
+                                whileTap={canToggle && !isCompleted ? { scale: 0.95 } : {}}
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    if (canToggle) onMilestoneClick(step.key);
+                                    if (canToggle && !isCompleted) onMilestoneClick(step.key);
                                 }}
                                 className={`
                                     w-full h-8 rounded-md flex items-center justify-center text-[10px] font-bold uppercase tracking-wide transition-all border shadow-sm overflow-hidden relative
-                                    ${isCompleted 
-                                        ? 'bg-green-500 text-white border-green-600 shadow-green-900/20' 
-                                        : isInProgress
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800'
-                                            : canToggle 
-                                                ? 'bg-white dark:bg-slate-800 text-text-muted border-border hover:border-blue-400 hover:text-blue-500 hover:shadow-md' 
-                                                : 'bg-gray-50 dark:bg-slate-900 text-gray-300 dark:text-slate-700 border-transparent cursor-not-allowed opacity-60'}
+                                    ${isInHomes
+                                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+                                        : isMailed
+                                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800'
+                                            : isCompleted 
+                                                ? 'bg-green-500 text-white border-green-600 shadow-green-900/20' 
+                                                : isInProgress
+                                                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 border-blue-200 dark:border-blue-800'
+                                                    : canToggle 
+                                                        ? 'bg-white dark:bg-slate-800 text-text-muted border-border hover:border-blue-400 hover:text-blue-500 hover:shadow-md' 
+                                                        : 'bg-gray-50 dark:bg-slate-900 text-gray-300 dark:text-slate-700 border-transparent cursor-not-allowed opacity-60'}
+                                    ${isCompleted ? 'cursor-default' : ''}
                                 `}
                                 title={`${step.description}\nStatus: ${status}`}
                             >
@@ -140,21 +160,29 @@ export default function ProgressBar({ milestones, inHomeDate, mailType, onMilest
                                 )}
                                 
                                 <span className="relative z-10 flex items-center gap-1">
-                                    {isCompleted ? (
-                                        step.key === 'mailed' ? (
+                                    {isInHomes ? (
+                                        <>
+                                            <Home className="w-3.5 h-3.5" />
+                                            In Homes
+                                        </>
+                                    ) : isMailed ? (
+                                        <>
                                             <motion.div
                                                 animate={{ x: [-2, 2, -2] }}
                                                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                                             >
                                                 <Truck className="w-3.5 h-3.5" />
                                             </motion.div>
-                                        ) : (
-                                            <Check className="w-3.5 h-3.5" />
-                                        )
+                                            On Way
+                                        </>
+                                    ) : isCompleted ? (
+                                        <Check className="w-3.5 h-3.5" />
                                     ) : isInProgress ? (
                                         <Loader2 className="w-3 h-3 animate-spin" />
                                     ) : null}
-                                    {isInProgress ? 'Working' : step.label}
+                                    
+                                    {!isMailed && !isInHomes && !isInProgress && step.label}
+                                    {isInProgress && 'Working'}
                                 </span>
                             </motion.button>
                             {isCompleted && milestones[step.key] && (

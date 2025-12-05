@@ -69,8 +69,12 @@ CREATE TABLE IF NOT EXISTS mail_jobs (
   first_valid_date TEXT,
   vendor_mail_date TEXT,
   milestones JSONB,
+  tags JSONB,
   created_at TEXT NOT NULL
 );
+
+-- Attempt to add 'tags' column if it doesn't exist
+ALTER TABLE mail_jobs ADD COLUMN IF NOT EXISTS tags JSONB;
 
 CREATE TABLE IF NOT EXISTS admins (
   id TEXT PRIMARY KEY,

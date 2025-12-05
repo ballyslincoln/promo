@@ -201,29 +201,47 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
 
   const eventStyleGetter = (event: any) => {
     const adminEvent = event.resource as AdminEvent;
-    let backgroundColor = '#3174ad';
-    let color = 'white';
+    const title = adminEvent.title.toLowerCase();
     
-    switch (adminEvent.category) {
-        case 'Invited': backgroundColor = '#FBBF24'; color = '#000'; break;
-        case 'Open': backgroundColor = '#EF4444'; break;
-        case 'Dining': backgroundColor = '#3B82F6'; break;
-        case 'Promo': backgroundColor = '#8B5CF6'; break;
-        case 'Entertainment': backgroundColor = '#EC4899'; break;
-        case 'Schedule': backgroundColor = '#10B981'; break;
-        case 'Internal': backgroundColor = '#6B7280'; break;
+    let backgroundColor = '#3b82f6'; // Default Blue
+    let color = 'white';
+    let borderLeft = 'none';
+
+    // Specific Color Logic based on User Request
+    if (title.includes('slot')) {
+        // Slots Promotion - Gold/Orange theme
+        backgroundColor = '#F59E0B'; 
+    } else if (title.includes('table')) {
+        // Table Promotion - Emerald Green
+        backgroundColor = '#10B981';
+    } else if (adminEvent.category === 'Entertainment' || title.includes('music') || title.includes('band')) {
+        // Entertainment - Pink/Rose
+        backgroundColor = '#EC4899';
+    } else {
+        // Category Fallbacks with "Better Colors"
+        switch (adminEvent.category) {
+            case 'Invited': backgroundColor = '#8B5CF6'; break; // Violet
+            case 'Open': backgroundColor = '#EF4444'; break; // Red
+            case 'Dining': backgroundColor = '#0EA5E9'; break; // Sky Blue
+            case 'Promo': backgroundColor = '#F59E0B'; break; // Amber (similar to slots)
+            case 'Schedule': backgroundColor = '#64748B'; break; // Slate
+            case 'Internal': backgroundColor = '#94A3B8'; break; // Light Slate
+        }
     }
 
     return {
       style: {
         backgroundColor,
         color,
-        borderRadius: '4px',
+        borderRadius: '6px',
         border: 'none',
         display: 'block',
-        opacity: 0.9,
-        fontSize: '0.75rem',
-        padding: '1px 2px'
+        opacity: 1,
+        fontSize: '0.7rem',
+        fontWeight: '600',
+        padding: '2px 5px',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+        marginBottom: '2px'
       }
     };
   };

@@ -82,8 +82,28 @@ export const interactionService = {
     }
   },
 
+  // Toggle Reaction
+  async toggleReaction(eventId: string, reaction: string): Promise<{ success: boolean, action?: 'added' | 'removed' | 'updated' }> {
+    try {
+      const res = await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, type: 'reaction', content: reaction })
+      });
+
+      if (res.ok) {
+        return await res.json();
+      }
+      console.error('Failed to toggle reaction:', await res.text());
+      return { success: false };
+    } catch (e) {
+      console.error('Error toggling reaction:', e);
+      return { success: false };
+    }
+  },
+
   // Get Stats for Events
-  async getStatsForEvents(eventIds: string[]): Promise<Record<string, { aura: number, comments: number }>> {
+  async getStatsForEvents(eventIds: string[]): Promise<Record<string, { aura: number, reactions: number }>> {
     if (eventIds.length === 0) return {};
 
     try {
@@ -100,7 +120,14 @@ export const interactionService = {
   },
 
   // Get Interactions for Event
-  async getEventInteractions(eventId: string): Promise<{ auraCount: number; comments: Interaction[]; hasUserAura: boolean; currentUser?: User }> {
+  async getEventInteractions(eventId: string): Promise<{ 
+    auraCount: number; 
+    comments: Interaction[]; 
+    reactions: Record<string, number>;
+    userReaction: string | null;
+    hasUserAura: boolean; 
+    currentUser?: User 
+  }> {
     try {
       const res = await fetch(`/api/interactions?eventId=${eventId}`);
       if (res.ok) {
@@ -115,6 +142,8 @@ export const interactionService = {
       return {
         auraCount: 0,
         comments: [],
+        reactions: {},
+        userReaction: null,
         hasUserAura: false
       };
     } catch (e) {
@@ -122,6 +151,8 @@ export const interactionService = {
       return {
         auraCount: 0,
         comments: [],
+        reactions: {},
+        userReaction: null,
         hasUserAura: false
       };
     }
