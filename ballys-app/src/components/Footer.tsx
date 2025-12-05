@@ -12,8 +12,8 @@ export default function Footer({ onAdminOpen, onPrivacyClick }: FooterProps) {
 
   useEffect(() => {
     const heartbeat = async () => {
-        const { count } = await analyticsService.sendHeartbeat();
-        if (count) setActiveUsers(count);
+        const { total } = await analyticsService.sendHeartbeat();
+        if (total) setActiveUsers(total);
     };
     
     heartbeat();

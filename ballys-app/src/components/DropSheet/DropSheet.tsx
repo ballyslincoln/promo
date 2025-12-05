@@ -43,7 +43,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     // Active User Tracking
     useEffect(() => {
         const trackPresence = async () => {
-            const { count } = await analyticsService.sendHeartbeat('dropsheet');
+            const { total } = await analyticsService.sendHeartbeat('dropsheet');
             // Ideally the API would return the specific count for 'dropsheet' location, 
             // but for now we just show total active users or if we updated the API to return location counts
             // If the API only returns total count, we can just show that. 
@@ -51,7 +51,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
             // My previous API edit didn't explicitly breakdown counts by location in the return value, just stored it.
             // I should fix the API or just show the total for now. 
             // Let's show the total for now as "Users Online".
-            if (count) setActiveUsers(count);
+            if (total) setActiveUsers(total);
         };
 
         trackPresence();
