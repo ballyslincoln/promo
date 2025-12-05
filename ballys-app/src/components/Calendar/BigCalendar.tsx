@@ -205,7 +205,6 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
     
     let backgroundColor = '#3b82f6'; // Default Blue
     let color = 'white';
-    let borderLeft = 'none';
 
     // Specific Color Logic based on User Request
     if (title.includes('slot')) {

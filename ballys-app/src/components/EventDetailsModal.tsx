@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap, Send, Trash2 } from 'lucide-react';
-import type { AdminEvent, Interaction, User } from '../types';
+import { X, Clock, MapPin, Calendar as CalendarIcon, FileText, Edit2, CalendarPlus, Download, Zap } from 'lucide-react';
+import type { AdminEvent } from '../types';
 import { generateOutlookCalendarUrl, downloadICS } from '../services/calendarService';
 import { interactionService } from '../services/interactionService';
 import { userService } from '../services/userService';
@@ -30,7 +30,6 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
   const [hasAura, setHasAura] = useState(false);
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
   const [userReaction, setUserReaction] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     if (isOpen && event) {
@@ -42,12 +41,8 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
           setReactionCounts(data.reactions || {});
           setUserReaction(data.userReaction);
           
-          if (data.currentUser) {
-            setCurrentUser(data.currentUser);
-          } else {
-            const user = await userService.getOrCreateUser();
-            setCurrentUser(user);
-          }
+          // Ensure user exists
+          await userService.getOrCreateUser();
         } catch (error) {
           console.error("Failed to load interactions", error);
         }
@@ -84,7 +79,7 @@ export default function EventDetailsModal({ event, isOpen, onClose, onEdit }: Ev
 
     // Optimistic Update
     let newCounts = { ...prevCounts };
-    let newReaction = emoji;
+    let newReaction: string | null = emoji;
 
     if (prevReaction === emoji) {
       // Toggle off

@@ -90,7 +90,7 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
     // Data state
     const [allEventRules, setAllEventRules] = useState<AdminEvent[]>([]);
     const [schedules, setSchedules] = useState<Record<string, ScheduleItem[]>>({});
-    const [stats, setStats] = useState<Record<string, { aura: number, comments: number }>>({});
+    const [stats, setStats] = useState<Record<string, { aura: number, reactions: number }>>({});
 
     // UI State
     const [activeTab, setActiveTab] = useState<'events' | 'schedules'>('events');
@@ -757,7 +757,7 @@ function EmptyState({ message, onAddEvent }: { message: string, onAddEvent?: () 
     );
 }
 
-function EventCard({ event, stats, onEdit, onClick }: { event: Event, stats?: { aura: number, comments: number }, onEdit?: (event: Event) => void, onClick?: (event: Event) => void }) {
+function EventCard({ event, stats, onEdit, onClick }: { event: Event, stats?: { aura: number, reactions: number }, onEdit?: (event: Event) => void, onClick?: (event: Event) => void }) {
     return (
         <div
             onClick={() => onClick && onClick(event)}
@@ -854,7 +854,7 @@ function EventCard({ event, stats, onEdit, onClick }: { event: Event, stats?: { 
 
                     {/* Stats Preview */}
                     <div className="flex items-center gap-3 ml-auto pl-2">
-                        {stats && (stats.aura > 0 || stats.comments > 0) && (
+                        {stats && (stats.aura > 0 || stats.reactions > 0) && (
                             <>
                                 {stats.aura > 0 && (
                                     <div className="flex items-center gap-1 text-yellow-500">
@@ -862,10 +862,10 @@ function EventCard({ event, stats, onEdit, onClick }: { event: Event, stats?: { 
                                         <span className="text-xs font-bold">{stats.aura}</span>
                                     </div>
                                 )}
-                                {stats.comments > 0 && (
+                                {stats.reactions > 0 && (
                                     <div className="flex items-center gap-1 text-text-muted">
                                         <MessageSquare className="w-3.5 h-3.5" />
-                                        <span className="text-xs font-bold">{stats.comments}</span>
+                                        <span className="text-xs font-bold">{stats.reactions}</span>
                                     </div>
                                 )}
                             </>
