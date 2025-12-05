@@ -3,7 +3,7 @@ import type { MailJob, JobMilestones } from '../../services/dropSheetService';
 import ProgressBar from './ProgressBar';
 import PostageSelector from './PostageSelector';
 import { Calendar, Save, Trash2, CheckCircle, Edit2, ChevronDown, ChevronUp, Send, Hourglass, Loader, FileSearch, UserCheck, Pause, AlertCircle, Plus, X, Tag, Truck } from 'lucide-react';
-import { format, parseISO, differenceInHours } from 'date-fns';
+import { format, parseISO, differenceInHours, isAfter } from 'date-fns';
 import { calculateDatesFromFirstValid } from './dateUtils';
 
 interface JobCardProps {
@@ -228,6 +228,50 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
         handleChange('tags', currentTags.filter((t: string) => t !== tagToRemove));
     };
 
+    // Mini Progress Bar Logic
+    const renderMiniProgressBar = () => {
+        const steps: (keyof JobMilestones)[] = ['outline_given', 'data_received', 'data_approved', 'creative_received', 'creative_approved', 'mailed'];
+        const totalSteps = steps.length;
+        
+        return (
+            <div className="flex items-center gap-0.5 mt-2 h-1.5 w-full max-w-[200px] bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                {steps.map((step, idx) => {
+                    const statusKey = `${step}_status` as keyof JobMilestones;
+                    const status = job.milestones[statusKey] || (job.milestones[step] ? 'completed' : 'pending');
+                    const isCompleted = status === 'completed';
+                    const isInProgress = status === 'in_progress';
+                    
+                    let colorClass = 'bg-gray-200 dark:bg-gray-700'; // Pending
+                    
+                    if (isCompleted) {
+                        colorClass = 'bg-green-500';
+                        // Special handling for mailed
+                        if (step === 'mailed') {
+                            const mailedDate = job.milestones.mailed ? parseISO(job.milestones.mailed) : null;
+                            const inHomeTarget = job.in_home_date ? parseISO(job.in_home_date) : null;
+                            
+                            if (mailedDate && inHomeTarget && isAfter(new Date(), inHomeTarget)) {
+                                colorClass = 'bg-purple-500'; // In Homes
+                            } else {
+                                colorClass = 'bg-orange-500'; // On Way
+                            }
+                        }
+                    } else if (isInProgress) {
+                        colorClass = 'bg-blue-500';
+                    }
+
+                    return (
+                        <div 
+                            key={step} 
+                            className={`h-full flex-1 ${colorClass} transition-all duration-300`}
+                            title={step.replace('_', ' ')}
+                        />
+                    );
+                })}
+            </div>
+        );
+    };
+
     return (
         <div className={`bg-surface border rounded-xl mb-4 shadow-sm hover:shadow-md transition-all relative overflow-visible group ${isExpanded ? 'p-6' : 'p-3'
             } ${job.property_review
@@ -275,6 +319,8 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                 )}
                             </div>
                             <h3 className="text-sm font-bold text-text-main truncate">{job.campaign_name}</h3>
+                            {/* Mini Progress Bar */}
+                            {renderMiniProgressBar()}
                             <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
                                 <span>{job.mail_type}</span>
                                 {job.in_home_date && (
