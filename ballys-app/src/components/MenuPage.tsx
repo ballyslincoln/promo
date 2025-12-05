@@ -195,9 +195,9 @@ export default function MenuPage({ onSelect, onLogout, onPrivacyClick, adminUser
                 {/* Footer/Version */}
                 <motion.div 
                     variants={itemVariants}
-                    className="mt-12"
+                    className="mt-8 w-full"
                 >
-                    <Footer onPrivacyClick={onPrivacyClick} />
+                    <Footer onPrivacyClick={onPrivacyClick} variant="minimal" />
                 </motion.div>
             </motion.div>
         </div>

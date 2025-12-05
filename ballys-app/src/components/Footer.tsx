@@ -3,11 +3,21 @@ import { MessageSquarePlus } from 'lucide-react';
 interface FooterProps {
   onAdminOpen?: () => void;
   onPrivacyClick?: () => void;
+  className?: string;
+  variant?: 'default' | 'minimal' | 'glass';
 }
 
-export default function Footer({ onAdminOpen, onPrivacyClick }: FooterProps) {
+export default function Footer({ onAdminOpen, onPrivacyClick, className = '', variant = 'default' }: FooterProps) {
+  const baseStyles = "relative z-50 py-6 px-4 mt-auto transition-all duration-300";
+  
+  const variants = {
+    default: "border-t border-border bg-surface/50 backdrop-blur-sm pb-safe-bottom",
+    minimal: "bg-transparent border-none pb-safe-bottom opacity-80 hover:opacity-100",
+    glass: "bg-white/10 dark:bg-black/10 backdrop-blur-md border-t border-white/10 pb-safe-bottom"
+  };
+
   return (
-    <footer className="relative z-50 py-8 px-4 border-t border-border mt-auto bg-surface/50 backdrop-blur-sm pb-safe-bottom">
+    <footer className={`${baseStyles} ${variants[variant]} ${className}`}>
         <div className="max-w-3xl mx-auto text-center space-y-3">
             <p className="text-[10px] text-text-muted font-medium uppercase tracking-widest">
                 Created by Regional Advertising Manager Jackson Kelly

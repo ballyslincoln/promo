@@ -288,9 +288,11 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
             </AnimatePresence>
 
             {/* Footer - Positioned at bottom */}
-            <div className="relative z-40 mt-auto">
-                <Footer onPrivacyClick={onPrivacyClick} />
-            </div>
+            <Footer 
+                onPrivacyClick={onPrivacyClick} 
+                variant="minimal" 
+                className="relative z-40" 
+            />
         </div>
     );
 }

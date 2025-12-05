@@ -298,7 +298,7 @@ export default function Dashboard({ onAdminOpen, onPrivacyClick, onEditEvent, on
     };
 
     return (
-        <div className="min-h-screen bg-background text-text-main pb-40 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col transition-colors duration-300">
+        <div className="min-h-screen bg-background text-text-main pb-20 font-sans selection:bg-ballys-red/30 relative overflow-x-hidden overscroll-none flex flex-col transition-colors duration-300">
             {/* Ambient Background - Optimized for performance */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-ballys-red/5 rounded-full blur-3xl opacity-50 transform-gpu will-change-transform" />

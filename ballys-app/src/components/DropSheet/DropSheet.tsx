@@ -12,6 +12,8 @@ import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriang
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { calculateMilestoneDates } from './dateUtils';
 
+import Footer from '../Footer';
+
 interface DropSheetProps {
     onBack: () => void;
 }
@@ -596,6 +598,10 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     isOpen={isShortcutsOpen}
                     onClose={() => setIsShortcutsOpen(false)}
                 />
+            </div>
+            
+            <div className="mt-12">
+                <Footer variant="default" />
             </div>
         </div>
     );
