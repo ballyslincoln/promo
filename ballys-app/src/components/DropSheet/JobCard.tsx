@@ -13,6 +13,8 @@ interface JobCardProps {
     isSelectionMode?: boolean;
     isSelected?: boolean;
     onToggleSelect?: (id: string, selected: boolean) => void;
+    isExpanded?: boolean;
+    onToggleExpand?: (expanded: boolean) => void;
 }
 
 const DEPENDENCIES: Partial<Record<keyof JobMilestones, (keyof JobMilestones)[]>> = {
@@ -41,7 +43,7 @@ const TAG_CONFIG: Record<string, { bg: string; text: string; icon: any }> = {
 
 const DEFAULT_TAG_STYLE = { bg: 'bg-gray-100 dark:bg-slate-800', text: 'text-text-main', icon: Tag };
 
-export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSelected, onToggleSelect }: JobCardProps) {
+export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSelected, onToggleSelect, isExpanded, onToggleExpand }: JobCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [editedJob, setEditedJob] = useState<MailJob>(job);
     const [showSaved, setShowSaved] = useState(false);
@@ -50,8 +52,12 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
     // Minimize completed jobs logic
     // Strictly check milestone status to avoid false positives from data import mapping errors
     const isCompleted = !!job.milestones.mailed;
-    const [isExpanded, setIsExpanded] = useState(!isCompleted);
-
+    // Use controlled state if provided, otherwise fallback to local state (though parent should control now)
+    // But to keep it safe if parent doesn't pass props (it will), we can default.
+    // Actually, since we refactored parent, let's assume isExpanded is always provided.
+    // For backward compat with other potential usages (none exist), we can check.
+    // But simpler: Assume controlled component now.
+    
     const getReviewHours = (startStr?: string) => {
         if (!startStr) return 0;
         const start = parseISO(startStr);
@@ -334,7 +340,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
                     {/* Toggle Button */}
                     <button
-                        onClick={() => setIsExpanded(true)}
+                        onClick={() => onToggleExpand?.(true)}
                         className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-text-muted hover:text-text-main flex-shrink-0"
                         title="Expand"
                     >
@@ -421,7 +427,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                                     ) : (
                                         <div className="flex items-center gap-1 opacity-100 transition-opacity duration-200">
                                             <button
-                                                onClick={() => setIsExpanded(false)}
+                                                onClick={() => onToggleExpand?.(false)}
                                                 className="p-2 text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                                 title="Minimize"
                                             >

@@ -8,7 +8,7 @@ import ImportJsonModal from './ImportJsonModal';
 import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
 import { ThemeToggle } from '../ThemeToggle';
-import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard, Users, Search } from 'lucide-react';
+import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard, Users, Search, Maximize2, Minimize2 } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { calculateMilestoneDates } from './dateUtils';
 
@@ -29,6 +29,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
     const [activeUsers, setActiveUsers] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [expandedJobIds, setExpandedJobIds] = useState<Set<string>>(new Set());
+    const [hasInitializedExpansion, setHasInitializedExpansion] = useState(false);
 
     // Mass Selection & Delete
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -65,12 +67,41 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         alert(`There are currently ${activeUsers} users viewing the Marketing Logistics page.`);
     };
 
+    const handleToggleExpand = (id: string, expanded: boolean) => {
+        const newSet = new Set(expandedJobIds);
+        if (expanded) {
+            newSet.add(id);
+        } else {
+            newSet.delete(id);
+        }
+        setExpandedJobIds(newSet);
+    };
+
+    const handleExpandAll = () => {
+        const allIds = new Set(jobs.map(j => j.id));
+        setExpandedJobIds(allIds);
+    };
+
+    const handleCollapseAll = () => {
+        setExpandedJobIds(new Set());
+    };
+
     const loadJobs = useCallback(async () => {
         setIsLoading(true);
         const data = await dropSheetService.getJobs();
         setJobs(data);
+        
+        // Initialize expansion state once on first load
+        if (!hasInitializedExpansion && data.length > 0) {
+            const initialExpanded = new Set(
+                data.filter(j => !j.milestones.mailed).map(j => j.id)
+            );
+            setExpandedJobIds(initialExpanded);
+            setHasInitializedExpansion(true);
+        }
+        
         setIsLoading(false);
-    }, []);
+    }, [hasInitializedExpansion]);
 
     const handleUpdateJob = async (updatedJob: MailJob) => {
         // Optimistic update
@@ -192,6 +223,9 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     const handleCreateJob = async (newJob: MailJob) => {
         // Optimistic update
         setJobs(prev => [...prev, newJob]);
+        // Auto-expand new job
+        setExpandedJobIds(prev => new Set(prev).add(newJob.id));
+        
         try {
             await dropSheetService.createJob(newJob);
         } catch (e) {
@@ -592,6 +626,25 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         >
                             <Keyboard className="w-5 h-5" />
                         </button>
+
+                        {/* Expand/Collapse All */}
+                        <div className="flex items-center bg-surface border border-border rounded-lg p-0.5 shadow-sm">
+                            <button
+                                onClick={handleExpandAll}
+                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors text-text-muted hover:text-text-main"
+                                title="Expand All"
+                            >
+                                <Maximize2 className="w-4 h-4" />
+                            </button>
+                            <div className="w-px h-4 bg-border mx-0.5"></div>
+                            <button
+                                onClick={handleCollapseAll}
+                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-md transition-colors text-text-muted hover:text-text-main"
+                                title="Collapse All"
+                            >
+                                <Minimize2 className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
 
                     <button 
@@ -622,6 +675,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                                 isSelectionMode={isSelectionMode}
                                 isSelected={selectedJobIds.has(job.id)}
                                 onToggleSelect={handleToggleSelect}
+                                isExpanded={expandedJobIds.has(job.id)}
+                                onToggleExpand={(expanded) => handleToggleExpand(job.id, expanded)}
                             />
                         ))
                     )}
