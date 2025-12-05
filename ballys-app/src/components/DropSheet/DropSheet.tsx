@@ -6,6 +6,7 @@ import AddJobModal from './AddJobModal';
 import ImportJsonModal from './ImportJsonModal';
 import ExportJsonModal from './ExportJsonModal';
 import ShortcutsHelp from './ShortcutsHelp';
+import { ThemeToggle } from '../ThemeToggle';
 import { Plus, Upload, ArrowLeft, ChevronLeft, ChevronRight, Trash2, AlertTriangle, ListChecks, ArrowUpDown, X, Keyboard } from 'lucide-react';
 import { format, addMonths, subMonths, isSameMonth, parseISO, isValid } from 'date-fns';
 import { calculateMilestoneDates } from './dateUtils';
@@ -339,6 +340,8 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     </div>
                     
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
+                        <ThemeToggle />
+                        
                         {/* View Mode Toggle */}
                         <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm">
                             <button 
