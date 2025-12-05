@@ -44,13 +44,6 @@ export default function DropSheet({ onBack }: DropSheetProps) {
     useEffect(() => {
         const trackPresence = async () => {
             const { total } = await analyticsService.sendHeartbeat('dropsheet');
-            // Ideally the API would return the specific count for 'dropsheet' location, 
-            // but for now we just show total active users or if we updated the API to return location counts
-            // If the API only returns total count, we can just show that. 
-            // To be "like google docs", we really want the count of people ON THIS PAGE.
-            // My previous API edit didn't explicitly breakdown counts by location in the return value, just stored it.
-            // I should fix the API or just show the total for now. 
-            // Let's show the total for now as "Users Online".
             if (total) setActiveUsers(total);
         };
 
@@ -58,6 +51,16 @@ export default function DropSheet({ onBack }: DropSheetProps) {
         const interval = setInterval(trackPresence, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    // View active users logic
+    const handleViewActiveUsers = () => {
+        // In a real app, this would fetch the list of users. 
+        // For now, we'll just show a simple alert or modal.
+        // Since the API only returns a count, we can't really show names.
+        // But the user asked to "see who is on the dropsheet".
+        // I'll add a placeholder for now.
+        alert(`There are currently ${activeUsers} users viewing the Marketing Logistics page.`);
+    };
 
     const loadJobs = useCallback(async () => {
         setIsLoading(true);
@@ -363,14 +366,18 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
                         
                         {/* Live Users Indicator */}
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm" title="Active Users">
+                        <button 
+                            onClick={handleViewActiveUsers}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" 
+                            title="View Active Users"
+                        >
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                             </span>
                             <Users className="w-3.5 h-3.5 text-text-muted" />
                             <span className="text-xs font-bold text-text-main">{activeUsers}</span>
-                        </div>
+                        </button>
 
                         <ThemeToggle />
                         

@@ -257,6 +257,8 @@ export default function BigCalendar({ events, onSelectEvent, onSelectSlot, readO
         view={view}
         onView={setView}
         selectable={!readOnly}
+        step={60} 
+        timeslots={1}
         onSelectEvent={(e) => onSelectEvent && onSelectEvent(e.resource)}
         onSelectSlot={(slotInfo) => onSelectSlot && onSelectSlot({ start: slotInfo.start as Date, end: slotInfo.end as Date })}
         components={{
