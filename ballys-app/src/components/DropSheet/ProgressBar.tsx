@@ -1,7 +1,7 @@
 import type { JobMilestones } from '../../services/dropSheetService';
 import { calculateMilestoneDates } from './dateUtils';
 import { format, parseISO, differenceInCalendarDays } from 'date-fns';
-import { Check, AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { Check, AlertCircle, Clock, Loader2, Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProgressBarProps {
@@ -140,8 +140,20 @@ export default function ProgressBar({ milestones, inHomeDate, mailType, onMilest
                                 )}
                                 
                                 <span className="relative z-10 flex items-center gap-1">
-                                    {isCompleted ? <Check className="w-3.5 h-3.5" /> : 
-                                     isInProgress ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                    {isCompleted ? (
+                                        step.key === 'mailed' ? (
+                                            <motion.div
+                                                animate={{ x: [-2, 2, -2] }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                            >
+                                                <Truck className="w-3.5 h-3.5" />
+                                            </motion.div>
+                                        ) : (
+                                            <Check className="w-3.5 h-3.5" />
+                                        )
+                                    ) : isInProgress ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : null}
                                     {isInProgress ? 'Working' : step.label}
                                 </span>
                             </motion.button>

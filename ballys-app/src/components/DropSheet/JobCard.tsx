@@ -63,7 +63,13 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
         // Determine status key
         const statusKey = `${key}_status` as keyof JobMilestones;
-        const currentStatus = (newMilestones[statusKey] as 'pending' | 'in_progress' | 'completed' | undefined) || 'pending';
+        let currentStatus = (newMilestones[statusKey] as 'pending' | 'in_progress' | 'completed' | undefined);
+        
+        // Fallback: If status is missing but date exists, treat as completed
+        if (!currentStatus && newMilestones[key]) {
+            currentStatus = 'completed';
+        }
+        currentStatus = currentStatus || 'pending';
 
         if (currentStatus === 'completed') {
             // Reset to pending
