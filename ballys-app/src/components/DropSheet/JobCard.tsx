@@ -231,11 +231,10 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
     // Mini Progress Bar Logic
     const renderMiniProgressBar = () => {
         const steps: (keyof JobMilestones)[] = ['outline_given', 'data_received', 'data_approved', 'creative_received', 'creative_approved', 'mailed'];
-        const totalSteps = steps.length;
         
         return (
             <div className="flex items-center gap-0.5 mt-2 h-1.5 w-full max-w-[200px] bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                {steps.map((step, idx) => {
+                {steps.map((step) => {
                     const statusKey = `${step}_status` as keyof JobMilestones;
                     const status = job.milestones[statusKey] || (job.milestones[step] ? 'completed' : 'pending');
                     const isCompleted = status === 'completed';
