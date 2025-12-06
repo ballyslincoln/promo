@@ -52,10 +52,12 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
         }
     }, [code, isAdminMode]);
 
-    // Check if running in standalone mode (installed as PWA)
+    // Check if running in standalone mode (installed as PWA) or on desktop
     useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-        if (isStandalone) {
+        const isMobile = window.innerWidth < 768;
+        
+        if (isStandalone || !isMobile) {
             setShowInstallPrompt(false);
         }
     }, []);
@@ -249,10 +251,9 @@ export default function Login({ onLogin, onAdminLogin, onPrivacyClick }: { onLog
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: '100%', opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="absolute bottom-0 left-0 right-0 z-50 p-4 flex justify-center pb-safe-bottom"
-                        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+                        className="fixed bottom-24 left-0 right-0 z-[60] p-4 flex justify-center pointer-events-none"
                     >
-                        <div className="bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-[340px] w-full p-4 relative overflow-hidden">
+                        <div className="bg-surface/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl max-w-[340px] w-full p-4 relative overflow-hidden pointer-events-auto">
                             <button 
                                 onClick={() => setShowInstallPrompt(false)}
                                 className="absolute top-2 right-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
