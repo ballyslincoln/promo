@@ -435,12 +435,12 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end bg-surface/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-sm flex-wrap">
                         
                         {/* Live Users Indicator */}
                         <button 
                             onClick={handleViewActiveUsers}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" 
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors order-1" 
                             title="View Active Users"
                         >
                             <span className="relative flex h-2 w-2">
@@ -451,10 +451,12 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                             <span className="text-xs font-bold text-text-main">{activeUsers}</span>
                         </button>
 
-                        <ThemeToggle />
+                        <div className="order-2 md:order-none">
+                            <ThemeToggle />
+                        </div>
                         
                         {/* View Mode Toggle */}
-                        <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm">
+                        <div className="flex items-center bg-surface border border-border rounded-xl p-1 shadow-sm order-3 md:order-none">
                             <button 
                                 onClick={() => setViewMode('month')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === 'month' ? 'bg-gray-800 text-white shadow-md' : 'text-text-muted hover:text-text-main hover:bg-gray-100 dark:hover:bg-slate-800'}`}
@@ -471,11 +473,11 @@ export default function DropSheet({ onBack }: DropSheetProps) {
 
                         {/* Month Navigator */}
                         {viewMode === 'month' && (
-                            <div className="flex items-center bg-surface border border-border rounded-xl shadow-sm">
+                            <div className="flex items-center bg-surface border border-border rounded-xl shadow-sm order-last md:order-none w-full md:w-auto justify-between md:justify-start mt-2 md:mt-0">
                                 <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-l-xl transition-colors border-r border-border/50">
                                     <ChevronLeft className="w-4 h-4 text-text-muted" />
                                 </button>
-                                <div className="px-4 min-w-[140px] text-center">
+                                <div className="px-4 min-w-[140px] text-center flex-1 md:flex-none">
                                     <span className="text-sm font-bold text-text-main block uppercase tracking-wider">
                                         {format(currentMonth, 'MMMM yyyy')}
                                     </span>
@@ -487,7 +489,7 @@ export default function DropSheet({ onBack }: DropSheetProps) {
                         )}
                         
                         {/* Property Toggle */}
-                        <div className="flex items-center gap-1 bg-surface border border-border rounded-xl p-1 shadow-sm">
+                        <div className="flex items-center gap-1 bg-surface border border-border rounded-xl p-1 shadow-sm order-4 md:order-none ml-auto md:ml-0">
                              {(['Lincoln', 'Tiverton', 'All'] as const).map((prop) => (
                                 <button 
                                     key={prop}

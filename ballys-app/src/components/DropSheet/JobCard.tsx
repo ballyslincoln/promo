@@ -351,7 +351,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                 /* Expanded View */
                 <div className="flex flex-col gap-6">
                     {/* Header Section: Selection + Job # + Campaign Name */}
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-2 sm:gap-4">
                         {/* Selection Checkbox */}
                         {isSelectionMode && (
                             <div className="pt-1">
@@ -368,12 +368,12 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                         <div className={`w-1.5 self-stretch rounded-full flex-shrink-0 ${job.property === 'Lincoln' ? 'bg-blue-500' : 'bg-orange-500'}`} />
 
                         {/* Job Header Info */}
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                                 {/* Job Number & Campaign Name Group */}
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <span className="px-2 py-0.5 bg-surface-highlight border border-border rounded text-[10px] font-mono text-text-muted uppercase tracking-wider flex items-center">
+                                <div className="flex-1 space-y-2 min-w-0">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="px-2 py-0.5 bg-surface-highlight border border-border rounded text-[10px] font-mono text-text-muted uppercase tracking-wider flex items-center whitespace-nowrap">
                                             Job #{isEditing ? (
                                                 <input
                                                     type="text"
@@ -398,22 +398,22 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
 
                                     {/* Campaign Name - Larger and Spaced */}
                                     <div className="flex items-start gap-2">
-                                        <span className="text-lg mt-0.5">📢</span>
+                                        <span className="text-lg mt-0.5 flex-shrink-0">📢</span>
                                         {isEditing ? (
                                             <input
                                                 type="text"
                                                 value={editedJob.campaign_name}
                                                 onChange={e => handleChange('campaign_name', e.target.value)}
-                                                className="bg-background border border-border rounded-lg px-3 py-2 text-lg font-bold w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="bg-background border border-border rounded-lg px-3 py-2 text-lg font-bold w-full focus:ring-2 focus:ring-blue-500 outline-none min-w-0"
                                             />
                                         ) : (
-                                            <h3 className="text-lg font-bold text-text-main leading-tight">{job.campaign_name}</h3>
+                                            <h3 className="text-lg font-bold text-text-main leading-tight break-words">{job.campaign_name}</h3>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Actions Toolbar */}
-                                <div className="flex items-center gap-2 self-start md:self-center">
+                                <div className="flex items-center gap-2 self-start md:self-center flex-shrink-0">
                                     {isEditing ? (
                                         <div className="flex items-center gap-2 bg-surface p-1 rounded-lg border border-border shadow-sm">
                                             <button onClick={handleSave} className="px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 text-xs font-bold flex items-center gap-1 transition-colors">
@@ -445,7 +445,7 @@ export default function JobCard({ job, onUpdate, onDelete, isSelectionMode, isSe
                             </div>
 
                             {/* Secondary Details Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-4 gap-x-4 pt-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-y-4 gap-x-4 pt-2">
                                 {/* Type */}
                                 <div className="flex flex-col">
                                     <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold mb-1">Mail Type</label>

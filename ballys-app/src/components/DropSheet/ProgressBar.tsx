@@ -90,7 +90,7 @@ export default function ProgressBar({ milestones, inHomeDate, mailType, onMilest
 
     return (
         <div className="w-full flex flex-col gap-2">
-            <div className="flex items-center justify-between w-full gap-1">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 w-full">
                 {VISIBLE_STEPS.map((step) => {
                     
                     // Check if enabled based on dependencies
@@ -196,44 +196,44 @@ export default function ProgressBar({ milestones, inHomeDate, mailType, onMilest
             </div>
             
             {/* Dates Context & Status Indicators */}
-            <div className="flex justify-between items-center text-[10px] text-text-muted px-1 mt-1 bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/50">
-                 <div className="flex gap-4 items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-center text-[10px] text-text-muted px-1 mt-1 bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/50 gap-2">
+                 <div className="flex gap-2 sm:gap-4 items-center flex-wrap justify-center">
                     {/* Art Submission Due (New, Highlighted) */}
                     <div className="flex flex-col bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded border border-purple-100 dark:border-purple-800/50">
-                        <span className="uppercase tracking-wider text-[9px] font-bold text-purple-600 dark:text-purple-400">Submit Art</span>
+                        <span className="uppercase tracking-wider text-[9px] font-bold text-purple-600 dark:text-purple-400 whitespace-nowrap">Submit Art</span>
                         <span className="font-mono font-bold text-purple-700 dark:text-purple-300">
                             {artSubmissionDueDate ? format(artSubmissionDueDate, 'MMM d') : '-'}
                         </span>
                     </div>
 
-                    <div className="h-6 w-px bg-border/50" />
+                    <div className="h-6 w-px bg-border/50 hidden sm:block" />
 
                     <div className="flex flex-col opacity-75">
-                        <span className="uppercase tracking-wider text-[9px] font-bold">Vendor Art</span>
+                        <span className="uppercase tracking-wider text-[9px] font-bold whitespace-nowrap">Vendor Art</span>
                         <span className="font-mono text-text-main">
                             {artDueDate ? format(artDueDate, 'MMM d') : '-'}
                         </span>
                     </div>
                     <div className="flex flex-col opacity-75">
-                        <span className="uppercase tracking-wider text-[9px] font-bold">Drop Goal</span>
+                        <span className="uppercase tracking-wider text-[9px] font-bold whitespace-nowrap">Drop Goal</span>
                         <span className="font-mono text-text-main">
                             {mailDropDate ? format(mailDropDate, 'MMM d') : '-'}
                         </span>
                     </div>
                  </div>
 
-                 <div className="flex items-center gap-3">
-                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md border font-bold uppercase tracking-wider transition-colors ${
+                 <div className="flex items-center gap-3 w-full sm:w-auto justify-center">
+                    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md border font-bold uppercase tracking-wider transition-colors w-full sm:w-auto justify-center ${
                         statusColor === 'red' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:border-red-800' :
                         statusColor === 'yellow' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800' :
                         statusColor === 'green' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:border-green-800' :
                         'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
                     }`}>
-                        {statusColor === 'red' && <AlertCircle className="w-3.5 h-3.5" />}
-                        {statusColor === 'green' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
-                        {statusColor === 'blue' && <Check className="w-3.5 h-3.5" />}
-                        {statusColor === 'yellow' && <Clock className="w-3.5 h-3.5" />}
-                        <span>{statusMessage}</span>
+                        {statusColor === 'red' && <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                        {statusColor === 'green' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse flex-shrink-0" />}
+                        {statusColor === 'blue' && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                        {statusColor === 'yellow' && <Clock className="w-3.5 h-3.5 flex-shrink-0" />}
+                        <span className="truncate">{statusMessage}</span>
                     </div>
                  </div>
             </div>
